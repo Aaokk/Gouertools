@@ -29,5 +29,9 @@ contextBridge.exposeInMainWorld('electron', {
       console.error('Error in saveImage:', error)
       throw error
     }
+  },
+  saveFile: async (suggestedName) => {
+    const result = await ipcRenderer.invoke('dialog:saveFile', suggestedName)
+    return result
   }
 }) 

@@ -1,7 +1,7 @@
 {
   "name": "shuiyinimg",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.0.1",
   "type": "commonjs",
   "scripts": {
     "dev": "vite",
@@ -9,7 +9,8 @@
     "browser:dev": "vite --open",
     "build": "vite build",
     "preview": "vite preview",
-    "electron:build": "vite build && electron-builder"
+    "electron:build": "vite build && electron-builder",
+    "electron:winbuild": "npm run electron:build -- --win"
   },
   "dependencies": {
     "vue": "^3.5.13"
@@ -22,8 +23,8 @@
   },
   "main": "electron/main.js",
   "build": {
-    "appId": "com.your-app.id",
-    "productName": "你的应用名称",
+    "appId": "com.love.sgg",
+    "productName": "Gouer.vip 水印(给亲爱的佘泳蕻老婆)",
     "directories": {
       "output": "release/${version}"
     },
@@ -42,7 +43,8 @@
       "target": [
         "dmg",
         "zip"
-      ]
+      ],
+      "icon": "icon.icns"
     },
     "win": {
       "target": [
@@ -50,11 +52,18 @@
           "target": "nsis",
           "arch": ["x64"]
         }
-      ]
+      ],
+      "icon": "icon.ico"
     },
     "nsis": {
       "oneClick": false,
-      "allowToChangeInstallationDirectory": true
+      "allowToChangeInstallationDirectory": true,
+      "installerIcon": "icon.ico",
+      "uninstallerIcon": "icon.ico",
+      "installerHeaderIcon": "icon.ico",
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Gouer.vip 水印"
     },
     "asar": false
   }

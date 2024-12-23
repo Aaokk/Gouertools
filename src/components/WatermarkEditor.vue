@@ -6,15 +6,18 @@ const getStoredSettings = () => {
   const stored = localStorage.getItem('watermarkSettings')
   if (stored) {
     try {
-      return JSON.parse(stored)
+      const settings = JSON.parse(stored)
+      // 确保 spacing 是数字类型
+      settings.spacing = parseInt(settings.spacing) || 100
+      return settings
     } catch (e) {
       console.error('解析存储的设置失败:', e)
     }
   }
   return {
-    text: "仅用于办理住房公积金，他用无效。",
+    text: "输入你要添加的水印文字",
     color: "#000000",
-    rgb: { r: 0, g: 0, b: 0, a: 0.4 },
+    rgb: { r: 0, g: 0, b: 0, a: 0.6 },
     fontSize: 23,
     watermarkHeight: 180,
     watermarkWidth: 280,
@@ -36,6 +39,11 @@ const currentImageIndex = ref(0)
 const isDragging = ref(false)
 const canvasRef = ref(null)
 
+// 添加水印拖动相关的状态
+const watermarkDragging = ref(false)
+const watermarkStartPos = ref({ x: 0, y: 0 })
+const watermarkOffset = reactive({ x: 100, y: 100 }) // 水印的初始位置
+
 // 初始化水印
 onMounted(() => {
   if (canvasRef.value) {
@@ -43,6 +51,8 @@ onMounted(() => {
   }
   document.addEventListener('mousemove', handleDragAngle)
   document.addEventListener('mouseup', stopDragAngle)
+  document.addEventListener('mousemove', handleWatermarkDrag)
+  document.addEventListener('mouseup', stopWatermarkDrag)
 })
 
 // 更新水印设置
@@ -78,33 +88,43 @@ const updateWatermark = () => {
     ctx.font = `${watermarkSettings.fontSize}px Arial`
     
     if (watermarkSettings.repeat) {
-      // 计算需要的水印行数和列数
-      const cols = Math.ceil(canvas.width / (watermarkSettings.watermarkWidth + watermarkSettings.spacing))
-      const rows = Math.ceil(canvas.height / (watermarkSettings.watermarkHeight + watermarkSettings.spacing))
+      // 计算水印网格的总宽度和高度
+      const gridWidth = Math.max(watermarkSettings.watermarkWidth, watermarkSettings.fontSize * watermarkSettings.text.length)
+      const gridHeight = Math.max(watermarkSettings.watermarkHeight, watermarkSettings.fontSize * 1.5)
+      const spacing = parseInt(watermarkSettings.spacing) // 确保spacing是数字
       
-      // 绘制重复的水印
-      for (let row = 0; row < rows; row++) {
-        for (let col = 0; col < cols; col++) {
-          const x = col * (watermarkSettings.watermarkWidth + watermarkSettings.spacing)
-          const y = row * (watermarkSettings.watermarkHeight + watermarkSettings.spacing)
+      // 计算需要的水印行数和列数（增加行列数以确保覆盖整个画布）
+      const cols = Math.ceil(canvas.width / (gridWidth + spacing)) + 1
+      const rows = Math.ceil(canvas.height / (gridHeight + spacing)) + 1
+      
+      // 使用拖动位置作为起始偏移
+      const startX = watermarkOffset.x % (gridWidth + spacing)
+      const startY = watermarkOffset.y % (gridHeight + spacing)
+      
+      // 绘制重复的水印，从负的位置开始以确保完全覆盖
+      for (let row = -1; row < rows; row++) {
+        for (let col = -1; col < cols; col++) {
+          const x = startX + col * (gridWidth + spacing)
+          const y = startY + row * (gridHeight + spacing)
           
           ctx.save()
-          ctx.translate(x + watermarkSettings.watermarkWidth/2, y + watermarkSettings.watermarkHeight/2)
+          ctx.translate(x + gridWidth/2, y + gridHeight/2)
           ctx.rotate((watermarkSettings.angle * Math.PI) / 180)
-          ctx.translate(-(watermarkSettings.watermarkWidth/2), -(watermarkSettings.watermarkHeight/2))
-          ctx.fillText(watermarkSettings.text, 0, watermarkSettings.fontSize)
+          const textWidth = ctx.measureText(watermarkSettings.text).width
+          ctx.fillText(watermarkSettings.text, -textWidth/2, watermarkSettings.fontSize/3)
           ctx.restore()
         }
       }
     } else {
-      // 单个水印
-      const x = (canvas.width - watermarkSettings.watermarkWidth) / 2
-      const y = (canvas.height - watermarkSettings.watermarkHeight) / 2
+      // 单个水印，使用拖动位置
+      const textWidth = ctx.measureText(watermarkSettings.text).width
+      const textHeight = watermarkSettings.fontSize * 1.5
       
-      ctx.translate(x + watermarkSettings.watermarkWidth/2, y + watermarkSettings.watermarkHeight/2)
+      ctx.save()
+      ctx.translate(watermarkOffset.x, watermarkOffset.y)
       ctx.rotate((watermarkSettings.angle * Math.PI) / 180)
-      ctx.translate(-(watermarkSettings.watermarkWidth/2), -(watermarkSettings.watermarkHeight/2))
-      ctx.fillText(watermarkSettings.text, 0, watermarkSettings.fontSize)
+      ctx.fillText(watermarkSettings.text, -textWidth/2, watermarkSettings.fontSize/3)
+      ctx.restore()
     }
     
     ctx.restore()
@@ -162,16 +182,39 @@ const saveImage = async () => {
   
   if (window.electron) {
     try {
-      const result = await window.electron.selectDirectory()
-      if (!result || !result.filePaths || !result.filePaths[0]) return
+      // 获取当前图片的文件名
+      const currentImage = imageList.value[currentImageIndex.value]
+      const originalName = currentImage.name
       
-      const outputDir = result.filePaths[0]
+      // 生成带时间戳的新文件名
+      const now = new Date()
+      const timestamp = now.getFullYear() +
+        ('0' + (now.getMonth() + 1)).slice(-2) +
+        ('0' + now.getDate()).slice(-2) +
+        '_' +
+        ('0' + now.getHours()).slice(-2) +
+        ('0' + now.getMinutes()).slice(-2) +
+        ('0' + now.getSeconds()).slice(-2)
+      
+      // 分离文件名和扩展名
+      const lastDotIndex = originalName.lastIndexOf('.')
+      const nameWithoutExt = originalName.substring(0, lastDotIndex)
+      const extension = originalName.substring(lastDotIndex)
+      
+      // 构建建议的文件名
+      const suggestedName = `${nameWithoutExt}_${timestamp}${extension}`
+      
+      // 获取画布数据
       const dataUrl = canvasRef.value.toDataURL('image/png')
-      const fileName = `watermark_${imageList.value[currentImageIndex.value].name}`
       
+      // 调用保存文件对话框
+      const savePath = await window.electron.saveFile(suggestedName)
+      if (!savePath) return
+      
+      // 保存图片
       await window.electron.saveImage({
         dataUrl,
-        path: `${outputDir}/${fileName}`
+        path: savePath
       })
       
       alert('保存成功！')
@@ -182,7 +225,21 @@ const saveImage = async () => {
   } else {
     // 浏览器环境下的保存
     const link = document.createElement('a')
-    link.download = `watermark_${imageList.value[currentImageIndex.value].name}`
+    const currentImage = imageList.value[currentImageIndex.value]
+    const now = new Date()
+    const timestamp = now.getFullYear() +
+      ('0' + (now.getMonth() + 1)).slice(-2) +
+      ('0' + now.getDate()).slice(-2) +
+      '_' +
+      ('0' + now.getHours()).slice(-2) +
+      ('0' + now.getMinutes()).slice(-2) +
+      ('0' + now.getSeconds()).slice(-2)
+    
+    const lastDotIndex = currentImage.name.lastIndexOf('.')
+    const nameWithoutExt = currentImage.name.substring(0, lastDotIndex)
+    const extension = currentImage.name.substring(lastDotIndex)
+    
+    link.download = `${nameWithoutExt}_${timestamp}${extension}`
     link.href = canvasRef.value.toDataURL('image/png')
     link.click()
   }
@@ -289,18 +346,54 @@ const stopDragAngle = () => {
   watermarkSettings.isDragging = false
 }
 
+// 添加水印拖动处理函数
+const startWatermarkDrag = (e) => {
+  e.preventDefault()
+  watermarkDragging.value = true
+  
+  const canvas = canvasRef.value
+  const rect = canvas.getBoundingClientRect()
+  const scaleX = canvas.width / rect.width
+  const scaleY = canvas.height / rect.height
+  
+  watermarkStartPos.value = {
+    x: e.clientX - (watermarkOffset.x / scaleX),
+    y: e.clientY - (watermarkOffset.y / scaleY)
+  }
+}
+
+const handleWatermarkDrag = (e) => {
+  if (!watermarkDragging.value || !canvasRef.value) return
+  
+  const canvas = canvasRef.value
+  const rect = canvas.getBoundingClientRect()
+  const scaleX = canvas.width / rect.width
+  const scaleY = canvas.height / rect.height
+  
+  watermarkOffset.x = (e.clientX - watermarkStartPos.value.x) * scaleX
+  watermarkOffset.y = (e.clientY - watermarkStartPos.value.y) * scaleY
+  
+  updateWatermark()
+}
+
+const stopWatermarkDrag = () => {
+  watermarkDragging.value = false
+}
+
 // 在组件卸载时移除事件监听
 onUnmounted(() => {
   document.removeEventListener('mousemove', handleDragAngle)
   document.removeEventListener('mouseup', stopDragAngle)
+  document.removeEventListener('mousemove', handleWatermarkDrag)
+  document.removeEventListener('mouseup', stopWatermarkDrag)
 })
 
 // 修改重置设置的功能
 const resetSettings = () => {
   const defaultSettings = {
-    text: "仅用于办理住房公积金，他用无效。",
+    text: "输入你要添加的水印文字",
     color: "#000000",
-    rgb: { r: 0, g: 0, b: 0, a: 0.4 },
+    rgb: { r: 0, g: 0, b: 0, a: 0.6 },
     fontSize: 23,
     watermarkHeight: 180,
     watermarkWidth: 280,
@@ -310,8 +403,17 @@ const resetSettings = () => {
   }
   
   Object.assign(watermarkSettings, defaultSettings)
+  watermarkOffset.x = 100
+  watermarkOffset.y = 100
   localStorage.removeItem('watermarkSettings')
 }
+
+// 添加位置保存到 localStorage
+watch([() => watermarkOffset.x, () => watermarkOffset.y], () => {
+  const settings = JSON.parse(localStorage.getItem('watermarkSettings') || '{}')
+  settings.watermarkOffset = { x: watermarkOffset.x, y: watermarkOffset.y }
+  localStorage.setItem('watermarkSettings', JSON.stringify(settings))
+}, { deep: true })
 </script>
 
 <template>
@@ -330,6 +432,8 @@ const resetSettings = () => {
           <canvas 
             ref="canvasRef"
             v-show="imageList.length > 0"
+            @mousedown="startWatermarkDrag"
+            style="cursor: move;"
           />
           <div v-show="!imageList.length" class="drop-text">
             拖放图片到这里
@@ -339,6 +443,8 @@ const resetSettings = () => {
 
       <!-- 右侧控制面板 -->
       <div class="control-panel">
+        <h1 class="app-title">Gouer.vip 水印(给亲爱的佘泳蕻老婆)</h1>
+
         <div class="button-group">
           <button @click="handleFileSelect">选择文件</button>
           <button v-if="imageList.length" @click="rotate">旋转</button>
@@ -348,7 +454,7 @@ const resetSettings = () => {
 
         <div class="settings-group">
           <div class="setting-item">
-            <label>水印文案:</label>
+            <label>水印文字:</label>
             <input type="text" v-model="watermarkSettings.text" maxlength="130">
           </div>
 
@@ -488,6 +594,7 @@ canvas {
   transform: translate(-50%, -50%);
   max-width: 100%;
   max-height: 100%;
+  cursor: move; /* 添加移动光标 */
 }
 
 .control-panel {
@@ -608,5 +715,14 @@ input[type="number"] {
 
 .reset-button:hover {
   background: #cc0000;
+}
+
+.app-title {
+  text-align: center;
+  color: #333;
+  margin-bottom: 20px;
+  font-size: 1.2em;
+  padding: 10px 0;
+  border-bottom: 2px solid #4CAF50;
 }
 </style> 
