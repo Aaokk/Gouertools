@@ -1,19 +1,19 @@
 {
   "name": "shuiyinimg",
   "private": true,
-  "version": "0.0.1",
+  "version": "1.9.0",
   "type": "commonjs",
   "scripts": {
-    "dev": "vite",
-    "electron:dev": "concurrently \"vite\" \"cross-env NODE_ENV=development electron .\"",
     "browser:dev": "vite --open",
     "build": "vite build",
-    "preview": "vite preview",
     "electron:build": "vite build && electron-builder",
+    "electron:macbuild": "vite build && electron-builder",
     "electron:winbuild": "npm run electron:build -- --win"
   },
   "dependencies": {
     "@ckpack/vue-color": "^1.5.0",
+    "electron-log": "^5.2.4",
+    "electron-updater": "^6.3.9",
     "vue": "^3.5.13"
   },
   "devDependencies": {
@@ -24,8 +24,15 @@
   },
   "main": "electron/main.js",
   "build": {
-    "appId": "com.love.sgg",
-    "productName": "Gouer.vip 水印(给亲爱的佘泳蕻老婆)",
+    "appId": "com.gouer.watermark",
+    "productName": "Gouer.vip 水印",
+    "copyright": "Copyright © 2024 Gouer.vip",
+    "publish": [
+      {
+        "provider": "generic",
+        "url": "https://up.gouer.vip/shuiyin/"
+      }
+    ],
     "directories": {
       "output": "release/${version}"
     },
@@ -40,12 +47,48 @@
       }
     ],
     "mac": {
-      "category": "public.app-category.utilities",
+      "category": "public.app-category.graphics-design",
       "target": [
-        "dmg",
-        "zip"
+        {
+          "target": "dmg",
+          "arch": ["x64", "arm64"]
+        }
       ],
-      "icon": "icon.icns"
+      "icon": "icon.icns",
+      "hardenedRuntime": false,
+      "gatekeeperAssess": false,
+      "identity": null,
+      "electronUpdaterCompatibility": ">=2.15",
+      "extendInfo": {
+        "NSAppleEventsUsageDescription": "Please allow access to script browser applications to run the app.",
+        "NSCameraUsageDescription": "Please allow access to camera to take photos.",
+        "NSMicrophoneUsageDescription": "Please allow access to microphone to record audio.",
+        "NSPhotoLibraryUsageDescription": "Please allow access to photo library to save photos."
+      }
+    },
+    "dmg": {
+      "contents": [
+        {
+          "x": 130,
+          "y": 220
+        },
+        {
+          "x": 410,
+          "y": 220,
+          "type": "link",
+          "path": "/Applications"
+        }
+      ],
+      "window": {
+        "width": 540,
+        "height": 400
+      },
+      "iconSize": 128,
+      "backgroundColor": "#ffffff",
+      "title": "Gouer\\.vip\\ 水印",
+      "format": "UDZO",
+      "internetEnabled": true,
+      "sign": false
     },
     "win": {
       "target": [
@@ -68,6 +111,6 @@
       "createStartMenuShortcut": true,
       "shortcutName": "Gouer.vip 水印"
     },
-    "asar": false
+    "asar": true
   }
 }

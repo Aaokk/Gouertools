@@ -1,6 +1,7 @@
 <script setup>
 import { Chrome } from '@ckpack/vue-color'
 import { ref, reactive, onMounted, watch, nextTick, onUnmounted } from 'vue'
+import { version } from '../../package.json'
 
 // 从 localStorage 获取保存的设置或使用默认值
 const getStoredSettings = () => {
@@ -189,7 +190,7 @@ const updateWatermark = () => {
 
     ctx.restore()
     
-    // 绘制 LOGO
+    // 绘�� LOGO
     if (logo) {
       const padding = logoSettings.padding
       const size = logoSettings.size
@@ -333,7 +334,7 @@ const saveImage = async () => {
   }
 }
 
-// 修改颜色更新函数
+// 修改颜色���新函数
 const updateColor = (color) => {
   // 更新十六进制颜色值
   watermarkSettings.color = color.hex
@@ -364,7 +365,7 @@ const handleClickOutside = (event) => {
   }
 }
 
-// 修改监听置变��
+// 修改监听置变
 watch([
   () => watermarkSettings.text,
   () => watermarkSettings.color,
@@ -376,7 +377,7 @@ watch([
   () => watermarkSettings.repeat,
   () => watermarkSettings.spacing
 ], (newValues, oldValues) => {
-  // ����查是否是 repeat 值发生变化
+  // 查是否是 repeat 值发生变化
   const repeatIndex = 7 // repeat 在数组中的索引
   if (newValues[repeatIndex] !== oldValues[repeatIndex]) {
     // 如果从重复切换到单个水印，重置位置到中心
@@ -434,7 +435,7 @@ const handleFileSelect = () => {
           file: file,
           name: file.name
         })
-        // 如果是第一张图片，更�����水印
+        // 如果是第一张图片，更水印
         if (imageList.value.length === 1) {
           nextTick(() => {
             updateWatermark()
@@ -535,7 +536,7 @@ const resetSettings = () => {
     opacity: 0.6
   })
 
-  // 如果有画布，将水印位置重置到中心
+  // 如果有画布，将���印位置重置到中心
   if (canvasRef.value) {
     watermarkOffset.x = canvasRef.value.width / 2
     watermarkOffset.y = canvasRef.value.height / 2
@@ -581,7 +582,7 @@ const clearLogo = () => {
   updateWatermark()
 }
 
-// ���加对 logoSettings 的监听
+// 加对 logoSettings 的监听
 watch(
   logoSettings,
   () => {
@@ -816,7 +817,7 @@ watch(
 
     <!-- 修改版权信息 -->
     <div class="copyright">
-      Copyright © 2024 <a href="https://gouer.vip" target="_blank">Gouer.vip</a> All Rights Reserved.
+      Copyright © 2024 <a href="https://gouer.vip" target="_blank">Gouer.vip</a> All Rights Reserved. Ver: {{ version }}
     </div>
   </div>
 </template>
@@ -1002,7 +1003,7 @@ input[type="number"] {
   border-bottom: 2px solid #4CAF50;
 }
 
-/* 修改版权样�� */
+/* 修改版权样式 */
 .copyright {
   position: fixed;
   bottom: 0;
@@ -1012,6 +1013,7 @@ input[type="number"] {
   padding: 10px;
   font-size: 12px;
   color: #666;
+  white-space: nowrap;  /* 防止版本号换行 */
 }
 
 .copyright a {
@@ -1097,7 +1099,7 @@ input[type="range"] {
   margin: 8px 0;
 }
 
-/* 调整选择框的高度 */
+/* 调整选择框��高度 */
 .position-select {
   height: 24px;
   padding: 2px 4px;
