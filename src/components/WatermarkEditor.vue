@@ -4,19 +4,8 @@ import { ref, reactive, onMounted, watch, nextTick, onUnmounted } from 'vue'
 
 // 从 localStorage 获取保存的设置或使用默认值
 const getStoredSettings = () => {
-  const stored = localStorage.getItem('watermarkSettings')
-  if (stored) {
-    try {
-      const settings = JSON.parse(stored)
-      // 确保 spacing 是数字类型
-      settings.spacing = parseInt(settings.spacing) || 0
-      return settings
-    } catch (e) {
-      console.error('解析存储的设置失败:', e)
-    }
-  }
-  return {
-    text: "输入你要添加的水印文字",
+  const defaultSettings = {
+    text: "+++ 输入你要添加的水印文字 +++",
     color: "#000000",
     rgb: {r: 0, g: 0, b: 0, a: 0.6},
     fontSize: 12,
@@ -24,11 +13,43 @@ const getStoredSettings = () => {
     watermarkWidth: 100,
     angle: -45,
     repeat: true,
-    spacing: 0,
-    isDragging: false,
-    startAngle: 0,
-    startX: 0
+    spacing: 0
   }
+
+  const stored = localStorage.getItem('watermarkSettings')
+  if (stored) {
+    try {
+      const settings = JSON.parse(stored)
+      // 合并默认设置和存储的设置，确保所有属性都存在
+      const mergedSettings = {
+        ...defaultSettings,
+        ...settings,
+        // 确保 rgb 对象的完整性
+        rgb: { ...defaultSettings.rgb, ...settings.rgb }
+      }
+      
+      // 确保数值类型的正确性
+      mergedSettings.fontSize = parseInt(mergedSettings.fontSize) || defaultSettings.fontSize
+      mergedSettings.watermarkHeight = parseInt(mergedSettings.watermarkHeight) || defaultSettings.watermarkHeight
+      mergedSettings.watermarkWidth = parseInt(mergedSettings.watermarkWidth) || defaultSettings.watermarkWidth
+      mergedSettings.spacing = parseInt(mergedSettings.spacing) || defaultSettings.spacing
+      mergedSettings.angle = parseFloat(mergedSettings.angle) || defaultSettings.angle
+      
+      // 恢复 LOGO 配置（不包括图片数据）
+      if (settings.logoConfig) {
+        logoSettings.position = settings.logoConfig.position || 'top-right'
+        logoSettings.size = parseInt(settings.logoConfig.size) || 100
+        logoSettings.padding = parseInt(settings.logoConfig.padding) || 20
+        logoSettings.opacity = parseFloat(settings.logoConfig.opacity) || 0.6
+      }
+      
+      return mergedSettings
+    } catch (e) {
+      console.error('解析存储的设置失败:', e)
+      return defaultSettings
+    }
+  }
+  return defaultSettings
 }
 
 // 初始化水印设置状态
@@ -49,6 +70,15 @@ const watermarkOffset = reactive({ x: 100, y: 100 }) // 水印的初始位置
 const showColorPicker = ref(false)
 const colorPickerPosition = reactive({ top: '0px', left: '0px' })
 
+// 添加 LOGO 相关状态
+const logoSettings = reactive({
+  image: null,
+  position: 'top-right', // 'top-left', 'top-right', 'bottom-left', 'bottom-right'
+  size: 36,
+  padding: 20,
+  opacity: 0.6 // 添加透明度属性，默认为1（完全不透明）
+})
+
 // 初始化水印
 onMounted(() => {
   if (canvasRef.value) {
@@ -64,35 +94,49 @@ onMounted(() => {
 // 更新水印设置
 const updateWatermark = () => {
   if (!canvasRef.value || !imageList.value.length) return
-
+  
   const canvas = canvasRef.value
   const ctx = canvas.getContext('2d')
   const img = new Image()
-
-  // 添加错误处理
-  img.onerror = (error) => {
-    console.error('图片加载失败:', error)
+  const logo = logoSettings.image ? new Image() : null
+  
+  // 创建一个 Promise 来处理图片加载
+  const loadImages = () => {
+    return new Promise((resolve) => {
+      img.onload = () => {
+        if (logo) {
+          logo.onload = resolve
+          logo.src = logoSettings.image
+        } else {
+          resolve()
+        }
+      }
+      
+      const currentImage = imageList.value[currentImageIndex.value]
+      if (currentImage && currentImage.src) {
+        img.src = currentImage.src
+      }
+    })
   }
-
-  img.onload = () => {
-    console.log('图片加载成功:', img.width, img.height) // 添加日志
-
-    // 先设置画布为原始图片大小
+  
+  // 使用 async/await 处理图片加载和绘制
+  loadImages().then(() => {
+    // 设置画布大小
     canvas.width = img.naturalWidth
     canvas.height = img.naturalHeight
-
+    
     // 清除画布
     ctx.clearRect(0, 0, canvas.width, canvas.height)
-
+    
     // 绘制原始图片
     ctx.drawImage(img, 0, 0)
-
-    // 添加水印
+    
+    // 绘制水印
     ctx.save()
     ctx.globalAlpha = watermarkSettings.rgb.a
     ctx.fillStyle = `rgba(${watermarkSettings.rgb.r}, ${watermarkSettings.rgb.g}, ${watermarkSettings.rgb.b}, ${watermarkSettings.rgb.a})`
     ctx.font = `${watermarkSettings.fontSize}px Arial`
-
+    
     if (watermarkSettings.repeat) {
       // 计算水印网格的总宽度和高度
       const gridWidth = Math.max(watermarkSettings.watermarkWidth, watermarkSettings.fontSize * watermarkSettings.text.length)
@@ -130,7 +174,7 @@ const updateWatermark = () => {
       const textWidth = ctx.measureText(watermarkSettings.text).width
       const textHeight = watermarkSettings.fontSize * 1.5
 
-      // 如果是首次显示或重置后，将水印位置设置到中心
+      // 如果是首次显示或重置后将水印位置设置到中心
       if (watermarkOffset.x === 100 && watermarkOffset.y === 100) {
         watermarkOffset.x = canvas.width / 2
         watermarkOffset.y = canvas.height / 2
@@ -144,14 +188,42 @@ const updateWatermark = () => {
     }
 
     ctx.restore()
-  }
-
-  // 确保图片源是有效的
-  const currentImage = imageList.value[currentImageIndex.value]
-  if (currentImage && currentImage.src) {
-    console.log('加载图片:', currentImage.src) // 添加日志
-    img.src = currentImage.src
-  }
+    
+    // 绘制 LOGO
+    if (logo) {
+      const padding = logoSettings.padding
+      const size = logoSettings.size
+      let x, y
+      
+      switch (logoSettings.position) {
+        case 'top-left':
+          x = padding
+          y = padding
+          break
+        case 'top-right':
+          x = canvas.width - size - padding
+          y = padding
+          break
+        case 'bottom-left':
+          x = padding
+          y = canvas.height - size - padding
+          break
+        case 'bottom-right':
+          x = canvas.width - size - padding
+          y = canvas.height - size - padding
+          break
+      }
+      
+      // 设置抗锯齿
+      ctx.imageSmoothingEnabled = true
+      ctx.imageSmoothingQuality = 'high'
+      
+      ctx.save()
+      ctx.globalAlpha = logoSettings.opacity
+      ctx.drawImage(logo, x, y, size, size)
+      ctx.restore()
+    }
+  })
 }
 
 // 处理文件上传
@@ -292,7 +364,7 @@ const handleClickOutside = (event) => {
   }
 }
 
-// 修改监听设置变化
+// 修改监听置变��
 watch([
   () => watermarkSettings.text,
   () => watermarkSettings.color,
@@ -304,7 +376,7 @@ watch([
   () => watermarkSettings.repeat,
   () => watermarkSettings.spacing
 ], (newValues, oldValues) => {
-  // 检查是否是 repeat 值发生变化
+  // ����查是否是 repeat 值发生变化
   const repeatIndex = 7 // repeat 在数组中的索引
   if (newValues[repeatIndex] !== oldValues[repeatIndex]) {
     // 如果从重复切换到单个水印，重置位置到中心
@@ -324,7 +396,15 @@ watch([
     watermarkWidth: watermarkSettings.watermarkWidth,
     angle: watermarkSettings.angle,
     repeat: watermarkSettings.repeat,
-    spacing: watermarkSettings.spacing
+    spacing: watermarkSettings.spacing,
+    // 添加 LOGO 设置
+    logoSettings: {
+      image: logoSettings.image,
+      position: logoSettings.position,
+      size: logoSettings.size,
+      padding: logoSettings.padding,
+      opacity: logoSettings.opacity
+    }
   }
   localStorage.setItem('watermarkSettings', JSON.stringify(settingsToSave))
   updateWatermark()
@@ -354,7 +434,7 @@ const handleFileSelect = () => {
           file: file,
           name: file.name
         })
-        // 如果是第一张图片，更新水印
+        // 如果是第一张图片，更�����水印
         if (imageList.value.length === 1) {
           nextTick(() => {
             updateWatermark()
@@ -433,7 +513,7 @@ onUnmounted(() => {
 // 修改重置设置的功能
 const resetSettings = () => {
   const defaultSettings = {
-    text: "输入你要添加的水印文字",
+    text: "+++ 输入你要添加的水印文字 +++",
     color: "#000000",
     rgb: {r: 0, g: 0, b: 0, a: 0.6},
     fontSize: 12,
@@ -445,6 +525,15 @@ const resetSettings = () => {
   }
 
   Object.assign(watermarkSettings, defaultSettings)
+  
+  // 重置 LOGO 设置
+  Object.assign(logoSettings, {
+    image: null,
+    position: 'top-right',
+    size: 100,
+    padding: 20,
+    opacity: 0.6
+  })
 
   // 如果有画布，将水印位置重置到中心
   if (canvasRef.value) {
@@ -464,6 +553,55 @@ watch([() => watermarkOffset.x, () => watermarkOffset.y], () => {
   settings.watermarkOffset = {x: watermarkOffset.x, y: watermarkOffset.y}
   localStorage.setItem('watermarkSettings', JSON.stringify(settings))
 }, {deep: true})
+
+// 添加 LOGO 选择函数
+const handleLogoSelect = () => {
+  const input = document.createElement('input')
+  input.type = 'file'
+  input.accept = 'image/*'
+  
+  input.onchange = (e) => {
+    const file = e.target.files[0]
+    if (!file) return
+    
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      logoSettings.image = e.target.result
+      updateWatermark()
+    }
+    reader.readAsDataURL(file)
+  }
+  
+  input.click()
+}
+
+// 清除 LOGO
+const clearLogo = () => {
+  logoSettings.image = null
+  updateWatermark()
+}
+
+// ���加对 logoSettings 的监听
+watch(
+  logoSettings,
+  () => {
+    // 保存 LOGO 配置（不包括图片数据）
+    const settings = JSON.parse(localStorage.getItem('watermarkSettings') || '{}')
+    settings.logoConfig = {
+      position: logoSettings.position,
+      size: logoSettings.size,
+      padding: logoSettings.padding,
+      opacity: logoSettings.opacity
+    }
+    localStorage.setItem('watermarkSettings', JSON.stringify(settings))
+    
+    // 只有在有图片的情况下才更新预览
+    if (imageList.value.length > 0) {
+      updateWatermark()
+    }
+  },
+  { deep: true }
+)
 </script>
 
 <template>
@@ -507,6 +645,68 @@ watch([() => watermarkOffset.x, () => watermarkOffset.y], () => {
             <input type="text" v-model="watermarkSettings.text" maxlength="130">
           </div>
 
+          <!-- 添加提示文本 -->
+          <div class="setting-tip">
+            提示：可以在左侧预览窗口拖动水印位置
+          </div>
+
+          <template v-if="imageList.length > 0">
+            <div class="setting-item">
+              <label>添加LOGO:</label>
+              <div class="logo-controls">
+                <button @click="handleLogoSelect" class="small-button">选择LOGO</button>
+                <select v-model="logoSettings.position" class="position-select">
+                  <option value="top-left">左上角</option>
+                  <option value="top-right">右上角</option>
+                  <option value="bottom-left">左下角</option>
+                  <option value="bottom-right">右下角</option>
+                </select>
+                <button 
+                  v-if="logoSettings.image" 
+                  @click="clearLogo" 
+                  class="small-button danger"
+                >清除</button>
+              </div>
+            </div>
+
+            <div class="setting-item" v-if="logoSettings.image">
+              <label>LOGO大小:</label>
+              <input
+                type="range"
+                v-model="logoSettings.size"
+                min="20"
+                max="200"
+                @input="updateWatermark"
+              >
+              <span>{{ logoSettings.size }}px</span>
+            </div>
+
+            <div class="setting-item" v-if="logoSettings.image">
+              <label>LOGO边距:</label>
+              <input
+                type="range"
+                v-model="logoSettings.padding"
+                min="0"
+                max="100"
+                @input="updateWatermark"
+              >
+              <span>{{ logoSettings.padding }}px</span>
+            </div>
+
+            <div class="setting-item" v-if="logoSettings.image">
+              <label>LOGO透明:</label>
+              <input
+                type="range"
+                v-model="logoSettings.opacity"
+                min="0"
+                max="1"
+                step="0.1"
+                @input="updateWatermark"
+              >
+              <span>{{ Math.round(logoSettings.opacity * 100) }}%</span>
+            </div>
+          </template>
+
           <div class="setting-item">
             <label>水印颜色:</label>
             <div class="color-picker-container">
@@ -529,7 +729,7 @@ watch([() => watermarkOffset.x, () => watermarkOffset.y], () => {
           </div>
 
           <div class="setting-item">
-            <label>透明度:</label>
+            <label>水印透明:</label>
             <input
                 type="range"
                 v-model="watermarkSettings.rgb.a"
@@ -675,30 +875,30 @@ canvas {
 
 .control-panel {
   width: 400px;
-  padding: 0 20px;
+  padding: 0 10px;
   flex-shrink: 0;
   overflow-y: auto;
 }
 
 .button-group {
   display: flex;
-  gap: 10px;
-  margin-bottom: 20px;
+  gap: 8px;
+  margin-bottom: 12px;
 }
 
 .settings-group {
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 6px;
   width: 100%;
 }
 
 .setting-item {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 6px;
   width: 100%;
-  min-height: 32px;
+  min-height: 26px;
 }
 
 .setting-item label {
@@ -796,13 +996,13 @@ input[type="number"] {
 .app-title {
   text-align: center;
   color: #333;
-  margin-bottom: 20px;
+  margin-bottom: 12px;
   font-size: 1.2em;
-  padding: 10px 0;
+  padding: 8px 0;
   border-bottom: 2px solid #4CAF50;
 }
 
-/* 修改版权样式 */
+/* 修改版权样�� */
 .copyright {
   position: fixed;
   bottom: 0;
@@ -829,8 +1029,8 @@ input[type="number"] {
 }
 
 .color-preview {
-  width: 36px;
-  height: 36px;
+  width: 26px;
+  height: 26px;
   border-radius: 4px;
   border: 1px solid #ccc;
   cursor: pointer;
@@ -855,5 +1055,65 @@ input[type="number"] {
   font-size: 12px;
   height: 28px;
   min-width: 60px;
+}
+
+.logo-controls {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.small-button {
+  padding: 2px 8px;
+  font-size: 12px;
+  height: 24px;
+}
+
+.danger {
+  background: #ff4444;
+}
+
+.danger:hover {
+  background: #cc0000;
+}
+
+.position-select {
+  padding: 4px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background: white;
+}
+
+/* 调整输入框的高度 */
+input[type="text"],
+input[type="number"] {
+  height: 24px;
+  padding: 2px 5px;
+}
+
+/* 调整范围滑块的大小 */
+input[type="range"] {
+  height: 4px;
+  margin: 8px 0;
+}
+
+/* 调整选择框的高度 */
+.position-select {
+  height: 24px;
+  padding: 2px 4px;
+}
+
+/* 调整小按钮的高度 */
+.small-button {
+  padding: 2px 8px;
+  height: 24px;
+}
+
+.setting-tip {
+  font-size: 12px;
+  color: #666;
+  padding-left: 86px;  /* 与输入框对齐 */
+  margin-top: -4px;
+  margin-bottom: 2px;
 }
 </style> 
