@@ -267,11 +267,12 @@ export default {
 h1, h3 {
   text-align: center;
   color: #2c3e50;
-  margin-bottom: 30px;
+  margin-bottom: 15px;
+  font-size: 1.2em;
 }
 
 .upload-area {
-  margin: 20px 0;
+  margin: 15px 0;
 }
 
 .drop-zone {
@@ -300,35 +301,35 @@ h1, h3 {
 
 .preview-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 20px;
-  margin: 20px 0;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 10px;
+  margin: 15px 0;
 }
 
 .preview-item {
   background: white;
-  border-radius: 8px;
-  padding: 10px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+  border-radius: 4px;
+  padding: 5px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
 }
 
 .preview-image {
   width: 100%;
-  height: 200px;
+  height: 120px;
   object-fit: contain;
-  border-radius: 4px;
-  margin-bottom: 10px;
+  border-radius: 3px;
+  margin-bottom: 5px;
 }
 
 .preview-info {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 10px;
+  gap: 5px;
 }
 
 .file-name {
-  font-size: 14px;
+  font-size: 11px;
   color: #606266;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -341,10 +342,11 @@ h1, h3 {
   color: white;
   border: none;
   padding: 4px 8px;
-  border-radius: 4px;
+  border-radius: 3px;
   cursor: pointer;
-  font-size: 12px;
+  font-size: 11px;
   transition: background-color 0.3s ease;
+  white-space: nowrap;
 }
 
 .remove-btn:hover {
@@ -353,17 +355,17 @@ h1, h3 {
 
 .actions {
   text-align: center;
-  margin-top: 20px;
+  margin-top: 15px;
 }
 
 .convert-btn {
   background-color: #409EFF;
   color: white;
   border: none;
-  padding: 12px 30px;
+  padding: 8px 16px;
   border-radius: 4px;
   cursor: pointer;
-  font-size: 16px;
+  font-size: 14px;
   transition: background-color 0.3s ease;
 }
 
