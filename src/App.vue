@@ -6,7 +6,6 @@
       <router-link to="/image-converter" class="nav-link">图片格式转换</router-link>
       <router-link to="/pdf2image" class="nav-link">PDF转图片</router-link>
       <router-link to="/image2pdf" class="nav-link">图片转PDF</router-link>
-      <router-link to="/pdf-watermark" class="nav-link">PDF水印</router-link>
     </nav>
     <main class="main-content">
       <router-view></router-view>
@@ -36,6 +35,7 @@ body {
   /* 移除固定宽度，防止出现水平滚动条 */
   max-width: 100%;
   overflow-x: hidden;
+  color: #606266;
 }
 
 .app-container {

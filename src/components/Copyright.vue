@@ -1,6 +1,6 @@
 <template>
   <div class="copyright">
-    Copyright © 2024 <a href="https://gouer.vip" target="_blank">Gouer.vip</a> All Rights Reserved.
+    Copyright © 2024 <a href="https://gouer.vip" target="_blank">Gouer.Vip 工具包包</a> All Rights Reserved.
   </div>
 </template>
 

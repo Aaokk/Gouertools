@@ -29,7 +29,7 @@
 
       <!-- 右侧控制面板 -->
       <div class="control-panel">
-        <h1 class="panel-title">图片格式转换</h1>
+        <h1 class="panel-title">Gouer.vip 图片格式转换</h1>
         
         <div v-if="selectedFile" class="file-info">
           <p>已选择文件：{{ selectedFile.name }}</p>
@@ -39,12 +39,16 @@
         <div class="settings-group">
           <div class="setting-item">
             <label>目标格式：</label>
-            <select v-model="targetFormat">
-              <option value="image/jpeg">JPG</option>
-              <option value="image/png">PNG</option>
-              <option value="image/webp">WEBP</option>
-              <option value="image/gif">GIF</option>
-            </select>
+            <div class="format-buttons">
+              <button
+                v-for="format in formats"
+                :key="format.value"
+                :class="['format-btn', { active: targetFormat === format.value }]"
+                @click="targetFormat = format.value"
+              >
+                {{ format.label }}
+              </button>
+            </div>
           </div>
           
           <div v-if="targetFormat === 'image/jpeg'" class="setting-item">
@@ -432,6 +436,32 @@ export default {
   border: 1px solid #dcdfe6;
   border-radius: 4px;
   outline: none;
+}
+
+.format-buttons {
+  display: flex;
+  gap: 8px;
+  flex: 1;
+}
+
+.format-btn {
+  padding: 6px 12px;
+  border: 1px solid #dcdfe6;
+  border-radius: 4px;
+  background: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.format-btn:hover {
+  border-color: #409EFF;
+  color: #409EFF;
+}
+
+.format-btn.active {
+  background: #409EFF;
+  color: white;
+  border-color: #409EFF;
 }
 
 .slider-container {

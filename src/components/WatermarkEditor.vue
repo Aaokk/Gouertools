@@ -1,3 +1,221 @@
+<template>
+  <div>
+    <div class="watermark-editor">
+      <div class="main-container">
+        <!-- 左侧画布区域 -->
+        <div class="canvas-area">
+          <div
+              class="drop-zone"
+              @dragover.prevent
+              @dragenter="isDragging = true"
+              @dragleave="isDragging = false"
+              @drop="handleDrop"
+              :class="{ dragging: isDragging }"
+          >
+            <canvas
+                ref="canvasRef"
+                v-show="imageList.length > 0"
+                @mousedown="startWatermarkDrag"
+                style="cursor: move;"
+            />
+            <div v-show="!imageList.length" class="drop-text">
+              <div class="upload-icon">🖼️</div>
+              <p>点击或拖拽图片文件到此处</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- 右侧控制板 -->
+        <div class="control-panel">
+          <h1 class="app-title">Gouer.vip 图片加水印</h1>
+
+          <div class="button-group">
+            <button @click="handleFileSelect">选择文件</button>
+            <button v-if="imageList.length" @click="saveImage">保存</button>
+            <button @click="resetSettings" class="reset-button">重置设置</button>
+          </div>
+
+          <div class="settings-group">
+            <div class="setting-item">
+              <label>水印文字:</label>
+              <input type="text" v-model="watermarkSettings.text" maxlength="130">
+            </div>
+
+            <!-- 添加提示文本 -->
+            <div class="setting-tip">
+              提示：可以在左侧预览窗口拖动水印位置
+            </div>
+
+            <template v-if="imageList.length > 0">
+              <div class="setting-item">
+                <label>添加LOGO:</label>
+                <div class="logo-controls">
+                  <button @click="handleLogoSelect" class="small-button">选择LOGO</button>
+                  <select v-model="logoSettings.position" class="position-select">
+                    <option value="top-left">左上角</option>
+                    <option value="top-right">右上角</option>
+                    <option value="bottom-left">左下角</option>
+                    <option value="bottom-right">右下角</option>
+                  </select>
+                  <button
+                      v-if="logoSettings.image"
+                      @click="clearLogo"
+                      class="small-button danger"
+                  >清除</button>
+                </div>
+              </div>
+
+              <div class="setting-item" v-if="logoSettings.image">
+                <label>LOGO大小:</label>
+                <input
+                    type="range"
+                    v-model="logoSettings.size"
+                    min="20"
+                    max="200"
+                    @input="updateWatermark"
+                >
+                <span>{{ logoSettings.size }}px</span>
+              </div>
+
+              <div class="setting-item" v-if="logoSettings.image">
+                <label>LOGO边距:</label>
+                <input
+                    type="range"
+                    v-model="logoSettings.padding"
+                    min="0"
+                    max="100"
+                    @input="updateWatermark"
+                >
+                <span>{{ logoSettings.padding }}px</span>
+              </div>
+
+              <div class="setting-item" v-if="logoSettings.image">
+                <label>LOGO透明:</label>
+                <input
+                    type="range"
+                    v-model="logoSettings.opacity"
+                    min="0"
+                    max="1"
+                    step="0.1"
+                    @input="updateWatermark"
+                >
+                <span>{{ Math.round(logoSettings.opacity * 100) }}%</span>
+              </div>
+            </template>
+
+            <div class="setting-item">
+              <label>水印颜色:</label>
+              <div class="color-picker-container">
+                <div
+                    class="color-preview"
+                    @click="toggleColorPicker"
+                    :style="{ backgroundColor: watermarkSettings.color }"
+                ></div>
+                <div
+                    v-if="showColorPicker"
+                    class="color-picker-popup"
+                >
+                  <Chrome
+                      v-model="watermarkSettings.color"
+                      :value="watermarkSettings.color"
+                      @update:modelValue="updateColor"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div class="setting-item">
+              <label>水印透明:</label>
+              <input
+                  type="range"
+                  v-model="watermarkSettings.rgb.a"
+                  min="0"
+                  max="1"
+                  step="0.1"
+              >
+            </div>
+
+            <div class="setting-item">
+              <label>字体大小:</label>
+              <input
+                  type="range"
+                  v-model="watermarkSettings.fontSize"
+                  min="12"
+                  max="100"
+              >
+            </div>
+
+            <div class="setting-item">
+              <label>水印框宽:</label>
+              <input
+                  type="range"
+                  v-model="watermarkSettings.watermarkWidth"
+                  min="100"
+                  max="500"
+              >
+            </div>
+
+            <div class="setting-item">
+              <label>水印框高:</label>
+              <input
+                  type="range"
+                  v-model="watermarkSettings.watermarkHeight"
+                  min="100"
+                  max="500"
+              >
+            </div>
+
+            <div class="setting-item" v-if="watermarkSettings.repeat">
+              <label>水印间距:</label>
+              <input
+                  type="range"
+                  v-model="watermarkSettings.spacing"
+                  min="0"
+                  max="300"
+              >
+              <span>{{ watermarkSettings.spacing }}px</span>
+            </div>
+
+            <div class="setting-item">
+              <label>重复水印:</label>
+              <input type="checkbox" v-model="watermarkSettings.repeat">
+            </div>
+
+            <div class="setting-item">
+              <label>角度:</label>
+              <div class="angle-control">
+                <div
+                    class="angle-slider"
+                    @mousedown="startDragAngle"
+                >
+                  <div
+                      class="angle-handle"
+                      :style="{ transform: `rotate(${watermarkSettings.angle}deg)` }"
+                  ></div>
+                </div>
+                <input
+                    type="number"
+                    v-model="watermarkSettings.angle"
+                    min="0"
+                    max="360"
+                >
+                <button
+                    v-if="imageList.length"
+                    @click="rotate"
+                    class="rotate-button"
+                >旋转90°</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 修改版权信息 -->
+      <Copyright />
+    </div>
+  </div>
+</template>
+
 <script setup>
 import { Chrome } from '@ckpack/vue-color'
 import { ref, reactive, onMounted, watch, nextTick, onUnmounted } from 'vue'
@@ -628,223 +846,6 @@ watch(
 )
 </script>
 
-<template>
-  <div>
-    <div class="watermark-editor">
-      <div class="main-container">
-        <!-- 左侧画布区域 -->
-        <div class="canvas-area">
-          <div
-              class="drop-zone"
-              @dragover.prevent
-              @dragenter="isDragging = true"
-              @dragleave="isDragging = false"
-              @drop="handleDrop"
-              :class="{ dragging: isDragging }"
-          >
-            <canvas
-                ref="canvasRef"
-                v-show="imageList.length > 0"
-                @mousedown="startWatermarkDrag"
-                style="cursor: move;"
-            />
-            <div v-show="!imageList.length" class="drop-text">
-              拖放图片到这里
-            </div>
-          </div>
-        </div>
-
-        <!-- 右侧控制板 -->
-        <div class="control-panel">
-          <h1 class="app-title">Gouer.vip 水印(给亲爱的佘泳蕻老婆)</h1>
-
-          <div class="button-group">
-            <button @click="handleFileSelect">选择文件</button>
-            <button v-if="imageList.length" @click="saveImage">保存</button>
-            <button @click="resetSettings" class="reset-button">重置设置</button>
-          </div>
-
-          <div class="settings-group">
-            <div class="setting-item">
-              <label>水印文字:</label>
-              <input type="text" v-model="watermarkSettings.text" maxlength="130">
-            </div>
-
-            <!-- 添加提示文本 -->
-            <div class="setting-tip">
-              提示：可以在左侧预览窗口拖动水印位置
-            </div>
-
-            <template v-if="imageList.length > 0">
-              <div class="setting-item">
-                <label>添加LOGO:</label>
-                <div class="logo-controls">
-                  <button @click="handleLogoSelect" class="small-button">选择LOGO</button>
-                  <select v-model="logoSettings.position" class="position-select">
-                    <option value="top-left">左上角</option>
-                    <option value="top-right">右上角</option>
-                    <option value="bottom-left">左下角</option>
-                    <option value="bottom-right">右下角</option>
-                  </select>
-                  <button
-                      v-if="logoSettings.image"
-                      @click="clearLogo"
-                      class="small-button danger"
-                  >清除</button>
-                </div>
-              </div>
-
-              <div class="setting-item" v-if="logoSettings.image">
-                <label>LOGO大小:</label>
-                <input
-                    type="range"
-                    v-model="logoSettings.size"
-                    min="20"
-                    max="200"
-                    @input="updateWatermark"
-                >
-                <span>{{ logoSettings.size }}px</span>
-              </div>
-
-              <div class="setting-item" v-if="logoSettings.image">
-                <label>LOGO边距:</label>
-                <input
-                    type="range"
-                    v-model="logoSettings.padding"
-                    min="0"
-                    max="100"
-                    @input="updateWatermark"
-                >
-                <span>{{ logoSettings.padding }}px</span>
-              </div>
-
-              <div class="setting-item" v-if="logoSettings.image">
-                <label>LOGO透明:</label>
-                <input
-                    type="range"
-                    v-model="logoSettings.opacity"
-                    min="0"
-                    max="1"
-                    step="0.1"
-                    @input="updateWatermark"
-                >
-                <span>{{ Math.round(logoSettings.opacity * 100) }}%</span>
-              </div>
-            </template>
-
-            <div class="setting-item">
-              <label>水印颜色:</label>
-              <div class="color-picker-container">
-                <div
-                    class="color-preview"
-                    @click="toggleColorPicker"
-                    :style="{ backgroundColor: watermarkSettings.color }"
-                ></div>
-                <div
-                    v-if="showColorPicker"
-                    class="color-picker-popup"
-                >
-                  <Chrome
-                      v-model="watermarkSettings.color"
-                      :value="watermarkSettings.color"
-                      @update:modelValue="updateColor"
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div class="setting-item">
-              <label>水印透明:</label>
-              <input
-                  type="range"
-                  v-model="watermarkSettings.rgb.a"
-                  min="0"
-                  max="1"
-                  step="0.1"
-              >
-            </div>
-
-            <div class="setting-item">
-              <label>字体大小:</label>
-              <input
-                  type="range"
-                  v-model="watermarkSettings.fontSize"
-                  min="12"
-                  max="100"
-              >
-            </div>
-
-            <div class="setting-item">
-              <label>水印框宽:</label>
-              <input
-                  type="range"
-                  v-model="watermarkSettings.watermarkWidth"
-                  min="100"
-                  max="500"
-              >
-            </div>
-
-            <div class="setting-item">
-              <label>水印框高:</label>
-              <input
-                  type="range"
-                  v-model="watermarkSettings.watermarkHeight"
-                  min="100"
-                  max="500"
-              >
-            </div>
-
-            <div class="setting-item" v-if="watermarkSettings.repeat">
-              <label>水印间距:</label>
-              <input
-                  type="range"
-                  v-model="watermarkSettings.spacing"
-                  min="0"
-                  max="300"
-              >
-              <span>{{ watermarkSettings.spacing }}px</span>
-            </div>
-
-            <div class="setting-item">
-              <label>重复水印:</label>
-              <input type="checkbox" v-model="watermarkSettings.repeat">
-            </div>
-
-            <div class="setting-item">
-              <label>角度:</label>
-              <div class="angle-control">
-                <div
-                    class="angle-slider"
-                    @mousedown="startDragAngle"
-                >
-                  <div
-                      class="angle-handle"
-                      :style="{ transform: `rotate(${watermarkSettings.angle}deg)` }"
-                  ></div>
-                </div>
-                <input
-                    type="number"
-                    v-model="watermarkSettings.angle"
-                    min="0"
-                    max="360"
-                >
-                <button
-                    v-if="imageList.length"
-                    @click="rotate"
-                    class="rotate-button"
-                >旋转90°</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- 修改版权信息 -->
-      <Copyright />
-    </div>
-  </div>
-</template>
-
 <style scoped>
 .watermark-editor {
   padding: 20px;
@@ -886,7 +887,10 @@ watch(
   border-color: #4CAF50;
   background: rgba(76, 175, 80, 0.1);
 }
-
+.upload-icon {
+  font-size: 48px;
+  margin-bottom: 10px;
+}
 canvas {
   position: absolute;
   top: 50%;
@@ -968,7 +972,6 @@ input[type="range"] {
 }
 
 .drop-text {
-  font-size: 1.2em;
   color: #666;
   text-align: center;
   padding: 20px;

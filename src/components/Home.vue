@@ -26,12 +26,6 @@
           <p>多张图片合并为PDF</p>
         </div>
       </router-link>
-      <router-link to="/pdf-watermark" class="menu-item">
-        <div class="card">
-          <h2>PDF水印</h2>
-          <p>PDF文件添加水印</p>
-        </div>
-      </router-link>
     </div>
     <Copyright />
   </div>
