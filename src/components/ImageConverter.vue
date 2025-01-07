@@ -111,6 +111,9 @@
         </div>
 
         <div class="actions">
+          <button @click="triggerFileInput" class="select-btn">
+            选择文件
+          </button>
           <button @click="convertImage" class="convert-btn" :disabled="converting || !selectedFile">
             {{ converting ? '转换中...' : '开始转换' }}
           </button>
@@ -514,6 +517,22 @@ export default {
   margin-top: 20px;
   display: flex;
   justify-content: center;
+  gap: 10px;
+}
+
+.select-btn {
+  padding: 8px 16px;
+  background: #409EFF;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s ease;
+}
+
+.select-btn:hover {
+  background: #66b1ff;
 }
 
 .convert-btn {
