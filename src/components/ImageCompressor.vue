@@ -48,7 +48,6 @@
                     min="0.1"
                     max="1"
                     step="0.1"
-                    @input="handleCompress"
                   >
                   <span style="min-width: 45px;">{{ Math.round(settings.quality * 100) }}%</span>
                 </div>
@@ -68,17 +67,25 @@
   </template>
   
   <script setup>
-  import { ref, reactive } from 'vue'
-  import imageCompression from 'browser-image-compression'
+  import { ref, reactive, watch } from 'vue'
+  import Compressor from 'compressorjs'
   import Copyright from './Copyright.vue'
   
   const isDragging = ref(false)
   const previewUrl = ref('')
   const compressedFile = ref(null)
   const imageInfo = ref(null)
+  const originalFile = ref(null)
   
   const settings = reactive({
     quality: 0.8
+  })
+  
+  // 监听质量变化
+  watch(() => settings.quality, (newQuality) => {
+    if (originalFile.value) {
+      handleCompress()
+    }
   })
   
   // 处理文件选择
@@ -107,31 +114,33 @@
   
   // 处理图片压缩
   const handleCompress = async () => {
-    if (!compressedFile.value) return
-    await processImage(compressedFile.value)
+    if (!originalFile.value) return
+    await processImage(originalFile.value)
   }
   
   // 处理图片
   const processImage = async (file) => {
     try {
-      const options = {
-        maxSizeMB: 10,
-        useWebWorker: true,
-        quality: settings.quality
-      }
-  
-      const compressedBlob = await imageCompression(file, options)
-      compressedFile.value = compressedBlob
-  
-      // 更新预览
-      previewUrl.value = URL.createObjectURL(compressedBlob)
-  
-      // 更新信息
-      imageInfo.value = {
-        originalSize: file.size,
-        compressedSize: compressedBlob.size,
-        compressionRatio: Math.round((1 - compressedBlob.size / file.size) * 100)
-      }
+      // 保存原始文件
+      originalFile.value = file
+
+      new Compressor(file, {
+        quality: Number(settings.quality),
+        success(result) {
+          compressedFile.value = result
+          // 更新预览
+          previewUrl.value = URL.createObjectURL(result)
+          // 更新信息
+          imageInfo.value = {
+            originalSize: file.size,
+            compressedSize: result.size,
+            compressionRatio: Math.round((1 - result.size / file.size) * 100)
+          }
+        },
+        error(err) {
+          console.error('压缩失败:', err)
+        }
+      })
     } catch (error) {
       console.error('压缩失败:', error)
     }
@@ -142,14 +151,14 @@
     if (!compressedFile.value) return
     const link = document.createElement('a')
     link.href = previewUrl.value
-    link.download = `compressed_${Date.now()}.jpg`
+    link.download = `compressed_${Date.now()}.${compressedFile.value.type.split('/')[1]}`
     link.click()
   }
   
   // 重置设置
   const resetSettings = () => {
     settings.quality = 0.8
-    if (compressedFile.value) {
+    if (originalFile.value) {
       handleCompress()
     }
   }
@@ -259,6 +268,7 @@
     display: flex;
     gap: 8px;
     margin-bottom: 12px;
+    justify-content: center;
   }
   
   .settings-group {

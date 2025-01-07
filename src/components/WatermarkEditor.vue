@@ -912,6 +912,7 @@ canvas {
   display: flex;
   gap: 8px;
   margin-bottom: 12px;
+  justify-content: center;
 }
 
 .settings-group {

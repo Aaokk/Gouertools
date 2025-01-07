@@ -512,27 +512,27 @@ export default {
 
 .actions {
   margin-top: 20px;
-  text-align: center;
+  display: flex;
+  justify-content: center;
 }
 
 .convert-btn {
-  background-color: #409EFF;
+  padding: 8px 16px;
+  background: #4CAF50;
   color: white;
   border: none;
-  padding: 10px 20px;
   border-radius: 4px;
   cursor: pointer;
   font-size: 14px;
   transition: background-color 0.3s ease;
-  min-width: 120px;
 }
 
 .convert-btn:hover:not(:disabled) {
-  background-color: #66b1ff;
+  background: #45a049;
 }
 
 .convert-btn:disabled {
-  background-color: #a0cfff;
+  background: #a5d6a7;
   cursor: not-allowed;
 }
 
