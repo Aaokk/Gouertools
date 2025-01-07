@@ -272,7 +272,7 @@ h1, h3 {
 }
 
 .upload-area {
-  margin: 15px 0;
+  margin: 20px 0;
 }
 
 .drop-zone {

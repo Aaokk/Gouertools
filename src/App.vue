@@ -3,6 +3,7 @@
     <nav class="nav-bar">
       <router-link to="/" class="nav-link">首页</router-link>
       <router-link to="/watermark" class="nav-link">添加水印</router-link>
+      <router-link to="/image-converter" class="nav-link">图片格式转换</router-link>
       <router-link to="/pdf2image" class="nav-link">PDF转图片</router-link>
       <router-link to="/image2pdf" class="nav-link">图片转PDF</router-link>
       <router-link to="/pdf-watermark" class="nav-link">PDF水印</router-link>

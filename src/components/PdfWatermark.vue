@@ -17,6 +17,7 @@
       >
         <div class="upload-icon">📄</div>
         <p>点击或拖拽PDF文件到此处</p>
+        <p class="tip">支持多个图片，每个图片将作为一页</p>
       </div>
     </div>
     
@@ -298,7 +299,11 @@ h1, h3 {
   margin: 20px 0;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
 }
-
+.tip {
+  color: #909399;
+  font-size: 14px;
+  margin-top: 8px;
+}
 .settings-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));

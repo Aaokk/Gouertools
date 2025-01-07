@@ -8,6 +8,12 @@
           <p>为图片添加自定义水印</p>
         </div>
       </router-link>
+      <router-link to="/image-converter" class="menu-item">
+        <div class="card">
+          <h2>图片格式转换</h2>
+          <p>转换为常用图片格式</p>
+        </div>
+      </router-link>
       <router-link to="/pdf2image" class="menu-item">
         <div class="card">
           <h2>PDF转图片</h2>

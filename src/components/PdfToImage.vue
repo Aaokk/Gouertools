@@ -16,7 +16,8 @@
         @dragenter.prevent
       >
         <div class="upload-icon">📄</div>
-        <p>点击或拖拽PDF文件到此处</p>
+        <p>点击或拖拽图片文件到此处</p>
+        <p class="tip">支持多个图片，每个图片将作为一页</p>
       </div>
     </div>
     <div v-if="selectedFile" class="file-info">
@@ -166,7 +167,11 @@ export default {
   max-width: 1200px;
   margin: 0 auto;
 }
-
+.tip {
+  color: #909399;
+  font-size: 14px;
+  margin-top: 8px;
+}
 h1, h2 {
   text-align: center;
   color: #2c3e50;
@@ -175,7 +180,7 @@ h1, h2 {
 }
 
 .upload-area {
-  margin: 15px 0;
+  margin: 20px 0;
 }
 
 .drop-zone {
