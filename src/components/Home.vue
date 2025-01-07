@@ -26,6 +26,12 @@
           <p>多张图片合并为PDF</p>
         </div>
       </router-link>
+      <router-link to="/image-compressor" class="menu-item">
+        <div class="card">
+          <h2>图片压缩</h2>
+          <p>压缩图片大小和尺寸</p>
+        </div>
+      </router-link>
     </div>
     <Copyright />
   </div>
