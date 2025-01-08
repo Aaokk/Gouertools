@@ -10,7 +10,8 @@
               @dragenter="isDragging = true"
               @dragleave="isDragging = false"
               @drop="handleDrop"
-              :class="{ dragging: isDragging }"
+              @click="!imageList.length && handleFileSelect()"
+              :class="{ dragging: isDragging, clickable: !imageList.length }"
           >
             <canvas
                 ref="canvasRef"
@@ -887,10 +888,21 @@ watch(
   border-color: #4CAF50;
   background: rgba(76, 175, 80, 0.1);
 }
+
+.drop-zone.clickable {
+  cursor: pointer;
+}
+
+.drop-zone.clickable:hover {
+  border-color: #4CAF50;
+  background: rgba(76, 175, 80, 0.05);
+}
+
 .upload-icon {
   font-size: 48px;
   margin-bottom: 10px;
 }
+
 canvas {
   position: absolute;
   top: 50%;
