@@ -504,9 +504,10 @@ const saveImage = async () => {
 
   if (window.electron) {
     try {
-      // 获取当前图片的文件名
+      // 获取当前图片的文件名和类型
       const currentImage = imageList.value[currentImageIndex.value]
       const originalName = currentImage.name
+      const originalType = currentImage.file.type || 'image/jpeg'
 
       // 生成时间戳的新文件名
       const now = new Date()
@@ -523,11 +524,11 @@ const saveImage = async () => {
       const nameWithoutExt = originalName.substring(0, lastDotIndex)
       const extension = originalName.substring(lastDotIndex)
 
-      // 构建建的文件名
+      // 构建新的文件名
       const suggestedName = `${nameWithoutExt}_${timestamp}${extension}`
 
-      // 获取画布数据
-      const dataUrl = canvasRef.value.toDataURL('image/png')
+      // 获取画布数据，使用原始图片的格式
+      const dataUrl = canvasRef.value.toDataURL(originalType, 0.92)
 
       // 调用保存文件对话框
       const savePath = await window.electron.saveFile(suggestedName)
@@ -546,8 +547,8 @@ const saveImage = async () => {
     }
   } else {
     // 浏览器环境下的保存
-    const link = document.createElement('a')
     const currentImage = imageList.value[currentImageIndex.value]
+    const originalType = currentImage.file.type || 'image/jpeg'
     const now = new Date()
     const timestamp = now.getFullYear() +
         ('0' + (now.getMonth() + 1)).slice(-2) +
@@ -560,9 +561,11 @@ const saveImage = async () => {
     const lastDotIndex = currentImage.name.lastIndexOf('.')
     const nameWithoutExt = currentImage.name.substring(0, lastDotIndex)
     const extension = currentImage.name.substring(lastDotIndex)
+    const fileName = `${nameWithoutExt}_${timestamp}${extension}`
 
-    link.download = `${nameWithoutExt}_${timestamp}${extension}`
-    link.href = canvasRef.value.toDataURL('image/png')
+    const link = document.createElement('a')
+    link.download = fileName
+    link.href = canvasRef.value.toDataURL(originalType, 0.92)
     link.click()
   }
 }
