@@ -362,13 +362,14 @@ export default {
   align-items: center;
   justify-content: center;
   background: #f5f5f5;
+  position: relative;
   cursor: pointer;
-  transition: border-color 0.3s ease;
-  padding: 20px;
+  transition: all 0.3s ease;
 }
 
 .drop-zone:hover {
-  border-color: #409EFF;
+  border-color: #4CAF50;
+  background: rgba(76, 175, 80, 0.05);
 }
 
 .preview-area {
@@ -377,9 +378,14 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
+  position: relative;
 }
 
 .preview-image {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   max-width: 100%;
   max-height: 100%;
   object-fit: contain;
@@ -398,7 +404,7 @@ export default {
   margin-bottom: 20px;
   font-size: 1.2em;
   padding: 8px 0;
-  border-bottom: 2px solid #409EFF;
+  border-bottom: 2px solid #4CAF50;
 }
 
 .file-info {
@@ -457,14 +463,14 @@ export default {
 }
 
 .format-btn:hover {
-  border-color: #409EFF;
-  color: #409EFF;
+  border-color: #4CAF50;
+  color: #4CAF50;
 }
 
 .format-btn.active {
-  background: #409EFF;
+  background: #4CAF50;
   color: white;
-  border-color: #409EFF;
+  border-color: #4CAF50;
 }
 
 .slider-container {
@@ -510,7 +516,7 @@ export default {
 }
 
 .estimated-size {
-  color: #409EFF;
+  color: #4CAF50;
 }
 
 .actions {
@@ -520,30 +526,27 @@ export default {
   gap: 10px;
 }
 
-.select-btn {
+.select-btn,
+.convert-btn {
   padding: 8px 16px;
-  background: #409EFF;
   color: white;
   border: none;
   border-radius: 4px;
   cursor: pointer;
   font-size: 14px;
   transition: background-color 0.3s ease;
+}
+
+.select-btn {
+  background: #4CAF50;
 }
 
 .select-btn:hover {
-  background: #66b1ff;
+  background: #45a049;
 }
 
 .convert-btn {
-  padding: 8px 16px;
   background: #4CAF50;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
-  transition: background-color 0.3s ease;
 }
 
 .convert-btn:hover:not(:disabled) {

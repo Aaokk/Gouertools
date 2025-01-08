@@ -242,7 +242,6 @@ const formatFileSize = (bytes) => {
   justify-content: center;
   padding: 20px;
   box-sizing: border-box;
-  /* background: #f5f5f5; */
   border-radius: 8px;
 }
 
@@ -256,11 +255,18 @@ const formatFileSize = (bytes) => {
   justify-content: center;
   background: #f5f5f5;
   position: relative;
+  cursor: pointer;
+  transition: all 0.3s ease;
 }
 
 .drop-zone.dragging {
-  border-color: #409eff;
-  background: rgba(64, 158, 255, 0.1);
+  border-color: #4CAF50;
+  background: rgba(76, 175, 80, 0.1);
+}
+
+.drop-zone:hover {
+  border-color: #4CAF50;
+  background: rgba(76, 175, 80, 0.05);
 }
 
 .drop-text {
@@ -280,18 +286,31 @@ const formatFileSize = (bytes) => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  position: relative;
 }
 
 .preview-image {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   max-width: 100%;
-  max-height: 80%;
+  max-height: 100%;
   object-fit: contain;
 }
 
 .image-info {
-  margin-top: 20px;
+  position: absolute;
+  bottom: 20px;
+  left: 0;
+  right: 0;
   text-align: center;
   color: #666;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 10px;
+  margin: 0 20px;
+  border-radius: 4px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
 }
 
 .control-panel {
@@ -398,9 +417,8 @@ input[type="range"] {
   font-size: 12px;
   color: #909399;
   padding: 8px;
-  background: #f8f9fa;
+  background: #f5f7fa;
   border-radius: 4px;
-  line-height: 1.4;
   margin-top: 4px;
 }
 </style>
