@@ -1235,14 +1235,14 @@ watch(
 <style scoped>
 .watermark-editor {
   padding: 20px;
-  height: 100vh;
+  min-height: calc(100vh - 120px); /* 减去导航栏和padding的高度 */
   box-sizing: border-box;
 }
 
 .main-container {
   display: flex;
   gap: 20px;
-  height: 100%;
+  min-height: 600px; /* 设置最小高度而不是固定高度 */
   padding-bottom: 40px;
 }
 
