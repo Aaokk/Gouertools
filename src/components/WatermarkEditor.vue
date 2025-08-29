@@ -415,6 +415,28 @@ const calculateWatermarkParams = (imageWidth, imageHeight) => {
   }
 }
 
+// 创建优化的PNG数据URL，确保预览正常
+const createOptimizedDataURL = (canvas, format, quality) => {
+  if (format === 'image/png') {
+    // 对于PNG，创建一个临时canvas确保背景正确
+    const tempCanvas = document.createElement('canvas')
+    const tempCtx = tempCanvas.getContext('2d')
+    tempCanvas.width = canvas.width
+    tempCanvas.height = canvas.height
+
+    // 填充白色背景
+    tempCtx.fillStyle = '#FFFFFF'
+    tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height)
+
+    // 绘制原始canvas内容
+    tempCtx.drawImage(canvas, 0, 0)
+
+    return tempCanvas.toDataURL('image/png')
+  } else {
+    return canvas.toDataURL(format, quality)
+  }
+}
+
 // 更新水印设置
 const updateWatermark = () => {
   if (!canvasRef.value || !imageList.value.length) return
@@ -454,6 +476,13 @@ const updateWatermark = () => {
 
     // 清除画布
     ctx.clearRect(0, 0, canvas.width, canvas.height)
+
+    // 对于PNG图片，先填充白色背景以确保预览正常
+    const currentImage = imageList.value[currentImageIndex.value]
+    if (currentImage && currentImage.name.toLowerCase().endsWith('.png')) {
+      ctx.fillStyle = '#FFFFFF'
+      ctx.fillRect(0, 0, canvas.width, canvas.height)
+    }
 
     // 绘制原始图片
     ctx.drawImage(img, 0, 0)
@@ -631,8 +660,8 @@ const saveImage = async () => {
       // 构建新的文件名
       const suggestedName = `${nameWithoutExt}_${timestamp}${extension}`
 
-      // 获取画布数据，使用原始图片的格式
-      const dataUrl = canvasRef.value.toDataURL(originalType, 0.92)
+      // 获取画布数据，使用优化函数确保PNG预览正常
+      const dataUrl = createOptimizedDataURL(canvasRef.value, originalType, 0.92)
 
       // 调用保存文件对话框
       const savePath = await window.electron.saveFile(suggestedName)
@@ -669,7 +698,10 @@ const saveImage = async () => {
 
     const link = document.createElement('a')
     link.download = fileName
-    link.href = canvasRef.value.toDataURL(originalType, 0.92)
+
+    // 使用优化函数确保PNG预览正常
+    link.href = createOptimizedDataURL(canvasRef.value, originalType, 0.92)
+
     link.click()
   }
 }
@@ -865,17 +897,25 @@ const saveAllImages = async () => {
 
       for (let i = 0; i < imageList.value.length; i++) {
         try {
+          console.log(`开始处理第 ${i + 1} 张图片...`)
+
           // 切换到当前图片
           currentImageIndex.value = i
           await new Promise(resolve => {
             nextTick(() => {
               updateWatermark()
-              setTimeout(resolve, 100) // 等待渲染完成
+              setTimeout(resolve, 200) // 增加等待时间确保渲染完成
             })
           })
 
           // 获取当前图片信息
           const currentImage = imageList.value[i]
+          if (!currentImage) {
+            throw new Error(`无法获取第 ${i + 1} 张图片信息`)
+          }
+
+          console.log(`处理图片: ${currentImage.name}`)
+
           const originalName = currentImage.name
           const nameWithoutExt = originalName.substring(0, originalName.lastIndexOf('.')) || originalName
           const extension = originalName.substring(originalName.lastIndexOf('.')) || '.jpg'
@@ -887,14 +927,27 @@ const saveAllImages = async () => {
               ('0' + now.getDate()).slice(-2) +
               ('0' + now.getHours()).slice(-2) +
               ('0' + now.getMinutes()).slice(-2) +
-              ('0' + now.getSeconds()).slice(-2)
+              ('0' + now.getSeconds()).slice(-2) +
+              ('0' + now.getMilliseconds()).slice(-3) // 添加毫秒避免重名
 
           const fileName = `${nameWithoutExt}_watermark_${timestamp}${extension}`
           const filePath = `${saveDir}/${fileName}`
 
-          // 保存图片
-          const dataUrl = canvasRef.value.toDataURL('image/jpeg', 0.9)
+          // 检查canvas是否有内容
+          if (!canvasRef.value) {
+            throw new Error('Canvas未初始化')
+          }
+
+          // 保存图片 - 保持原始格式并优化PNG
+          const originalType = currentImage.name.toLowerCase().endsWith('.png') ? 'image/png' : 'image/jpeg'
+          const dataUrl = createOptimizedDataURL(canvasRef.value, originalType, 0.9)
+
+          if (!dataUrl || dataUrl === 'data:,') {
+            throw new Error('无法生成图片数据')
+          }
+
           await window.electron.saveImage({ dataUrl, path: filePath })
+          console.log(`第 ${i + 1} 张图片保存成功: ${fileName}`)
 
           successCount++
         } catch (error) {
@@ -909,7 +962,83 @@ const saveAllImages = async () => {
       alert('批量保存失败: ' + error.message)
     }
   } else {
-    alert('批量保存功能仅在桌面应用中可用')
+    // 浏览器版本的批量保存
+    try {
+      let successCount = 0
+      let failCount = 0
+
+      for (let i = 0; i < imageList.value.length; i++) {
+        try {
+          console.log(`开始处理第 ${i + 1} 张图片...`)
+
+          // 切换到当前图片
+          currentImageIndex.value = i
+          await new Promise(resolve => {
+            nextTick(() => {
+              updateWatermark()
+              setTimeout(resolve, 200) // 增加等待时间确保渲染完成
+            })
+          })
+
+          // 获取当前图片信息
+          const currentImage = imageList.value[i]
+          if (!currentImage) {
+            throw new Error(`无法获取第 ${i + 1} 张图片信息`)
+          }
+
+          console.log(`处理图片: ${currentImage.name}`)
+
+          const originalName = currentImage.name
+          const nameWithoutExt = originalName.substring(0, originalName.lastIndexOf('.')) || originalName
+          const extension = originalName.substring(originalName.lastIndexOf('.')) || '.jpg'
+
+          // 生成文件名
+          const now = new Date()
+          const timestamp = now.getFullYear() +
+              ('0' + (now.getMonth() + 1)).slice(-2) +
+              ('0' + now.getDate()).slice(-2) +
+              ('0' + now.getHours()).slice(-2) +
+              ('0' + now.getMinutes()).slice(-2) +
+              ('0' + now.getSeconds()).slice(-2) +
+              ('0' + now.getMilliseconds()).slice(-3) // 添加毫秒避免重名
+
+          const fileName = `${nameWithoutExt}_watermark_${timestamp}${extension}`
+
+          // 检查canvas是否有内容
+          if (!canvasRef.value) {
+            throw new Error('Canvas未初始化')
+          }
+
+          // 保存图片
+          const originalType = currentImage.name.toLowerCase().endsWith('.png') ? 'image/png' : 'image/jpeg'
+          const dataUrl = createOptimizedDataURL(canvasRef.value, originalType, 0.9)
+
+          if (!dataUrl || dataUrl === 'data:,') {
+            throw new Error('无法生成图片数据')
+          }
+
+          const link = document.createElement('a')
+          link.download = fileName
+          link.href = dataUrl
+          link.click()
+
+          console.log(`第 ${i + 1} 张图片保存成功: ${fileName}`)
+
+          successCount++
+
+          // 添加延迟避免浏览器阻止多个下载
+          await new Promise(resolve => setTimeout(resolve, 800))
+        } catch (error) {
+          console.error(`保存第 ${i + 1} 张图片失败:`, error)
+          failCount++
+        }
+      }
+
+      alert(`批量保存完成！成功：${successCount} 张，失败：${failCount} 张`)
+    } catch (error) {
+      console.error('批量保存失败:', error)
+      alert('批量保存失败: ' + error.message)
+    }
   }
 }
 
