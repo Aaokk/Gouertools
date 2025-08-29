@@ -199,7 +199,7 @@
             </div>
 
             <div class="setting-item" v-else>
-              <label>字体大小比例:</label>
+              <label>字体比例:</label>
               <input
                   type="range"
                   v-model="watermarkSettings.fontSizeRatio"
@@ -1349,9 +1349,13 @@ canvas {
 }
 
 input[type="text"],
-input[type="range"],
 input[type="color"] {
   width: 100%;
+  min-width: 0;
+}
+
+input[type="range"] {
+  width: 60%; /* 调整滑动条宽度为60% */
   min-width: 0;
 }
 
