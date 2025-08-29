@@ -2,26 +2,55 @@
   <div>
     <div class="watermark-editor">
       <div class="main-container">
-        <!-- 左侧画布区域 -->
-        <div class="canvas-area">
-          <div
-              class="drop-zone"
-              @dragover.prevent
-              @dragenter="isDragging = true"
-              @dragleave="isDragging = false"
-              @drop="handleDrop"
-              @click="!imageList.length && handleFileSelect()"
-              :class="{ dragging: isDragging, clickable: !imageList.length }"
-          >
-            <canvas
-                ref="canvasRef"
-                v-show="imageList.length > 0"
-                @mousedown="startWatermarkDrag"
-                style="cursor: move;"
-            />
-            <div v-show="!imageList.length" class="drop-text">
-              <div class="upload-icon">🖼️</div>
-              <p>点击或拖拽图片文件到此处</p>
+        <!-- 左侧区域 - 包含画布和文件列表 -->
+        <div class="left-area">
+          <!-- 画布区域 -->
+          <div class="canvas-area">
+            <div
+                class="drop-zone"
+                @dragover.prevent
+                @dragenter="isDragging = true"
+                @dragleave="isDragging = false"
+                @drop="handleDrop"
+                @click="!imageList.length && handleFileSelect()"
+                :class="{ dragging: isDragging, clickable: !imageList.length }"
+            >
+              <canvas
+                  ref="canvasRef"
+                  v-show="imageList.length > 0"
+                  @mousedown="startWatermarkDrag"
+                  style="cursor: move;"
+              />
+              <div v-show="!imageList.length" class="drop-text">
+                <div class="upload-icon">🖼️</div>
+                <p>点击或拖拽图片文件到此处</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- 多文件列表显示 - 在画布底部 -->
+          <div v-if="imageList.length > 1" class="file-list-bottom">
+            <h3>已选择 {{ imageList.length }} 个文件：</h3>
+            <div class="file-items">
+              <div
+                v-for="(image, index) in imageList"
+                :key="image.id"
+                :class="['file-item', { active: index === currentImageIndex }]"
+                @click="switchToImage(index)"
+              >
+                <div class="file-preview">
+                  <img :src="image.src" :alt="image.name" class="file-thumbnail">
+                </div>
+                <div class="file-info">
+                  <span class="file-name">{{ image.name }}</span>
+                  <button @click.stop="removeImage(index)" class="remove-btn">删除</button>
+                </div>
+              </div>
+            </div>
+            <div class="navigation-buttons">
+              <button @click="previousImage" :disabled="currentImageIndex === 0">上一张</button>
+              <span class="current-info">{{ currentImageIndex + 1 }} / {{ imageList.length }}</span>
+              <button @click="nextImage" :disabled="currentImageIndex === imageList.length - 1">下一张</button>
             </div>
           </div>
         </div>
@@ -32,7 +61,8 @@
 
           <div class="button-group">
             <button @click="handleFileSelect">选择文件</button>
-            <button v-if="imageList.length" @click="saveImage">保存</button>
+            <button v-if="imageList.length" @click="saveImage">保存当前图片</button>
+            <button v-if="imageList.length > 1" @click="saveAllImages" class="save-all-button">批量保存</button>
             <button @click="resetSettings" class="reset-button">重置设置</button>
           </div>
 
@@ -687,6 +717,117 @@ const handleFileSelect = () => {
   input.click()
 }
 
+// 切换到指定图片
+const switchToImage = (index) => {
+  if (index >= 0 && index < imageList.value.length) {
+    currentImageIndex.value = index
+    nextTick(() => {
+      updateWatermark()
+    })
+  }
+}
+
+// 删除指定图片
+const removeImage = (index) => {
+  if (imageList.value.length <= 1) {
+    // 如果只有一张图片，清空所有
+    imageList.value = []
+    currentImageIndex.value = 0
+    return
+  }
+
+  imageList.value.splice(index, 1)
+
+  // 调整当前索引
+  if (currentImageIndex.value >= imageList.value.length) {
+    currentImageIndex.value = imageList.value.length - 1
+  } else if (currentImageIndex.value > index) {
+    currentImageIndex.value--
+  }
+
+  nextTick(() => {
+    updateWatermark()
+  })
+}
+
+// 上一张图片
+const previousImage = () => {
+  if (currentImageIndex.value > 0) {
+    switchToImage(currentImageIndex.value - 1)
+  }
+}
+
+// 下一张图片
+const nextImage = () => {
+  if (currentImageIndex.value < imageList.value.length - 1) {
+    switchToImage(currentImageIndex.value + 1)
+  }
+}
+
+// 批量保存所有图片
+const saveAllImages = async () => {
+  if (!canvasRef.value || imageList.value.length === 0) return
+
+  if (window.electron) {
+    try {
+      // 选择保存目录
+      const result = await window.electron.selectDirectory()
+      if (!result || result.canceled) return
+
+      const saveDir = result.filePaths[0]
+      let successCount = 0
+      let failCount = 0
+
+      for (let i = 0; i < imageList.value.length; i++) {
+        try {
+          // 切换到当前图片
+          currentImageIndex.value = i
+          await new Promise(resolve => {
+            nextTick(() => {
+              updateWatermark()
+              setTimeout(resolve, 100) // 等待渲染完成
+            })
+          })
+
+          // 获取当前图片信息
+          const currentImage = imageList.value[i]
+          const originalName = currentImage.name
+          const nameWithoutExt = originalName.substring(0, originalName.lastIndexOf('.')) || originalName
+          const extension = originalName.substring(originalName.lastIndexOf('.')) || '.jpg'
+
+          // 生成文件名
+          const now = new Date()
+          const timestamp = now.getFullYear() +
+              ('0' + (now.getMonth() + 1)).slice(-2) +
+              ('0' + now.getDate()).slice(-2) +
+              ('0' + now.getHours()).slice(-2) +
+              ('0' + now.getMinutes()).slice(-2) +
+              ('0' + now.getSeconds()).slice(-2)
+
+          const fileName = `${nameWithoutExt}_watermark_${timestamp}${extension}`
+          const filePath = `${saveDir}/${fileName}`
+
+          // 保存图片
+          const dataUrl = canvasRef.value.toDataURL('image/jpeg', 0.9)
+          await window.electron.saveImage({ dataUrl, path: filePath })
+
+          successCount++
+        } catch (error) {
+          console.error(`保存第 ${i + 1} 张图片失败:`, error)
+          failCount++
+        }
+      }
+
+      alert(`批量保存完成！成功：${successCount} 张，失败：${failCount} 张`)
+    } catch (error) {
+      console.error('批量保存失败:', error)
+      alert('批量保存失败: ' + error.message)
+    }
+  } else {
+    alert('批量保存功能仅在桌面应用中可用')
+  }
+}
+
 // 添加角度拖动处理函数
 const startDragAngle = (e) => {
   watermarkSettings.isDragging = true
@@ -864,10 +1005,18 @@ watch(
   padding-bottom: 40px;
 }
 
-.canvas-area {
+/* 左侧区域 - 垂直布局 */
+.left-area {
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.canvas-area {
   min-width: 300px;
-  height: calc(80vh - 100px);
+  max-height: 500px;
+  height: 500px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -877,7 +1026,8 @@ watch(
 
 .drop-zone {
   width: 100%;
-  height: 100%;
+  max-height: 460px;
+  height: 460px;
   border: 2px dashed #ccc;
   border-radius: 8px;
   display: flex;
@@ -885,6 +1035,7 @@ watch(
   justify-content: center;
   background: #f5f5f5;
   position: relative;
+  overflow: hidden;
 }
 
 .drop-zone.dragging {
@@ -1160,4 +1311,142 @@ input[type="range"] {
   margin-top: -4px;
   margin-bottom: 2px;
 }
-</style> 
+
+.save-all-button {
+  background: #9c27b0;
+}
+
+.save-all-button:hover {
+  background: #7b1fa2;
+}
+
+/* 多文件列表样式 - 位于画布底部 */
+.file-list-bottom {
+  padding: 12px;
+  background: #f9f9f9;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+  margin: 0 20px; /* 与画布区域的padding保持一致 */
+  box-sizing: border-box;
+}
+
+.file-list h3 {
+  margin: 0 0 12px 0;
+  color: #333;
+  font-size: 13px;
+  text-align: center;
+}
+
+.file-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  max-height: 200px;
+  overflow-y: auto;
+  margin-bottom: 12px;
+  justify-content: flex-start;
+}
+
+.file-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px;
+  background: white;
+  border-radius: 6px;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 80px;
+  min-height: 100px;
+}
+
+.file-item:hover {
+  border-color: #e0e0e0;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.file-item.active {
+  border-color: #4CAF50;
+  background: #f0f8f0;
+}
+
+.file-preview {
+  width: 50px;
+  height: 50px;
+  margin-bottom: 6px;
+  border-radius: 4px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.file-thumbnail {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.file-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+}
+
+.file-name {
+  font-size: 10px;
+  color: #333;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 70px;
+  line-height: 1.2;
+}
+
+.remove-btn {
+  padding: 2px 6px;
+  font-size: 10px;
+  background: #f44336;
+  color: white;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.remove-btn:hover {
+  background: #d32f2f;
+}
+
+.navigation-buttons {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 15px;
+  padding-top: 8px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.navigation-buttons button {
+  padding: 4px 10px;
+  font-size: 11px;
+  background: #2196F3;
+}
+
+.navigation-buttons button:hover:not(:disabled) {
+  background: #1976D2;
+}
+
+.navigation-buttons button:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+.current-info {
+  font-size: 11px;
+  color: #666;
+  font-weight: bold;
+}
+</style>
