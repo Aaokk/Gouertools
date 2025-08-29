@@ -63,6 +63,7 @@
             <button @click="handleFileSelect">选择文件</button>
             <button v-if="imageList.length" @click="saveImage">保存当前图片</button>
             <button v-if="imageList.length > 1" @click="saveAllImages" class="save-all-button">批量保存</button>
+            <button v-if="imageList.length" @click="clearImageList" class="clear-button">清理列表</button>
             <button @click="resetSettings" class="reset-button">重置设置</button>
           </div>
 
@@ -1104,6 +1105,32 @@ onUnmounted(() => {
   document.removeEventListener('click', handleClickOutside)
 })
 
+// 清理图片列表
+const clearImageList = () => {
+  if (confirm('确定要清理所有图片吗？此操作不可撤销。')) {
+    // 清空图片列表
+    imageList.value = []
+    currentImageIndex.value = 0
+
+    // 清空画布
+    if (canvasRef.value) {
+      const canvas = canvasRef.value
+      const ctx = canvas.getContext('2d')
+      ctx.clearRect(0, 0, canvas.width, canvas.height)
+
+      // 重置画布大小
+      canvas.width = 800
+      canvas.height = 600
+    }
+
+    // 重置水印位置
+    watermarkOffset.x = 100
+    watermarkOffset.y = 100
+
+    console.log('图片列表已清理')
+  }
+}
+
 // 修改重置设置的功能
 const resetSettings = () => {
   const defaultSettings = {
@@ -1561,6 +1588,14 @@ input[type="range"] {
 
 .save-all-button:hover {
   background: #7b1fa2;
+}
+
+.clear-button {
+  background: #f44336;
+}
+
+.clear-button:hover {
+  background: #d32f2f;
 }
 
 /* 多文件列表样式 - 位于画布底部 */
