@@ -68,6 +68,25 @@
 
           <div class="settings-group">
             <div class="setting-item">
+              <label>配置模式:</label>
+              <div class="mode-switch">
+                <label class="switch-label">
+                  <input
+                    type="checkbox"
+                    v-model="watermarkSettings.useProportionalMode"
+                    @change="updateWatermark"
+                  />
+                  <span class="switch-text">
+                    {{ watermarkSettings.useProportionalMode ? '比例模式' : '固定模式' }}
+                  </span>
+                </label>
+                <div class="setting-tip">
+                  {{ watermarkSettings.useProportionalMode ? '水印大小根据图片尺寸自动调整' : '使用固定像素值' }}
+                </div>
+              </div>
+            </div>
+
+            <div class="setting-item">
               <label>水印文字:</label>
               <input type="text" v-model="watermarkSettings.text" maxlength="130">
             </div>
@@ -166,7 +185,8 @@
               >
             </div>
 
-            <div class="setting-item">
+            <!-- 字体大小控制 - 根据模式显示不同控制 -->
+            <div class="setting-item" v-if="!watermarkSettings.useProportionalMode">
               <label>字体大小:</label>
               <input
                   type="range"
@@ -174,6 +194,19 @@
                   min="12"
                   max="100"
               >
+              <span class="value-display">{{ watermarkSettings.fontSize }}px</span>
+            </div>
+
+            <div class="setting-item" v-else>
+              <label>字体大小比例:</label>
+              <input
+                  type="range"
+                  v-model="watermarkSettings.fontSizeRatio"
+                  min="0.01"
+                  max="0.1"
+                  step="0.005"
+              >
+              <span class="value-display">{{ (watermarkSettings.fontSizeRatio * 100).toFixed(1) }}%</span>
             </div>
 
             <div class="setting-item">
@@ -196,7 +229,8 @@
               >
             </div>
 
-            <div class="setting-item" v-if="watermarkSettings.repeat">
+            <!-- 水印间距控制 - 根据模式显示不同控制 -->
+            <div class="setting-item" v-if="watermarkSettings.repeat && !watermarkSettings.useProportionalMode">
               <label>水印间距:</label>
               <input
                   type="range"
@@ -204,7 +238,19 @@
                   min="0"
                   max="300"
               >
-              <span>{{ watermarkSettings.spacing }}px</span>
+              <span class="value-display">{{ watermarkSettings.spacing }}px</span>
+            </div>
+
+            <div class="setting-item" v-if="watermarkSettings.repeat && watermarkSettings.useProportionalMode">
+              <label>间距比例:</label>
+              <input
+                  type="range"
+                  v-model="watermarkSettings.spacingRatio"
+                  min="0"
+                  max="0.2"
+                  step="0.01"
+              >
+              <span class="value-display">{{ (watermarkSettings.spacingRatio * 100).toFixed(1) }}%</span>
             </div>
 
             <div class="setting-item">
@@ -263,7 +309,13 @@ const getStoredSettings = () => {
     watermarkWidth: 100,
     angle: -45,
     repeat: true,
-    spacing: 0
+    spacing: 0,
+    // 新增：比例模式配置
+    useProportionalMode: true, // 是否使用比例模式
+    fontSizeRatio: 0.03, // 字体大小相对于图片宽度的比例 (3%)
+    spacingRatio: 0.05, // 间距相对于图片宽度的比例 (5%)
+    watermarkHeightRatio: 0.15, // 水印高度相对于图片高度的比例 (15%)
+    watermarkWidthRatio: 0.25 // 水印宽度相对于图片宽度的比例 (25%)
   }
 
   const stored = localStorage.getItem('watermarkSettings')
@@ -344,6 +396,25 @@ onMounted(() => {
   document.addEventListener('click', handleClickOutside)
 })
 
+// 计算实际水印参数（基于图片尺寸和配置模式）
+const calculateWatermarkParams = (imageWidth, imageHeight) => {
+  if (watermarkSettings.useProportionalMode) {
+    return {
+      fontSize: Math.max(12, Math.round(imageWidth * watermarkSettings.fontSizeRatio)),
+      spacing: Math.round(imageWidth * watermarkSettings.spacingRatio),
+      watermarkHeight: Math.round(imageHeight * watermarkSettings.watermarkHeightRatio),
+      watermarkWidth: Math.round(imageWidth * watermarkSettings.watermarkWidthRatio)
+    }
+  } else {
+    return {
+      fontSize: watermarkSettings.fontSize,
+      spacing: watermarkSettings.spacing,
+      watermarkHeight: watermarkSettings.watermarkHeight,
+      watermarkWidth: watermarkSettings.watermarkWidth
+    }
+  }
+}
+
 // 更新水印设置
 const updateWatermark = () => {
   if (!canvasRef.value || !imageList.value.length) return
@@ -378,6 +449,9 @@ const updateWatermark = () => {
     canvas.width = img.naturalWidth
     canvas.height = img.naturalHeight
 
+    // 计算当前图片的实际水印参数
+    const actualParams = calculateWatermarkParams(canvas.width, canvas.height)
+
     // 清除画布
     ctx.clearRect(0, 0, canvas.width, canvas.height)
 
@@ -388,13 +462,13 @@ const updateWatermark = () => {
     ctx.save()
     ctx.globalAlpha = watermarkSettings.rgb.a
     ctx.fillStyle = `rgba(${watermarkSettings.rgb.r}, ${watermarkSettings.rgb.g}, ${watermarkSettings.rgb.b}, ${watermarkSettings.rgb.a})`
-    ctx.font = `${watermarkSettings.fontSize}px Arial`
+    ctx.font = `${actualParams.fontSize}px Arial`
 
     if (watermarkSettings.repeat) {
-      // 计算水印网格的总宽度和高度
-      const gridWidth = Math.max(watermarkSettings.watermarkWidth, watermarkSettings.fontSize * watermarkSettings.text.length)
-      const gridHeight = Math.max(watermarkSettings.watermarkHeight, watermarkSettings.fontSize * 1.5)
-      const spacing = parseInt(watermarkSettings.spacing)
+      // 计算水印网格的总宽度和高度（使用实际参数）
+      const gridWidth = Math.max(actualParams.watermarkWidth, actualParams.fontSize * watermarkSettings.text.length)
+      const gridHeight = Math.max(actualParams.watermarkHeight, actualParams.fontSize * 1.5)
+      const spacing = parseInt(actualParams.spacing)
 
       // 计算实际的网格大小（包含间距）
       const cellWidth = gridWidth + spacing
@@ -423,9 +497,9 @@ const updateWatermark = () => {
         }
       }
     } else {
-      // 单个水印，默认居中显示
+      // 单个水印，默认居中显示（使用实际参数）
       const textWidth = ctx.measureText(watermarkSettings.text).width
-      const textHeight = watermarkSettings.fontSize * 1.5
+      const textHeight = actualParams.fontSize * 1.5
 
       // 如果是首次显示或重置后将水印位置设置到中心
       if (watermarkOffset.x === 100 && watermarkOffset.y === 100) {
@@ -643,7 +717,12 @@ watch([
   () => watermarkSettings.watermarkWidth,
   () => watermarkSettings.angle,
   () => watermarkSettings.repeat,
-  () => watermarkSettings.spacing
+  () => watermarkSettings.spacing,
+  () => watermarkSettings.useProportionalMode,
+  () => watermarkSettings.fontSizeRatio,
+  () => watermarkSettings.spacingRatio,
+  () => watermarkSettings.watermarkHeightRatio,
+  () => watermarkSettings.watermarkWidthRatio
 ], (newValues, oldValues) => {
   // 查是否是 repeat 值发生变化
   const repeatIndex = 7 // repeat 在数组中的索引
@@ -666,6 +745,12 @@ watch([
     angle: watermarkSettings.angle,
     repeat: watermarkSettings.repeat,
     spacing: watermarkSettings.spacing,
+    // 新增比例模式参数
+    useProportionalMode: watermarkSettings.useProportionalMode,
+    fontSizeRatio: watermarkSettings.fontSizeRatio,
+    spacingRatio: watermarkSettings.spacingRatio,
+    watermarkHeightRatio: watermarkSettings.watermarkHeightRatio,
+    watermarkWidthRatio: watermarkSettings.watermarkWidthRatio,
     // 添加 LOGO 设置
     logoSettings: {
       image: logoSettings.image,
@@ -1310,6 +1395,35 @@ input[type="range"] {
   padding-left: 86px;  /* 与输入框对齐 */
   margin-top: -4px;
   margin-bottom: 2px;
+}
+
+/* 模式切换样式 */
+.mode-switch {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.switch-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.switch-label input[type="checkbox"] {
+  margin: 0;
+}
+
+.switch-text {
+  font-weight: 500;
+  color: #333;
+}
+
+.value-display {
+  font-size: 12px;
+  color: #666;
+  margin-left: 8px;
 }
 
 .save-all-button {
