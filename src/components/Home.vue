@@ -1,6 +1,6 @@
 <template>
   <div class="home">
-    <h1>给亲爱的佘泳蕻老婆(工具包包)</h1>
+    <h1>给老婆的工具包包</h1>
     <div class="menu">
       <router-link to="/watermark" class="menu-item">
         <div class="card">
