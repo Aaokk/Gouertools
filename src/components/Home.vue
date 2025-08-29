@@ -14,18 +14,6 @@
           <p>转换为常用图片格式</p>
         </div>
       </router-link>
-      <router-link to="/pdf2image" class="menu-item">
-        <div class="card">
-          <h2>PDF转图片</h2>
-          <p>PDF文件转换为图片</p>
-        </div>
-      </router-link>
-      <router-link to="/image2pdf" class="menu-item">
-        <div class="card">
-          <h2>图片转PDF</h2>
-          <p>多张图片合并为PDF</p>
-        </div>
-      </router-link>
       <router-link to="/image-compressor" class="menu-item">
         <div class="card">
           <h2>图片压缩</h2>

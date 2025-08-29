@@ -1,8 +1,6 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
 import Home from '../components/Home.vue'
 import WatermarkEditor from '../components/WatermarkEditor.vue'
-import PdfToImage from '../components/PdfToImage.vue'
-import ImageToPdf from '../components/ImageToPdf.vue'
 import ImageConverter from '../components/ImageConverter.vue'
 import ImageCompressor from '../components/ImageCompressor.vue'
 
@@ -18,16 +16,6 @@ const router = createRouter({
       path: '/watermark',
       name: 'watermark',
       component: WatermarkEditor
-    },
-    {
-      path: '/pdf2image',
-      name: 'pdf2image',
-      component: PdfToImage
-    },
-    {
-      path: '/image2pdf',
-      name: 'image2pdf',
-      component: ImageToPdf
     },
     {
       path: '/image-converter',

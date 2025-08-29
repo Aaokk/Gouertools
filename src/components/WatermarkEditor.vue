@@ -78,12 +78,12 @@
                     @change="updateWatermark"
                   />
                   <span class="switch-text">
-                    {{ watermarkSettings.useProportionalMode ? '比例模式' : '固定模式' }}
+                    {{ watermarkSettings.useProportionalMode ? '比例模式【自动调整水印大小】' : '固定模式【使用固定】' }}
                   </span>
                 </label>
-                <div class="setting-tip">
-                  {{ watermarkSettings.useProportionalMode ? '水印大小根据图片尺寸自动调整' : '使用固定像素值' }}
-                </div>
+                <!-- <div class="setting-tip">
+                  {{ watermarkSettings.useProportionalMode ? '自动调整' : '使用固定像素值' }}
+                </div> -->
               </div>
             </div>
 
