@@ -9,8 +9,8 @@
             <div
                 class="drop-zone"
                 @dragover.prevent
-                @dragenter="isDragging = true"
-                @dragleave="isDragging = false"
+                @dragenter="handleDragEnter"
+                @dragleave="handleDragLeave"
                 @drop="handleDrop"
                 @click="!imageList.length && handleFileSelect()"
                 :class="{ dragging: isDragging, clickable: !imageList.length }"
@@ -594,6 +594,25 @@ const updateWatermark = () => {
   })
 }
 
+// 改进的拖拽事件处理
+const handleDragEnter = (e) => {
+  e.preventDefault()
+  isDragging.value = true
+}
+
+const handleDragLeave = (e) => {
+  e.preventDefault()
+  // 只有当鼠标真正离开拖拽区域时才设置为false
+  // 检查是否离开了拖拽区域的边界
+  const rect = e.currentTarget.getBoundingClientRect()
+  const x = e.clientX
+  const y = e.clientY
+
+  if (x < rect.left || x > rect.right || y < rect.top || y > rect.bottom) {
+    isDragging.value = false
+  }
+}
+
 // 处理文件上传
 const handleDrop = (e) => {
   e.preventDefault()
@@ -607,23 +626,32 @@ const handleDrop = (e) => {
 
   if (imageFiles.length === 0) return
 
-  const reader = new FileReader()
-  reader.onload = (e) => {
-    const newImage = {
-      id: Date.now(),
-      src: e.target.result,
-      file: imageFiles[0],
-      name: imageFiles[0].name
-    }
-    imageList.value = [newImage]
-    currentImageIndex.value = 0
+  // 清空现有图片列表
+  imageList.value = []
+  currentImageIndex.value = 0
 
-    // 确保 DOM 更新后再更新水印
-    nextTick(() => {
-      updateWatermark()
-    })
-  }
-  reader.readAsDataURL(imageFiles[0])
+  // 处理多个文件
+  imageFiles.forEach((file, index) => {
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      const newImage = {
+        id: Date.now() + index, // 确保每个图片有唯一ID
+        src: e.target.result,
+        file: file,
+        name: file.name
+      }
+      imageList.value.push(newImage)
+
+      // 如果是第一张图片，更新水印
+      if (imageList.value.length === 1) {
+        // 确保 DOM 更新后再更新水印
+        nextTick(() => {
+          updateWatermark()
+        })
+      }
+    }
+    reader.readAsDataURL(file)
+  })
 }
 
 // 旋转水印
