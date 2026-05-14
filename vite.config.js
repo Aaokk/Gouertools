@@ -7,6 +7,13 @@ import { join } from 'path'
 export default defineConfig({
   plugins: [vue()],
   base: './',
+  server: {
+    headers: {
+      'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0',
+      'Pragma': 'no-cache',
+      'Expires': '0',
+    },
+  },
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url))
@@ -14,10 +21,7 @@ export default defineConfig({
   },
   optimizeDeps: {
     include: [
-      'pdfjs-dist',
-      'pdf-lib',
-      'pako',
-      '@pdf-lib/standard-fonts'
+      'pako'
     ]
   },
   build: {
@@ -28,12 +32,7 @@ export default defineConfig({
         main: join(__dirname, 'index.html')
       },
       output: {
-        assetFileNames: (assetInfo) => {
-          if (assetInfo.name === 'pdf.worker.min.mjs') {
-            return 'pdf-worker/[name][extname]'
-          }
-          return '[name]-[hash][extname]'
-        }
+        assetFileNames: () => '[name]-[hash][extname]'
       }
     },
     emptyOutDir: true,

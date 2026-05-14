@@ -840,11 +840,11 @@ const handleFileSelect = () => {
     imageList.value = []
     currentImageIndex.value = 0
 
-    files.forEach(file => {
+    files.forEach((file, index) => {
       const reader = new FileReader()
       reader.onload = (e) => {
         imageList.value.push({
-          id: Date.now(),
+          id: Date.now() + index,
           src: e.target.result,
           file: file,
           name: file.name
