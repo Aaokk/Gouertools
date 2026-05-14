@@ -845,15 +845,9 @@ body {
     gap: 3px;
     padding: 8px 2px;
     font-size: 9px;
-    border-left: none;
-    border-bottom: 3px solid transparent;
     text-align: center;
   }
-  .sidebar-nav a.active {
-    border-left: none;
-    border-bottom-color: var(--color-accent);
-  }
-  .sidebar-nav a.active::before { display: none; }
+  /* active::before 小凸起保持全局样式不覆盖 */
   .sidebar-nav a svg { width: 18px; height: 18px; }
   /* 底部版权隐藏 */
   .sidebar-footer { display: none; }
