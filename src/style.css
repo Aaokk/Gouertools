@@ -52,7 +52,7 @@
   --grid-line:           rgba(74,155,142,0.04);
   --scanline:            rgba(74,155,142,0.012);
 
-  --font-heading: 'Orbitron', -apple-system, sans-serif;
+  --font-heading: 'Orbitron', 'Noto Sans SC', -apple-system, sans-serif;
   --font-body:    'Noto Sans SC', -apple-system, sans-serif;
 
   --radius-sm:  6px;

@@ -130,7 +130,7 @@
                 <td class="col-ratio">
                   <span v-if="item.outBlob" :class="['ratio-val', calcRatio(item.origSize, item.outBlob.size) > 0 ? 'ratio-good' : 'ratio-bad']">
                     {{ calcRatio(item.origSize, item.outBlob.size) }}%
-                    <svg v-if="calcRatio(item.origSize, item.outBlob.size) > 0" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+                    <svg v-if="calcRatio(item.origSize, item.outBlob.size) > 0" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>
                   </span>
                   <span v-else class="muted">—</span>
                 </td>
