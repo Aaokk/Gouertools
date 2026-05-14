@@ -53,7 +53,15 @@
               <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
             </div>
             <span class="placeholder-text">点击或拖拽图片到此处</span>
-            <span class="placeholder-hint">支持批量添加 JPG、PNG、WebP 格式</span>
+            <span class="placeholder-hint">支持批量添加 JPG、PNG、WebP、GIF、AVIF、SVG 格式</span>
+            <div class="format-tags">
+              <span class="format-tag">JPG</span>
+              <span class="format-tag">PNG</span>
+              <span class="format-tag">WebP</span>
+              <span class="format-tag">GIF</span>
+              <span class="format-tag">AVIF</span>
+              <span class="format-tag">SVG</span>
+            </div>
           </div>
 
           <!-- 表格 -->
@@ -294,6 +302,50 @@
           </div>
         </div>
 
+        <!-- GIF 参数 -->
+        <div class="setting-card" :class="{ collapsed: !s5 }">
+          <div class="setting-card-header" @click="s5 = !s5">
+            <h4>GIF参数</h4>
+            <svg class="arrow" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+          </div>
+          <div class="setting-card-body">
+            <p class="param-label">输出颜色数量（2-256）</p>
+            <div class="range-group">
+              <input type="range" min="2" max="256" step="1" v-model.number="settings.gif.colors">
+              <span class="range-value">{{ settings.gif.colors }}</span>
+            </div>
+            <div class="setting-row" style="margin-top:8px;">
+              <label>开启抖色</label>
+              <div class="control">
+                <label class="toggle">
+                  <input type="checkbox" v-model="settings.gif.dithering">
+                  <span class="toggle-track"></span>
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- AVIF 参数 -->
+        <div class="setting-card" :class="{ collapsed: !s6 }">
+          <div class="setting-card-header" @click="s6 = !s6">
+            <h4>AVIF参数</h4>
+            <svg class="arrow" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+          </div>
+          <div class="setting-card-body">
+            <p class="param-label">输出图片质量（1-100）</p>
+            <div class="range-group">
+              <input type="range" min="1" max="100" step="1" v-model.number="settings.avif.quality">
+              <span class="range-value">{{ settings.avif.quality }}</span>
+            </div>
+            <p class="param-label" style="margin-top:6px;">设置压缩速度（1-10）</p>
+            <div class="range-group">
+              <input type="range" min="1" max="10" step="1" v-model.number="settings.avif.speed">
+              <span class="range-value">{{ settings.avif.speed }}</span>
+            </div>
+          </div>
+        </div>
+
         <div style="display:flex;gap:8px;">
           <button class="btn btn-ghost" style="flex:1;" @click="resetSettings">重置选项</button>
           <button class="btn btn-primary" style="flex:2;" :disabled="!fileList.length || processing" @click="applySettings">
@@ -304,7 +356,7 @@
     </div>
 
     <!-- 隐藏文件输入 -->
-    <input ref="fileInput" type="file" multiple accept="image/jpeg,image/png,image/webp" style="display:none" @change="handleFilesSelected">
+    <input ref="fileInput" type="file" multiple accept="image/jpeg,image/png,image/webp,image/gif,image/avif,image/svg+xml" style="display:none" @change="handleFilesSelected">
     <input ref="folderInput" type="file" webkitdirectory accept="image/*" style="display:none" @change="handleFilesSelected">
   </div>
 </template>
@@ -326,13 +378,17 @@ const globalDragOver = ref(false)
 /* ── 折叠状态 ────────────────────────────────────────────── */
 const s1 = ref(true)
 const s2 = ref(true)
-const s3 = ref(true)
+const s3 = ref(false)
 const s4 = ref(true)
+const s5 = ref(false)
+const s6 = ref(false)
 
 /* ── 压缩设置 ────────────────────────────────────────────── */
 const settings = reactive({
   jpeg: { quality: 0.8 },
   png:  { colors: 128, dithering: 0.5 },
+  gif:  { colors: 128, dithering: false },
+  avif: { quality: 50,  speed: 8 },
   resizeMethod:    '',
   width:           1920,
   height:          1080,
@@ -391,7 +447,10 @@ const queue = new Queue(2)
 
 /* ── 处理选中的文件 ──────────────────────────────────────── */
 const handleFilesSelected = async (e) => {
-  const files = Array.from(e.target.files || []).filter(f => /^image\/(jpeg|png|webp)$/.test(f.type) || /\.(jpe?g|png|webp)$/i.test(f.name))
+  const files = Array.from(e.target.files || []).filter(f =>
+    /^image\/(jpeg|png|webp|gif|avif|svg\+xml)$/.test(f.type) ||
+    /\.(jpe?g|png|webp|gif|avif|svg)$/i.test(f.name)
+  )
   e.target.value = ''
   if (!files.length) return
   addFiles(files)
@@ -436,7 +495,7 @@ const scheduleCompress = (item) => {
     try {
       const { blob: outBlob, width, height } = await compress(
         item.blob, { width: item.origWidth, height: item.origHeight },
-        buildOption()
+        buildOption(item)
       )
       if (item.outSrc) URL.revokeObjectURL(item.outSrc)
       item.outBlob   = outBlob
@@ -454,9 +513,11 @@ const scheduleCompress = (item) => {
   })
 }
 
-const buildOption = () => ({
+const buildOption = (item) => ({
   jpeg:            { ...settings.jpeg },
   png:             { ...settings.png },
+  gif:             { ...settings.gif },
+  avif:            { ...settings.avif },
   resizeMethod:    settings.resizeMethod || null,
   width:           settings.width,
   height:          settings.height,
@@ -468,13 +529,15 @@ const buildOption = () => ({
   cropHeightSize:  settings.cropHeightSize,
   targetFormat:    settings.targetFormat || null,
   transparentFill: settings.transparentFill,
+  _fileName:       item?.name || '',
 })
 
 /* ── 拖放 ───────────────────────────────────────────────── */
 const onGlobalDrop = async (e) => {
   globalDragOver.value = false
   const files = Array.from(e.dataTransfer.files).filter(f =>
-    /^image\/(jpeg|png|webp)$/.test(f.type) || /\.(jpe?g|png|webp)$/i.test(f.name)
+    /^image\/(jpeg|png|webp|gif|avif|svg\+xml)$/.test(f.type) ||
+    /\.(jpe?g|png|webp|gif|avif|svg)$/i.test(f.name)
   )
   if (files.length) {
     addFiles(files)
@@ -520,6 +583,10 @@ const resetSettings = () => {
   settings.jpeg.quality    = 0.8
   settings.png.colors      = 128
   settings.png.dithering   = 0.5
+  settings.gif.colors      = 128
+  settings.gif.dithering   = false
+  settings.avif.quality    = 50
+  settings.avif.speed      = 8
   settings.resizeMethod    = ''
   settings.width           = 1920
   settings.height          = 1080
@@ -559,6 +626,9 @@ const guessMime = (name) => {
   const n = name.toLowerCase()
   if (n.endsWith('.png'))  return 'image/png'
   if (n.endsWith('.webp')) return 'image/webp'
+  if (n.endsWith('.gif'))  return 'image/gif'
+  if (n.endsWith('.avif')) return 'image/avif'
+  if (n.endsWith('.svg'))  return 'image/svg+xml'
   return 'image/jpeg'
 }
 </script>
