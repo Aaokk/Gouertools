@@ -191,12 +191,12 @@
             </div>
             <div class="setting-row">
               <label>旋转角度</label>
-              <div class="control" style="display:flex;align-items:center;gap:8px;">
-                <div class="range-group">
-                  <input type="range" min="-90" max="90" v-model.number="watermarkSettings.angle">
+              <div class="control" style="display:flex;align-items:center;gap:6px;">
+                <div class="range-group" style="flex:1;min-width:0;">
+                  <input type="range" min="-90" max="90" v-model.number="watermarkSettings.angle" style="min-width:0;">
                   <span class="range-value">{{ watermarkSettings.angle }}°</span>
                 </div>
-                <button class="btn btn-secondary btn-sm" v-if="imageList.length" @click="rotate" style="flex-shrink:0;">旋转90°</button>
+                <button v-if="imageList.length" class="btn btn-secondary btn-sm" @click="rotate" style="flex-shrink:0;white-space:nowrap;">旋转90°</button>
               </div>
             </div>
           </div>
