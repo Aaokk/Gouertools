@@ -1,32 +1,31 @@
 /* ========================================
    DESIGN SYSTEM — CSS Custom Properties
-   护眼暖色系（参考 preview.html）
    ======================================== */
 :root {
   /* 背景层 */
-  --color-primary:       #EDE9E3;   /* 侧栏/深层背景 */
+  --color-primary:       #EDE9E3;
   --color-primary-light: #F0EDE7;
   --color-primary-dark:  #E5E0D8;
 
-  /* 强调色 — 低饱和青绿 */
+  /* 强调色 */
   --color-accent:        #4A9B8E;
   --color-accent-hover:  #3D8578;
   --color-accent-dim:    rgba(74,155,142,0.10);
   --color-accent-glow:   rgba(74,155,142,0.22);
 
-  /* 第二强调色 — 深青（替代原 cyan） */
+  /* 第二强调色 */
   --color-secondary:     #3D8578;
   --color-cyan-dim:      rgba(74,155,142,0.08);
 
-  /* 暖点缀色 */
+  /* 点缀色 */
   --color-warm:          #D4856A;
   --color-warm-light:    #FDF0EB;
 
   /* 页面色系 */
-  --color-background:    #F7F5F2;   /* 暖米白主背景 */
+  --color-background:    #F7F5F2;
   --color-surface:       rgba(255,255,255,0.90);
   --color-surface-solid: #FFFFFF;
-  --color-foreground:    #2C3E3A;   /* 深炭灰文字 */
+  --color-foreground:    #2C3E3A;
   --color-text-muted:    #5A6E69;
   --color-muted:         rgba(44,62,58,0.04);
 
@@ -34,12 +33,24 @@
   --color-border:        #E8E4DE;
   --color-border-hover:  rgba(74,155,142,0.40);
 
-  /* 危险/警告 */
+  /* 危险色 */
   --color-destructive:       #C95A4A;
   --color-destructive-hover: #B04A3C;
 
-  /* 紫色点缀 */
+  /* 紫色 */
   --color-purple:        #7C6FB8;
+
+  /* 主题专属 — 可由主题覆盖 */
+  --sidebar-bg:          linear-gradient(180deg, #EDE9E3 0%, #E5E0D8 100%);
+  --sidebar-border:      #E8E4DE;
+  --nav-text:            #5A6E69;
+  --nav-text-hover:      #2C3E3A;
+  --nav-hover-bg:        rgba(74,155,142,0.06);
+  --footer-text:         #5A6E69;
+  --input-bg:            #FAFAF9;
+  --input-bg-focus:      #FFFFFF;
+  --grid-line:           rgba(74,155,142,0.04);
+  --scanline:            rgba(74,155,142,0.012);
 
   --font-heading: 'Noto Sans SC', -apple-system, sans-serif;
   --font-body:    'Noto Sans SC', -apple-system, sans-serif;
@@ -91,8 +102,8 @@ body {
 .bg-grid-overlay {
   position: fixed; inset: 0; z-index: 0; pointer-events: none;
   background-image:
-    linear-gradient(rgba(74,155,142,0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(74,155,142,0.04) 1px, transparent 1px);
+    linear-gradient(var(--grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
   background-size: 50px 50px;
   animation: gridDrift 30s linear infinite;
 }
@@ -104,7 +115,7 @@ body {
   position: fixed; inset: 0; z-index: 0; pointer-events: none;
   background: repeating-linear-gradient(
     0deg, transparent, transparent 2px,
-    rgba(74,155,142,0.012) 2px, rgba(74,155,142,0.012) 4px
+    var(--scanline) 2px, var(--scanline) 4px
   );
 }
 
@@ -114,7 +125,7 @@ body {
 .sidebar {
   width: var(--sidebar-width);
   min-height: 100vh;
-  background: linear-gradient(180deg, #EDE9E3 0%, #E5E0D8 100%);
+  background: var(--sidebar-bg);
   display: flex;
   flex-direction: column;
   position: fixed;
@@ -182,7 +193,7 @@ body {
   align-items: center;
   gap: 12px;
   padding: 12px var(--spacing-md);
-  color: var(--color-text-muted);
+  color: var(--nav-text);
   text-decoration: none;
   font-size: 13px;
   font-weight: 500;
@@ -192,8 +203,8 @@ body {
   cursor: pointer;
 }
 .sidebar-nav a:hover {
-  color: var(--color-foreground);
-  background: var(--color-accent-dim);
+  color: var(--nav-text-hover);
+  background: var(--nav-hover-bg);
 }
 .sidebar-nav a.active {
   color: var(--color-accent);
@@ -221,7 +232,7 @@ body {
   padding: var(--spacing-md);
   border-top: 1px solid var(--color-border);
   font-size: 10px;
-  color: var(--color-text-muted);
+  color: var(--footer-text);
   text-align: center;
   letter-spacing: 0.3px;
 }
@@ -585,7 +596,7 @@ body {
   font-family: var(--font-body);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
-  background: #FAFAF9;
+  background: var(--input-bg);
   color: var(--color-foreground);
   outline: none;
   transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
@@ -593,7 +604,7 @@ body {
 .input:focus {
   border-color: var(--color-accent);
   box-shadow: 0 0 0 3px var(--color-accent-dim);
-  background: #FFFFFF;
+  background: var(--input-bg-focus);
 }
 .input::placeholder { color: var(--color-text-muted); opacity: 0.6; }
 
@@ -606,7 +617,7 @@ body {
   font-family: var(--font-body);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
-  background: #FAFAF9;
+  background: var(--input-bg);
   color: var(--color-foreground);
   outline: none;
   -webkit-appearance: none;
@@ -620,7 +631,7 @@ body {
 .select:focus {
   border-color: var(--color-accent);
   box-shadow: 0 0 0 3px var(--color-accent-dim);
-  background: #FFFFFF;
+  background: var(--input-bg-focus);
 }
 .select option { background: #FFFFFF; color: var(--color-foreground); }
 

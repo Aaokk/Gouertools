@@ -43,17 +43,19 @@
       <router-view />
     </div>
   </div>
+  <ThemeSwitcher />
   <AppToast />
 </template>
 
 <script>
 import { ref, onMounted, onUnmounted } from 'vue'
 import AppToast from './components/AppToast.vue'
+import ThemeSwitcher from './components/ThemeSwitcher.vue'
 import { initBgCanvas } from './utils/bgCanvas.js'
 
 export default {
   name: 'App',
-  components: { AppToast },
+  components: { AppToast, ThemeSwitcher },
   setup () {
     const bgCanvasRef = ref(null)
     let stopBg = () => {}

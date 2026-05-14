@@ -1,0 +1,197 @@
+/* ========================================
+   主题系统 — 通过 [data-theme] 覆盖 CSS 变量
+   ======================================== */
+
+/* ── 1. 护眼绿（默认，无需声明） ─────────────────────────── */
+
+/* ── 2. 暗黑科技 ──────────────────────────────────────────── */
+[data-theme="dark"] {
+  --color-primary:       #0c1222;
+  --color-primary-light: #111a2e;
+  --color-primary-dark:  #070b14;
+  --color-accent:        #00ffaa;
+  --color-accent-hover:  #00dd94;
+  --color-accent-dim:    rgba(0,255,170,0.10);
+  --color-accent-glow:   rgba(0,255,170,0.25);
+  --color-secondary:     #00d4ff;
+  --color-cyan-dim:      rgba(0,212,255,0.10);
+  --color-warm:          #ff6b9d;
+  --color-warm-light:    rgba(255,107,157,0.10);
+  --color-background:    #080c15;
+  --color-surface:       rgba(12,18,34,0.85);
+  --color-surface-solid: #0f1628;
+  --color-foreground:    #e4eaf6;
+  --color-text-muted:    #5a6f8e;
+  --color-muted:         rgba(255,255,255,0.04);
+  --color-border:        rgba(0,255,170,0.12);
+  --color-border-hover:  rgba(0,255,170,0.35);
+  --color-destructive:       #ff4466;
+  --color-destructive-hover: #ff2244;
+  --color-purple:        #a78bfa;
+  --shadow-sm:  0 1px 3px rgba(0,0,0,0.35);
+  --shadow-md:  0 2px 8px rgba(0,0,0,0.45), 0 0 1px rgba(0,255,170,0.08);
+  --shadow-lg:  0 8px 24px rgba(0,0,0,0.55), 0 0 1px rgba(0,255,170,0.08);
+  --shadow-xl:  0 16px 48px rgba(0,0,0,0.65);
+  --shadow-glow: 0 0 20px rgba(0,255,170,0.18), 0 0 40px rgba(0,255,170,0.06);
+
+  --sidebar-bg:    linear-gradient(180deg, #0c1222 0%, #080e1c 100%);
+  --sidebar-border: rgba(0,255,170,0.12);
+  --nav-text:      rgba(255,255,255,0.45);
+  --nav-text-hover: rgba(255,255,255,0.85);
+  --nav-hover-bg:  rgba(0,255,170,0.05);
+  --footer-text:   rgba(255,255,255,0.25);
+  --input-bg:      rgba(0,0,0,0.25);
+  --input-bg-focus: rgba(0,0,0,0.35);
+  --grid-line:     rgba(0,255,170,0.025);
+  --scanline:      rgba(0,255,170,0.008);
+}
+[data-theme="dark"] body { background: var(--color-background); }
+[data-theme="dark"] .sidebar { border-right-color: var(--sidebar-border); }
+[data-theme="dark"] .select option { background: #0f1628; }
+[data-theme="dark"] .comp-table-wrap,
+[data-theme="dark"] .setting-card,
+[data-theme="dark"] .preview-area { backdrop-filter: blur(16px); }
+
+/* ── 3. 午夜蓝 ────────────────────────────────────────────── */
+[data-theme="blue"] {
+  --color-primary:       #1e293b;
+  --color-primary-light: #253349;
+  --color-primary-dark:  #162032;
+  --color-accent:        #60a5fa;
+  --color-accent-hover:  #3b82f6;
+  --color-accent-dim:    rgba(96,165,250,0.12);
+  --color-accent-glow:   rgba(96,165,250,0.28);
+  --color-secondary:     #a78bfa;
+  --color-cyan-dim:      rgba(167,139,250,0.10);
+  --color-warm:          #f472b6;
+  --color-warm-light:    rgba(244,114,182,0.10);
+  --color-background:    #0f172a;
+  --color-surface:       rgba(30,41,59,0.90);
+  --color-surface-solid: #1e293b;
+  --color-foreground:    #e2e8f0;
+  --color-text-muted:    #64748b;
+  --color-muted:         rgba(255,255,255,0.04);
+  --color-border:        rgba(96,165,250,0.14);
+  --color-border-hover:  rgba(96,165,250,0.40);
+  --color-destructive:       #f87171;
+  --color-destructive-hover: #ef4444;
+  --color-purple:        #a78bfa;
+  --shadow-sm:  0 1px 3px rgba(0,0,0,0.35);
+  --shadow-md:  0 2px 8px rgba(0,0,0,0.45);
+  --shadow-lg:  0 8px 24px rgba(0,0,0,0.55);
+  --shadow-xl:  0 16px 48px rgba(0,0,0,0.65);
+  --shadow-glow: 0 0 20px rgba(96,165,250,0.20), 0 0 40px rgba(96,165,250,0.08);
+
+  --sidebar-bg:    linear-gradient(180deg, #1e293b 0%, #162032 100%);
+  --sidebar-border: rgba(96,165,250,0.14);
+  --nav-text:      rgba(255,255,255,0.45);
+  --nav-text-hover: rgba(255,255,255,0.85);
+  --nav-hover-bg:  rgba(96,165,250,0.08);
+  --footer-text:   rgba(255,255,255,0.25);
+  --input-bg:      rgba(0,0,0,0.25);
+  --input-bg-focus: rgba(0,0,0,0.35);
+  --grid-line:     rgba(96,165,250,0.025);
+  --scanline:      rgba(96,165,250,0.008);
+}
+[data-theme="blue"] body { background: var(--color-background); }
+[data-theme="blue"] .sidebar { border-right-color: var(--sidebar-border); }
+[data-theme="blue"] .select option { background: #1e293b; }
+
+/* ── 4. 玫瑰 ──────────────────────────────────────────────── */
+[data-theme="rose"] {
+  --color-primary:       #fce7f3;
+  --color-primary-light: #fdf2f8;
+  --color-primary-dark:  #f9d0e7;
+  --color-accent:        #e11d48;
+  --color-accent-hover:  #be123c;
+  --color-accent-dim:    rgba(225,29,72,0.10);
+  --color-accent-glow:   rgba(225,29,72,0.22);
+  --color-secondary:     #f43f5e;
+  --color-cyan-dim:      rgba(244,63,94,0.08);
+  --color-warm:          #fb923c;
+  --color-warm-light:    rgba(251,146,60,0.10);
+  --color-background:    #fff1f5;
+  --color-surface:       rgba(255,255,255,0.92);
+  --color-surface-solid: #FFFFFF;
+  --color-foreground:    #1f1020;
+  --color-text-muted:    #9d6076;
+  --color-muted:         rgba(225,29,72,0.04);
+  --color-border:        #fbc4d4;
+  --color-border-hover:  rgba(225,29,72,0.35);
+  --color-destructive:       #dc2626;
+  --color-destructive-hover: #b91c1c;
+  --color-purple:        #c026d3;
+  --shadow-sm:  0 2px 8px rgba(225,29,72,0.06);
+  --shadow-md:  0 8px 30px rgba(225,29,72,0.08);
+  --shadow-lg:  0 20px 60px rgba(225,29,72,0.10);
+  --shadow-xl:  0 24px 64px rgba(225,29,72,0.12);
+  --shadow-glow: 0 0 20px rgba(225,29,72,0.16), 0 0 40px rgba(225,29,72,0.06);
+
+  --sidebar-bg:    linear-gradient(180deg, #fce7f3 0%, #f9d0e7 100%);
+  --sidebar-border: #fbc4d4;
+  --nav-text:      #9d6076;
+  --nav-text-hover: #1f1020;
+  --nav-hover-bg:  rgba(225,29,72,0.06);
+  --footer-text:   #9d6076;
+  --input-bg:      #fff8fa;
+  --input-bg-focus: #FFFFFF;
+  --grid-line:     rgba(225,29,72,0.04);
+  --scanline:      rgba(225,29,72,0.008);
+}
+[data-theme="rose"] .select option { background: #fdf2f8; }
+
+/* ── 5. 极简墨 ────────────────────────────────────────────── */
+[data-theme="ink"] {
+  --color-primary:       #f3f4f6;
+  --color-primary-light: #f9fafb;
+  --color-primary-dark:  #e5e7eb;
+  --color-accent:        #111827;
+  --color-accent-hover:  #374151;
+  --color-accent-dim:    rgba(17,24,39,0.08);
+  --color-accent-glow:   rgba(17,24,39,0.15);
+  --color-secondary:     #4b5563;
+  --color-cyan-dim:      rgba(75,85,99,0.08);
+  --color-warm:          #6b7280;
+  --color-warm-light:    rgba(107,114,128,0.08);
+  --color-background:    #ffffff;
+  --color-surface:       rgba(249,250,251,0.95);
+  --color-surface-solid: #f9fafb;
+  --color-foreground:    #111827;
+  --color-text-muted:    #6b7280;
+  --color-muted:         rgba(17,24,39,0.04);
+  --color-border:        #e5e7eb;
+  --color-border-hover:  rgba(17,24,39,0.30);
+  --color-destructive:       #dc2626;
+  --color-destructive-hover: #b91c1c;
+  --color-purple:        #7c3aed;
+  --shadow-sm:  0 1px 3px rgba(0,0,0,0.06);
+  --shadow-md:  0 4px 12px rgba(0,0,0,0.08);
+  --shadow-lg:  0 12px 32px rgba(0,0,0,0.10);
+  --shadow-xl:  0 20px 48px rgba(0,0,0,0.12);
+  --shadow-glow: 0 0 16px rgba(17,24,39,0.10);
+
+  --sidebar-bg:    linear-gradient(180deg, #f3f4f6 0%, #e5e7eb 100%);
+  --sidebar-border: #e5e7eb;
+  --nav-text:      #6b7280;
+  --nav-text-hover: #111827;
+  --nav-hover-bg:  rgba(17,24,39,0.05);
+  --footer-text:   #9ca3af;
+  --input-bg:      #ffffff;
+  --input-bg-focus: #ffffff;
+  --grid-line:     rgba(17,24,39,0.04);
+  --scanline:      rgba(0,0,0,0.006);
+}
+[data-theme="ink"] .select option { background: #f9fafb; }
+[data-theme="ink"] .btn-primary {
+  background: #111827;
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(17,24,39,0.20);
+}
+[data-theme="ink"] .btn-primary:hover {
+  background: #374151;
+  box-shadow: 0 4px 16px rgba(17,24,39,0.25);
+}
+[data-theme="ink"] .sidebar-nav a.active {
+  color: #111827;
+  font-weight: 700;
+}
