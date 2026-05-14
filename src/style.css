@@ -828,13 +828,52 @@ body {
    RESPONSIVE
    ======================================== */
 @media (max-width: 900px) {
-  .sidebar { width: 60px; }
-  .sidebar-brand h2, .sidebar-brand span, .sidebar-nav a span, .sidebar-footer { display: none; }
-  .sidebar-brand { padding: var(--spacing-md) var(--spacing-sm); }
-  .sidebar-nav a { justify-content: center; padding: 14px 0; }
-  .main { margin-left: 60px; }
+  /* 侧栏：图标在上，文字在下，竖排 */
+  .sidebar { width: 64px; }
+  .main { margin-left: 64px; }
+  /* 品牌区精简 */
+  .sidebar-brand { padding: 10px 4px; text-align: center; }
+  .sidebar-brand .brand-logo { width: 28px; height: 28px; margin: 0 auto; }
+  .sidebar-brand .brand-sub { flex-direction: column; gap: 4px; margin-top: 0; align-items: center; }
+  .sidebar-brand h2 { font-size: 9px; letter-spacing: 0.5px; }
+  .sidebar-brand span { font-size: 8px; display: block; }
+  /* 导航项：图标上，文字下，居中 */
+  .sidebar-nav a {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    padding: 8px 2px;
+    font-size: 9px;
+    border-left: none;
+    border-bottom: 3px solid transparent;
+    text-align: center;
+  }
+  .sidebar-nav a.active {
+    border-left: none;
+    border-bottom-color: var(--color-accent);
+  }
+  .sidebar-nav a.active::before { display: none; }
+  .sidebar-nav a svg { width: 18px; height: 18px; }
+  /* 底部版权隐藏 */
+  .sidebar-footer { display: none; }
+  /* 内容区布局 */
   .tool-body { grid-template-columns: 1fr; }
-  /* .home-cards 已移至 Home.vue scoped，仅保留旧兼容 */
+}
+
+@media (max-width: 360px) {
+  .sidebar { width: 56px; }
+  .main { margin-left: 56px; }
+  .sidebar-nav a { font-size: 8px; padding: 7px 2px; }
+}
+
+@media (max-width: 360px) {
+  /* 超窄屏（< 360px）：侧栏只留图标 */
+  .sidebar { width: 46px; }
+  .main { margin-left: 46px; }
+  .sidebar-brand { display: none; }
+  .sidebar-nav a span { display: none; }
+  .sidebar-nav a { justify-content: center; padding: 12px 0; gap: 0; }
 }
 
 /* ========================================
