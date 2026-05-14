@@ -6,8 +6,8 @@
   "scripts": {
     "browser:dev": "vite --open",
     "build": "vite build",
-    "electron:build": "vite build && electron-builder",
-    "electron:macbuild": "vite build && electron-builder",
+    "electron:build": "vite build --mode electron && electron-builder",
+    "electron:macbuild": "vite build --mode electron && electron-builder",
     "electron:winbuild": "npm run electron:build -- --win"
   },
   "dependencies": {

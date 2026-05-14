@@ -1,4 +1,4 @@
-import { createRouter, createWebHashHistory } from 'vue-router'
+import { createRouter, createWebHashHistory, createWebHistory } from 'vue-router'
 import Home from '../components/Home.vue'
 import WatermarkEditor from '../components/WatermarkEditor.vue'
 import ImageConverter from '../components/ImageConverter.vue'
@@ -60,8 +60,12 @@ const routes = [
   }
 ]
 
+// Electron 用 hash 模式（file:// 协议不支持 HTML5 history）
+// 浏览器 web 用 HTML5 history（无 # 号，利于 SEO）
+const isElectron = import.meta.env.VITE_TARGET === 'electron'
+
 const router = createRouter({
-  history: createWebHashHistory(),
+  history: isElectron ? createWebHashHistory() : createWebHistory('/'),
   routes,
 })
 

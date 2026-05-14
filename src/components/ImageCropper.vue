@@ -421,6 +421,11 @@ const doCrop = () => {
 </script>
 
 <style scoped>
+/* 与其他工具页顶部间距对齐 */
+:deep(.tool-body) {
+  padding-top: var(--spacing-md);
+}
+
 .tool-page {
   flex: 1;
   display: flex;

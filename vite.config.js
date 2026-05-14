@@ -3,10 +3,12 @@ import vue from '@vitejs/plugin-vue'
 import { fileURLToPath, URL } from 'node:url'
 import { join } from 'path'
 
+const isElectron = process.env.VITE_TARGET === 'electron'
+
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [vue()],
-  base: './',
+  base: isElectron ? './' : '/',
   server: {
     headers: {
       'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0',
