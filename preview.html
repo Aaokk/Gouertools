@@ -1,0 +1,1719 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gouer工具包包 - UI Preview</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+<style>
+/* ========================================
+   DESIGN SYSTEM — CSS Custom Properties
+   ======================================== */
+:root {
+  --color-primary:       #0c1222;
+  --color-primary-light: #111a2e;
+  --color-primary-dark:  #070b14;
+  --color-secondary:     #00d4ff;
+  --color-accent:        #00ffaa;
+  --color-accent-hover:  #00dd94;
+  --color-accent-dim:    rgba(0,255,170,0.1);
+  --color-accent-glow:   rgba(0,255,170,0.25);
+  --color-cyan-dim:      rgba(0,212,255,0.1);
+  --color-background:    #080c15;
+  --color-surface:       rgba(12,18,34,0.75);
+  --color-surface-solid: #0f1628;
+  --color-foreground:    #e4eaf6;
+  --color-text-muted:    #5a6f8e;
+  --color-muted:         rgba(255,255,255,0.04);
+  --color-border:        rgba(0,255,170,0.1);
+  --color-border-hover:  rgba(0,255,170,0.3);
+  --color-destructive:   #ff4466;
+  --color-destructive-hover: #ff2244;
+  --color-purple:        #7c3aed;
+
+  --font-heading: 'Orbitron', -apple-system, sans-serif;
+  --font-body:    'Noto Sans SC', -apple-system, sans-serif;
+
+  --radius-sm:  6px;
+  --radius-md:  10px;
+  --radius-lg:  14px;
+  --radius-full: 9999px;
+
+  --shadow-sm:  0 1px 3px rgba(0,0,0,0.3);
+  --shadow-md:  0 2px 8px rgba(0,0,0,0.4), 0 0 1px rgba(0,255,170,0.1);
+  --shadow-lg:  0 8px 24px rgba(0,0,0,0.5), 0 0 1px rgba(0,255,170,0.1);
+  --shadow-xl:  0 16px 48px rgba(0,0,0,0.6), 0 0 2px rgba(0,255,170,0.15);
+  --shadow-glow: 0 0 20px rgba(0,255,170,0.15), 0 0 40px rgba(0,255,170,0.05);
+
+  --spacing-xs:  4px;
+  --spacing-sm:  8px;
+  --spacing-md:  16px;
+  --spacing-lg:  24px;
+  --spacing-xl:  32px;
+  --spacing-2xl: 48px;
+
+  --sidebar-width: 230px;
+  --transition-fast: 150ms ease;
+  --transition-normal: 250ms ease-out;
+}
+
+/* ========================================
+   GLOBAL RESET
+   ======================================== */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html { overflow-x: hidden; }
+body {
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--color-foreground);
+  background: var(--color-background);
+  min-height: 100vh;
+  display: flex;
+}
+
+/* ========================================
+   BACKGROUND EFFECTS
+   ======================================== */
+#bgCanvas {
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+}
+.bg-grid-overlay {
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background-image:
+    linear-gradient(rgba(0,255,170,0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,255,170,0.02) 1px, transparent 1px);
+  background-size: 50px 50px;
+  animation: gridDrift 30s linear infinite;
+}
+@keyframes gridDrift {
+  0% { transform: translate(0,0); }
+  100% { transform: translate(50px,50px); }
+}
+.bg-scanlines {
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background: repeating-linear-gradient(
+    0deg, transparent, transparent 2px,
+    rgba(0,255,170,0.006) 2px, rgba(0,255,170,0.006) 4px
+  );
+}
+
+/* ========================================
+   SIDEBAR
+   ======================================== */
+.sidebar {
+  width: var(--sidebar-width);
+  min-height: 100vh;
+  background: linear-gradient(180deg, #0c1222 0%, #080e1c 100%);
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0; left: 0; bottom: 0;
+  z-index: 100;
+  border-right: 1px solid var(--color-border);
+}
+/* 侧边栏右侧发光线 */
+.sidebar::after {
+  content: '';
+  position: absolute;
+  top: 0; right: -1px; bottom: 0; width: 1px;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    var(--color-accent) 30%,
+    var(--color-secondary) 70%,
+    transparent 100%
+  );
+  opacity: 0.3;
+  animation: sideGlow 4s ease-in-out infinite alternate;
+}
+@keyframes sideGlow {
+  0% { opacity: 0.15; }
+  100% { opacity: 0.4; }
+}
+
+.sidebar-brand {
+  padding: var(--spacing-lg) var(--spacing-md);
+  border-bottom: 1px solid var(--color-border);
+  position: relative;
+}
+.sidebar-brand h2 {
+  font-family: var(--font-heading);
+  font-size: 16px;
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--color-accent), var(--color-secondary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  line-height: 1.4;
+  letter-spacing: 1px;
+}
+.sidebar-brand .brand-sub {
+  display: flex; align-items: center; gap: 8px; margin-top: 6px;
+}
+.sidebar-brand .brand-logo {
+  width: 28px; height: 28px; border-radius: 7px;
+  background: linear-gradient(135deg, var(--color-accent), var(--color-secondary));
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-heading); font-weight: 900; font-size: 13px;
+  color: var(--color-primary);
+  box-shadow: 0 0 12px var(--color-accent-glow);
+  flex-shrink: 0;
+}
+.sidebar-brand span {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  font-weight: 400;
+  font-family: var(--font-heading);
+  letter-spacing: 0.5px;
+}
+.sidebar-nav { flex: 1; padding: var(--spacing-sm) 0; }
+.sidebar-nav a {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px var(--spacing-md);
+  color: rgba(255,255,255,0.45);
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 500;
+  position: relative;
+  transition: all var(--transition-fast);
+  border-left: 3px solid transparent;
+  cursor: pointer;
+}
+.sidebar-nav a:hover {
+  color: rgba(255,255,255,0.8);
+  background: rgba(0,255,170,0.04);
+}
+.sidebar-nav a.active {
+  color: var(--color-accent);
+  background: var(--color-accent-dim);
+  border-left-color: var(--color-accent);
+  text-shadow: 0 0 20px var(--color-accent-glow);
+}
+.sidebar-nav a svg { width: 18px; height: 18px; flex-shrink: 0; opacity: 0.6; transition: opacity var(--transition-fast); }
+.sidebar-nav a.active svg { opacity: 1; }
+.sidebar-nav a:hover svg { opacity: 0.85; }
+
+/* 活跃指示器光点 */
+.sidebar-nav a.active::before {
+  content: '';
+  position: absolute;
+  left: -1px; top: 50%;
+  transform: translateY(-50%);
+  width: 3px; height: 20px;
+  background: var(--color-accent);
+  border-radius: 0 4px 4px 0;
+  box-shadow: 0 0 8px var(--color-accent-glow), 4px 0 16px var(--color-accent-glow);
+}
+
+.sidebar-footer {
+  padding: var(--spacing-md);
+  border-top: 1px solid var(--color-border);
+  font-size: 10px;
+  color: rgba(255,255,255,0.2);
+  text-align: center;
+  letter-spacing: 0.3px;
+}
+.sidebar-footer a { color: var(--color-accent); text-decoration: none; opacity: 0.6; transition: opacity 0.2s; }
+.sidebar-footer a:hover { opacity: 1; }
+
+/* ========================================
+   MAIN CONTENT
+   ======================================== */
+.main {
+  margin-left: var(--sidebar-width);
+  flex: 1;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  z-index: 10;
+}
+
+/* Page View Toggle */
+.page { display: none; flex: 1; }
+.page.active { display: flex; flex-direction: column; animation: pageFadeIn 0.35s ease-out; }
+@keyframes pageFadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ========================================
+   HOME PAGE
+   ======================================== */
+.home-hero {
+  text-align: center;
+  padding: var(--spacing-2xl) var(--spacing-lg) var(--spacing-xl);
+  position: relative;
+}
+.home-hero::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 50%; transform: translateX(-50%);
+  width: 400px; height: 400px;
+  background: radial-gradient(circle, rgba(0,255,170,0.08), transparent 70%);
+  pointer-events: none;
+}
+.home-hero h1 {
+  font-family: var(--font-heading);
+  font-size: 28px;
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--color-accent), var(--color-secondary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: var(--spacing-sm);
+  letter-spacing: 1px;
+  position: relative;
+}
+.home-hero p {
+  font-size: 15px;
+  color: var(--color-text-muted);
+  font-weight: 400;
+}
+.home-cards {
+  display: flex;
+  gap: var(--spacing-lg);
+  padding: 0 var(--spacing-xl) var(--spacing-2xl);
+  max-width: 960px;
+  margin: 0 auto;
+  width: 100%;
+}
+.tool-card {
+  flex: 1;
+  background: var(--color-surface);
+  backdrop-filter: blur(12px);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-xl) var(--spacing-lg);
+  box-shadow: var(--shadow-md);
+  text-decoration: none;
+  color: inherit;
+  position: relative;
+  overflow: hidden;
+  transition: transform var(--transition-normal), box-shadow var(--transition-normal), border-color var(--transition-normal);
+  cursor: pointer;
+  border: 1px solid var(--color-border);
+}
+.tool-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--color-accent), var(--color-secondary));
+  opacity: 0.6;
+  transition: opacity var(--transition-normal);
+}
+.tool-card::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse at 50% 0%, var(--color-accent-dim), transparent 70%);
+  opacity: 0;
+  transition: opacity var(--transition-normal);
+  pointer-events: none;
+}
+.tool-card:hover {
+  transform: translateY(-6px);
+  box-shadow: var(--shadow-glow);
+  border-color: var(--color-border-hover);
+}
+.tool-card:hover::before { opacity: 1; }
+.tool-card:hover::after { opacity: 1; }
+.tool-card .card-icon {
+  width: 48px; height: 48px;
+  border-radius: var(--radius-md);
+  background: var(--color-accent-dim);
+  border: 1px solid var(--color-border);
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: var(--spacing-md);
+  position: relative; z-index: 1;
+}
+.tool-card .card-icon svg { width: 22px; height: 22px; color: var(--color-accent); }
+.tool-card h3 {
+  font-family: var(--font-heading);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-foreground);
+  margin-bottom: var(--spacing-xs);
+  letter-spacing: 0.5px;
+  position: relative; z-index: 1;
+}
+.tool-card .card-desc {
+  font-size: 13px;
+  color: var(--color-text-muted);
+  line-height: 1.5;
+  margin-bottom: var(--spacing-md);
+  position: relative; z-index: 1;
+}
+.tool-card .card-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-accent);
+  position: relative; z-index: 1;
+  transition: gap var(--transition-fast);
+}
+.tool-card:hover .card-cta { gap: 8px; }
+
+/* ========================================
+   TOOL PAGE SKELETON
+   ======================================== */
+.tool-header {
+  padding: var(--spacing-lg) var(--spacing-xl) 0;
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+}
+.tool-header h2 {
+  font-family: var(--font-heading);
+  font-size: 16px;
+  font-weight: 600;
+  background: linear-gradient(90deg, var(--color-accent), var(--color-secondary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: var(--spacing-xs);
+  letter-spacing: 0.5px;
+}
+.tool-header .divider {
+  height: 1px;
+  background: linear-gradient(90deg, var(--color-accent), transparent);
+  margin-top: var(--spacing-md);
+  opacity: 0.3;
+}
+.tool-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 360px;
+  gap: var(--spacing-lg);
+  padding: var(--spacing-lg) var(--spacing-xl) var(--spacing-2xl);
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+  flex: 1;
+  align-items: start;
+}
+
+/* Preview Area */
+.preview-area {
+  min-width: 0;
+  width: 100%;
+  background: var(--color-surface);
+  backdrop-filter: blur(12px);
+  border-radius: var(--radius-lg);
+  border: 1px dashed var(--color-border);
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 500px;
+  transition: border-color var(--transition-normal), background var(--transition-normal), box-shadow var(--transition-normal);
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+.preview-area::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse at center, var(--color-accent-dim), transparent 70%);
+  opacity: 0;
+  transition: opacity var(--transition-normal);
+  pointer-events: none;
+}
+.preview-area:hover {
+  border-color: var(--color-accent);
+  box-shadow: var(--shadow-glow);
+}
+.preview-area:hover::before { opacity: 1; }
+.preview-area.dragover {
+  border-color: var(--color-accent);
+  background: rgba(0,255,170,0.03);
+  box-shadow: 0 0 30px var(--color-accent-glow);
+}
+.preview-area .placeholder-icon svg {
+  width: 56px; height: 56px;
+  color: var(--color-text-muted);
+  margin-bottom: var(--spacing-md);
+  opacity: 0.5;
+}
+.preview-area .placeholder-text { font-size: 14px; color: var(--color-text-muted); }
+.preview-area .placeholder-hint { font-size: 12px; color: rgba(90,111,142,0.6); margin-top: 4px; }
+.preview-area .format-tags {
+  display: flex; gap: 6px; margin-top: 14px;
+}
+.preview-area .format-tag {
+  padding: 3px 10px; border-radius: 4px;
+  font-size: 10px; font-family: var(--font-heading); font-weight: 600;
+  background: var(--color-accent-dim); color: var(--color-accent);
+  border: 1px solid var(--color-border);
+  letter-spacing: 0.5px;
+}
+
+/* 预览画布容器 */
+.preview-canvas-wrap {
+  width: 100%; height: 100%;
+  display: none;
+  flex-direction: column;
+}
+.preview-canvas-wrap.active { display: flex; }
+.preview-toolbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--color-border);
+  background: rgba(0,0,0,0.2);
+  font-size: 12px;
+}
+.preview-file-info {
+  display: flex; align-items: center; gap: 8px;
+}
+.preview-file-info .file-name {
+  font-weight: 600; max-width: 180px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.preview-file-info .file-size { color: var(--color-text-muted); }
+.preview-canvas-container {
+  flex: 1; display: flex; align-items: center; justify-content: center;
+  padding: 16px; overflow: auto;
+  background:
+    repeating-conic-gradient(rgba(255,255,255,0.02) 0% 25%, transparent 0% 50%)
+    50% / 16px 16px;
+}
+.preview-canvas-container canvas {
+  max-width: 100%; max-height: 100%; border-radius: 6px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.5);
+}
+
+/* Control Panel */
+.control-panel {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+.setting-card {
+  background: var(--color-surface);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  transition: border-color var(--transition-normal);
+  position: relative;
+}
+.setting-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--color-accent), transparent);
+  opacity: 0;
+  transition: opacity var(--transition-normal);
+}
+.setting-card:hover::before { opacity: 0.6; }
+.setting-card:hover { border-color: var(--color-border-hover); }
+
+.setting-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-md);
+  cursor: pointer;
+  user-select: none;
+  transition: background var(--transition-fast);
+}
+.setting-card-header:hover { background: var(--color-muted); }
+.setting-card-header h4 {
+  font-family: var(--font-heading);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-accent);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+.setting-card-header .arrow {
+  transition: transform var(--transition-fast);
+  color: var(--color-text-muted);
+}
+.setting-card.collapsed .setting-card-header .arrow { transform: rotate(-90deg); }
+.setting-card-body {
+  padding: 0 var(--spacing-md) var(--spacing-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+.setting-card.collapsed .setting-card-body { display: none; }
+
+/* Setting Row */
+.setting-row {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  min-height: 36px;
+}
+.setting-row > label {
+  width: 72px;
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text-muted);
+}
+.setting-row .control { flex: 1; min-width: 0; }
+
+/* ========================================
+   INPUT COMPONENTS
+   ======================================== */
+
+/* Text Input */
+.input {
+  width: 100%;
+  height: 36px;
+  padding: 0 10px;
+  font-size: 13px;
+  font-family: var(--font-body);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: rgba(0,0,0,0.3);
+  color: var(--color-foreground);
+  outline: none;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+.input:focus {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px var(--color-accent-dim), 0 0 12px rgba(0,255,170,0.06);
+}
+.input::placeholder { color: rgba(90,111,142,0.5); }
+
+/* Select */
+.select {
+  width: 100%;
+  height: 36px;
+  padding: 0 28px 0 10px;
+  font-size: 13px;
+  font-family: var(--font-body);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: rgba(0,0,0,0.3);
+  color: var(--color-foreground);
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%2300ffaa' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  cursor: pointer;
+  transition: border-color var(--transition-fast);
+}
+.select:focus { border-color: var(--color-accent); box-shadow: 0 0 0 3px var(--color-accent-dim); }
+.select option { background: var(--color-primary); color: var(--color-foreground); }
+
+/* Custom Range Slider */
+.range-group { display: flex; align-items: center; gap: var(--spacing-sm); flex: 1; }
+.range-group input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  flex: 1;
+  height: 4px;
+  border-radius: var(--radius-full);
+  background: rgba(255,255,255,0.08);
+  outline: none;
+  cursor: pointer;
+}
+.range-group input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  background: var(--color-foreground);
+  border: 2px solid var(--color-accent);
+  box-shadow: 0 0 8px var(--color-accent-glow);
+  cursor: pointer;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+.range-group input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+  box-shadow: 0 0 14px var(--color-accent-glow);
+}
+.range-group .range-value {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-accent);
+  min-width: 36px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-family: var(--font-heading);
+  background: var(--color-accent-dim);
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid var(--color-border);
+}
+
+/* Toggle Switch */
+.toggle { position: relative; display: inline-flex; align-items: center; gap: var(--spacing-sm); cursor: pointer; }
+.toggle input { position: absolute; opacity: 0; width: 0; height: 0; }
+.toggle-track {
+  width: 40px; height: 22px;
+  background: rgba(255,255,255,0.08);
+  border-radius: var(--radius-full);
+  position: relative;
+  transition: background var(--transition-fast), box-shadow var(--transition-fast);
+  flex-shrink: 0;
+  border: 1px solid var(--color-border);
+}
+.toggle input:checked + .toggle-track {
+  background: var(--color-accent-dim);
+  border-color: var(--color-accent);
+  box-shadow: 0 0 10px var(--color-accent-glow);
+}
+.toggle-track::after {
+  content: '';
+  width: 16px; height: 16px;
+  background: var(--color-text-muted);
+  border-radius: 50%;
+  position: absolute;
+  top: 2px; left: 2px;
+  transition: transform var(--transition-fast), background var(--transition-fast);
+}
+.toggle input:checked + .toggle-track::after {
+  transform: translateX(18px);
+  background: var(--color-accent);
+  box-shadow: 0 0 6px var(--color-accent-glow);
+}
+.toggle-label { font-size: 12px; color: var(--color-text-muted); font-weight: 500; }
+
+/* Color Preview */
+.color-dot {
+  width: 28px; height: 28px;
+  border-radius: var(--radius-sm);
+  border: 2px solid var(--color-border);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  position: relative;
+  overflow: hidden;
+}
+.color-dot:hover { border-color: var(--color-accent); box-shadow: 0 0 8px var(--color-accent-glow); }
+.color-dot input[type="color"] {
+  position: absolute; inset: -6px; width: calc(100% + 12px); height: calc(100% + 12px);
+  cursor: pointer; border: none; opacity: 0;
+}
+
+/* ========================================
+   BUTTONS
+   ======================================== */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 var(--spacing-md);
+  font-size: 12px;
+  font-weight: 600;
+  font-family: var(--font-body);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+  text-decoration: none;
+  position: relative;
+  overflow: hidden;
+}
+.btn:active { transform: scale(0.97); }
+.btn-primary {
+  background: linear-gradient(135deg, var(--color-accent), #00ddaa);
+  color: var(--color-primary);
+  border: none;
+  box-shadow: 0 0 14px var(--color-accent-glow);
+  font-weight: 700;
+}
+.btn-primary:hover {
+  box-shadow: 0 0 24px var(--color-accent-glow);
+  transform: translateY(-1px);
+}
+.btn-secondary {
+  background: transparent;
+  color: var(--color-secondary);
+  border: 1px solid rgba(0,212,255,0.3);
+}
+.btn-secondary:hover {
+  background: var(--color-cyan-dim);
+  border-color: var(--color-secondary);
+}
+.btn-danger {
+  background: rgba(255,68,102,0.1);
+  color: var(--color-destructive);
+  border: 1px solid rgba(255,68,102,0.25);
+}
+.btn-danger:hover {
+  background: rgba(255,68,102,0.2);
+  border-color: var(--color-destructive);
+}
+.btn-ghost { background: transparent; color: var(--color-text-muted); }
+.btn-ghost:hover { background: var(--color-muted); color: var(--color-foreground); }
+.btn-sm { height: 30px; padding: 0 10px; font-size: 11px; }
+.btn-purple {
+  background: rgba(124,58,237,0.15);
+  color: #a78bfa;
+  border: 1px solid rgba(124,58,237,0.3);
+}
+.btn-purple:hover {
+  background: rgba(124,58,237,0.25);
+  border-color: rgba(124,58,237,0.5);
+}
+
+.btn-group { display: flex; gap: var(--spacing-sm); flex-wrap: wrap; }
+
+/* ========================================
+   FILE LIST THUMBNAILS
+   ======================================== */
+.file-strip {
+  display: flex;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md);
+  margin: 0 var(--spacing-lg);
+  max-width: 1200px;
+  width: calc(100% - var(--spacing-xl));
+}
+.file-thumb {
+  width: 64px; height: 64px;
+  border-radius: var(--radius-sm);
+  border: 2px solid var(--color-border);
+  overflow: hidden;
+  cursor: pointer;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  flex-shrink: 0;
+  background: var(--color-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.file-thumb.active {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 10px var(--color-accent-glow);
+}
+.file-thumb:hover { border-color: var(--color-secondary); }
+.file-thumb .thumb-placeholder {
+  width: 100%; height: 100%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; color: var(--color-text-muted);
+}
+
+/* ========================================
+   RESPONSIVE
+   ======================================== */
+@media (max-width: 900px) {
+  .sidebar { width: 60px; }
+  .sidebar-brand h2, .sidebar-brand span, .sidebar-nav a span, .sidebar-footer { display: none; }
+  .sidebar-brand { padding: var(--spacing-md) var(--spacing-sm); }
+  .sidebar-nav a { justify-content: center; padding: 14px 0; }
+  .main { margin-left: 60px; }
+  .tool-body { grid-template-columns: 1fr; }
+  .home-cards { flex-direction: column; align-items: center; }
+}
+
+/* ========================================
+   TOAST NOTIFICATION
+   ======================================== */
+.toast-container {
+  position: fixed; top: 16px; right: 16px; z-index: 9999;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.toast {
+  padding: 10px 18px; border-radius: var(--radius-md);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--color-border);
+  font-size: 13px; font-weight: 500;
+  display: flex; align-items: center; gap: 8px;
+  animation: toastIn 0.3s cubic-bezier(0.16,1,0.3,1);
+  box-shadow: var(--shadow-lg);
+}
+.toast.success { background: rgba(0,255,170,0.1); border-color: var(--color-accent); color: var(--color-accent); }
+.toast.error { background: rgba(255,68,102,0.1); border-color: var(--color-destructive); color: var(--color-destructive); }
+.toast.info { background: rgba(0,212,255,0.1); border-color: var(--color-secondary); color: var(--color-secondary); }
+.toast-exit { animation: toastOut 0.25s ease-in forwards; }
+@keyframes toastIn { from { opacity: 0; transform: translateX(30px); } to { opacity: 1; transform: translateX(0); } }
+@keyframes toastOut { to { opacity: 0; transform: translateX(30px); } }
+
+/* ========================================
+   REDUCED MOTION
+   ======================================== */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+</style>
+</head>
+<body>
+
+<!-- Background Effects -->
+<canvas id="bgCanvas" aria-hidden="true"></canvas>
+<div class="bg-grid-overlay" aria-hidden="true"></div>
+<div class="bg-scanlines" aria-hidden="true"></div>
+
+<!-- ============ SIDEBAR ============ -->
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-sub">
+      <div class="brand-logo">G</div>
+      <div>
+        <h2>GOUER</h2>
+        <span>工具包包 v1.9.0</span>
+      </div>
+    </div>
+  </div>
+  <nav class="sidebar-nav" role="navigation" aria-label="主导航">
+    <a class="active" data-page="home" onclick="showPage('home')">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+      <span>首页</span>
+    </a>
+    <a data-page="watermark" onclick="showPage('watermark')">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"/></svg>
+      <span>添加水印</span>
+    </a>
+    <a data-page="compress" onclick="showPage('compress')">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+      <span>图片压缩</span>
+    </a>
+    <a data-page="convert" onclick="showPage('convert')">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+      <span>格式转换</span>
+    </a>
+  </nav>
+  <div class="sidebar-footer">Copyright &copy; 2024 <a href="https://gouer.vip" target="_blank" rel="noopener">Gouer.Vip</a><br>All Rights Reserved.</div>
+</aside>
+
+<!-- ============ MAIN CONTENT ============ -->
+<div class="main">
+
+  <!-- ===== HOME PAGE ===== -->
+  <div class="page active" id="page-home">
+    <div class="home-hero">
+      <h1>给老婆的工具包包</h1>
+      <p>一站式图片处理，简单好用</p>
+    </div>
+    <div class="home-cards">
+      <a class="tool-card" onclick="showPage('watermark')">
+        <div class="card-icon">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"/></svg>
+        </div>
+        <h3>添加水印</h3>
+        <div class="card-desc">为图片添加文字或图片水印<br>支持批量处理，实时预览</div>
+        <span class="card-cta">开始使用 →</span>
+      </a>
+      <a class="tool-card" onclick="showPage('compress')">
+        <div class="card-icon">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+        </div>
+        <h3>图片压缩</h3>
+        <div class="card-desc">压缩图片体积与尺寸<br>保持画质，即时预览效果</div>
+        <span class="card-cta">开始使用 →</span>
+      </a>
+      <a class="tool-card" onclick="showPage('convert')">
+        <div class="card-icon">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+        </div>
+        <h3>格式转换</h3>
+        <div class="card-desc">图片格式互转 PNG / JPEG / WebP<br>可调质量与分辨率</div>
+        <span class="card-cta">开始使用 →</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- ===== WATERMARK PAGE ===== -->
+  <div class="page" id="page-watermark">
+    <div class="tool-header">
+      <h2>Gouer.vip 图片加水印</h2>
+      <div class="divider"></div>
+    </div>
+    <div class="tool-body">
+      <!-- Preview -->
+      <div class="preview-area" id="wmPreviewArea">
+        <div id="wmPlaceholder" style="display:flex;flex-direction:column;align-items:center;">
+          <div class="placeholder-icon">
+            <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+          </div>
+          <span class="placeholder-text">点击或拖拽图片文件到此处</span>
+          <span class="placeholder-hint">支持 JPG、PNG、WebP 格式</span>
+          <div class="format-tags"><span class="format-tag">JPG</span><span class="format-tag">PNG</span><span class="format-tag">WebP</span></div>
+        </div>
+        <div class="preview-canvas-wrap" id="wmCanvasWrap">
+          <div class="preview-toolbar">
+            <div class="preview-file-info">
+              <i class="fa-solid fa-image" style="color:var(--color-accent);font-size:12px;"></i>
+              <span class="file-name" id="wmFileName">-</span>
+              <span class="file-size" id="wmFileSize">-</span>
+            </div>
+            <div style="display:flex;gap:6px;">
+              <button class="btn btn-secondary btn-sm" onclick="wmChangeImage()"><i class="fa-solid fa-arrows-rotate" style="font-size:10px;"></i> 更换</button>
+              <button class="btn btn-primary btn-sm" onclick="wmDownload()"><i class="fa-solid fa-download" style="font-size:10px;"></i> 下载</button>
+            </div>
+          </div>
+          <div class="preview-canvas-container">
+            <canvas id="wmCanvas"></canvas>
+          </div>
+        </div>
+      </div>
+      <input type="file" id="wmFileInput" accept="image/jpeg,image/png,image/webp" hidden>
+
+      <!-- Controls -->
+      <div class="control-panel">
+        <div class="btn-group">
+          <button class="btn btn-secondary btn-sm" onclick="document.getElementById('wmFileInput').click()"><i class="fa-solid fa-folder-open" style="font-size:10px;"></i> 选择文件</button>
+          <button class="btn btn-primary btn-sm" onclick="wmSaveCurrent()"><i class="fa-solid fa-floppy-disk" style="font-size:10px;"></i> 保存当前</button>
+          <button class="btn btn-purple btn-sm"><i class="fa-solid fa-layer-group" style="font-size:10px;"></i> 批量保存</button>
+          <button class="btn btn-danger btn-sm" onclick="wmClearList()"><i class="fa-solid fa-trash" style="font-size:10px;"></i> 清理列表</button>
+        </div>
+
+        <!-- Basic Settings Card -->
+        <div class="setting-card">
+          <div class="setting-card-header" onclick="this.parentElement.classList.toggle('collapsed')">
+            <h4>基础设置</h4>
+            <svg class="arrow" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+          </div>
+          <div class="setting-card-body">
+            <div class="setting-row">
+              <label>配置模式</label>
+              <div class="control">
+                <label class="toggle">
+                  <input type="checkbox" id="wmRatioMode" checked>
+                  <span class="toggle-track"></span>
+                  <span class="toggle-label">比例模式</span>
+                </label>
+              </div>
+            </div>
+            <div class="setting-row">
+              <label>水印文字</label>
+              <div class="control"><input class="input" id="wmText" value="Gouer.Vip" placeholder="输入水印文字"></div>
+            </div>
+            <div class="setting-row">
+              <label>文字颜色</label>
+              <div class="control" style="display:flex;align-items:center;gap:8px;">
+                <div class="color-dot" id="wmColorDot" style="background:#000000;">
+                  <input type="color" id="wmColorPicker" value="#000000">
+                </div>
+                <input class="input" id="wmColorHex" value="#000000" style="width:90px;" maxlength="7">
+              </div>
+            </div>
+            <div class="setting-row">
+              <label>不透明度</label>
+              <div class="control">
+                <div class="range-group">
+                  <input type="range" id="wmOpacity" min="5" max="100" value="60">
+                  <span class="range-value" id="wmOpacityVal">60%</span>
+                </div>
+              </div>
+            </div>
+            <div class="setting-row">
+              <label>字体比例</label>
+              <div class="control">
+                <div class="range-group">
+                  <input type="range" id="wmFontScale" min="5" max="100" value="30">
+                  <span class="range-value" id="wmFontScaleVal">3.0%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Advanced Settings Card -->
+        <div class="setting-card collapsed">
+          <div class="setting-card-header" onclick="this.parentElement.classList.toggle('collapsed')">
+            <h4>高级设置</h4>
+            <svg class="arrow" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+          </div>
+          <div class="setting-card-body">
+            <div class="setting-row">
+              <label>重复水印</label>
+              <div class="control">
+                <label class="toggle">
+                  <input type="checkbox" id="wmRepeat" checked>
+                  <span class="toggle-track"></span>
+                </label>
+              </div>
+            </div>
+            <div class="setting-row">
+              <label>间距比例</label>
+              <div class="control">
+                <div class="range-group">
+                  <input type="range" id="wmGapScale" min="0" max="200" value="50">
+                  <span class="range-value" id="wmGapScaleVal">5.0%</span>
+                </div>
+              </div>
+            </div>
+            <div class="setting-row">
+              <label>水印框宽</label>
+              <div class="control"><input class="input" id="wmBoxW" value="100" style="width:80px;"> <span style="font-size:11px;color:var(--color-text-muted);margin-left:4px;">px</span></div>
+            </div>
+            <div class="setting-row">
+              <label>水印框高</label>
+              <div class="control"><input class="input" id="wmBoxH" value="100" style="width:80px;"> <span style="font-size:11px;color:var(--color-text-muted);margin-left:4px;">px</span></div>
+            </div>
+            <div class="setting-row">
+              <label>旋转角度</label>
+              <div class="control">
+                <div class="range-group">
+                  <input type="range" id="wmRotation" min="-90" max="90" value="-30">
+                  <span class="range-value" id="wmRotationVal">-30°</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Logo Settings Card -->
+        <div class="setting-card collapsed">
+          <div class="setting-card-header" onclick="this.parentElement.classList.toggle('collapsed')">
+            <h4>Logo 设置</h4>
+            <svg class="arrow" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+          </div>
+          <div class="setting-card-body">
+            <div class="setting-row">
+              <label>选择Logo</label>
+              <div class="control">
+                <button class="btn btn-secondary btn-sm" onclick="document.getElementById('wmLogoInput').click()"><i class="fa-solid fa-upload" style="font-size:10px;"></i> 选择文件</button>
+                <input type="file" id="wmLogoInput" accept="image/*" hidden>
+              </div>
+            </div>
+            <div class="setting-row">
+              <label>位置</label>
+              <div class="control">
+                <select class="select" id="wmLogoPos">
+                  <option>左上角</option>
+                  <option selected>右上角</option>
+                  <option>左下角</option>
+                  <option>右下角</option>
+                </select>
+              </div>
+            </div>
+            <div class="setting-row">
+              <label>Logo大小</label>
+              <div class="control">
+                <div class="range-group">
+                  <input type="range" id="wmLogoSize" min="20" max="200" value="80">
+                  <span class="range-value" id="wmLogoSizeVal">80px</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <button class="btn btn-ghost btn-sm" style="align-self:center;" onclick="wmResetAll()"><i class="fa-solid fa-arrow-rotate-left" style="font-size:10px;"></i> 重置全部设置</button>
+      </div>
+    </div>
+    <!-- File thumbnails -->
+    <div style="padding: 0 var(--spacing-xl) var(--spacing-md); max-width:1200px; margin:0 auto; width:100%;">
+      <span style="font-size:12px;color:var(--color-text-muted);">已选择 <span id="wmFileCount">0</span> 个文件</span>
+    </div>
+    <div class="file-strip" id="wmFileStrip"></div>
+  </div>
+
+  <!-- ===== COMPRESS PAGE ===== -->
+  <div class="page" id="page-compress">
+    <div class="tool-header">
+      <h2>Gouer.vip 图片压缩</h2>
+      <div class="divider"></div>
+    </div>
+    <div class="tool-body">
+      <div class="preview-area" id="compPreviewArea">
+        <div style="display:flex;flex-direction:column;align-items:center;">
+          <div class="placeholder-icon">
+            <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+          </div>
+          <span class="placeholder-text">点击或拖拽图片文件到此处</span>
+          <span class="placeholder-hint">支持 JPG、PNG 格式</span>
+          <div class="format-tags"><span class="format-tag">JPG</span><span class="format-tag">PNG</span></div>
+        </div>
+      </div>
+      <div class="control-panel">
+        <div class="btn-group">
+          <button class="btn btn-secondary btn-sm"><i class="fa-solid fa-folder-open" style="font-size:10px;"></i> 选择文件</button>
+          <button class="btn btn-primary btn-sm"><i class="fa-solid fa-floppy-disk" style="font-size:10px;"></i> 保存</button>
+          <button class="btn btn-ghost btn-sm"><i class="fa-solid fa-arrow-rotate-left" style="font-size:10px;"></i> 重置</button>
+        </div>
+        <div class="setting-card">
+          <div class="setting-card-header" onclick="this.parentElement.classList.toggle('collapsed')">
+            <h4>压缩设置</h4>
+            <svg class="arrow" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+          </div>
+          <div class="setting-card-body">
+            <div class="setting-row">
+              <label>压缩质量</label>
+              <div class="control">
+                <div class="range-group">
+                  <input type="range" min="10" max="100" value="80">
+                  <span class="range-value">80%</span>
+                </div>
+              </div>
+            </div>
+            <div class="setting-row">
+              <label>最大宽度</label>
+              <div class="control"><input class="input" value="1920" placeholder="px"></div>
+            </div>
+            <div class="setting-row">
+              <label>最大高度</label>
+              <div class="control"><input class="input" value="1080" placeholder="px"></div>
+            </div>
+          </div>
+        </div>
+        <button class="btn btn-primary" style="width:100%;"><i class="fa-solid fa-compress" style="font-size:11px;"></i> 开始压缩</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== CONVERT PAGE ===== -->
+  <div class="page" id="page-convert">
+    <div class="tool-header">
+      <h2>Gouer.vip 图片格式转换</h2>
+      <div class="divider"></div>
+    </div>
+    <div class="tool-body">
+      <div class="preview-area" id="convPreviewArea">
+        <div style="display:flex;flex-direction:column;align-items:center;">
+          <div class="placeholder-icon">
+            <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+          </div>
+          <span class="placeholder-text">点击或拖拽图片文件到此处</span>
+          <span class="placeholder-hint">支持 JPG、PNG、WebP、BMP 格式</span>
+          <div class="format-tags"><span class="format-tag">JPG</span><span class="format-tag">PNG</span><span class="format-tag">WebP</span><span class="format-tag">BMP</span></div>
+        </div>
+      </div>
+      <div class="control-panel">
+        <div class="btn-group">
+          <button class="btn btn-secondary btn-sm"><i class="fa-solid fa-folder-open" style="font-size:10px;"></i> 选择文件</button>
+          <button class="btn btn-primary btn-sm"><i class="fa-solid fa-exchange-alt" style="font-size:10px;"></i> 开始转换</button>
+        </div>
+        <div class="setting-card">
+          <div class="setting-card-header" onclick="this.parentElement.classList.toggle('collapsed')">
+            <h4>转换设置</h4>
+            <svg class="arrow" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+          </div>
+          <div class="setting-card-body">
+            <div class="setting-row">
+              <label>目标格式</label>
+              <div class="control">
+                <select class="select">
+                  <option>JPEG</option>
+                  <option selected>PNG</option>
+                  <option>WebP</option>
+                  <option>BMP</option>
+                </select>
+              </div>
+            </div>
+            <div class="setting-row">
+              <label>输出质量</label>
+              <div class="control">
+                <div class="range-group">
+                  <input type="range" min="10" max="100" value="90">
+                  <span class="range-value">90%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Toast Container -->
+<div class="toast-container" id="toastContainer" aria-live="polite"></div>
+
+<!-- ============ SCRIPTS ============ -->
+<script>
+/* ========================================
+   PAGE SWITCHING
+   ======================================== */
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.sidebar-nav a').forEach(a => a.classList.remove('active'));
+  const page = document.getElementById('page-' + name);
+  const link = document.querySelector('[data-page="' + name + '"]');
+  if (page) page.classList.add('active');
+  if (link) link.classList.add('active');
+}
+
+/* ========================================
+   TOAST NOTIFICATIONS
+   ======================================== */
+function showToast(msg, type) {
+  type = type || 'info';
+  var container = document.getElementById('toastContainer');
+  var toast = document.createElement('div');
+  toast.className = 'toast ' + type;
+  var icons = { success: 'fa-circle-check', error: 'fa-circle-xmark', info: 'fa-circle-info' };
+  toast.innerHTML = '<i class="fa-solid ' + (icons[type] || icons.info) + '"></i><span>' + msg + '</span>';
+  container.appendChild(toast);
+  setTimeout(function() {
+    toast.classList.add('toast-exit');
+    setTimeout(function() { toast.remove(); }, 250);
+  }, 3000);
+}
+
+/* ========================================
+   PARTICLE BACKGROUND
+   ======================================== */
+(function() {
+  var canvas = document.getElementById('bgCanvas');
+  var ctx = canvas.getContext('2d');
+  var particles = [];
+  var w, h;
+
+  function resize() {
+    w = canvas.width = window.innerWidth;
+    h = canvas.height = window.innerHeight;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  function Particle() {
+    this.reset();
+  }
+  Particle.prototype.reset = function() {
+    this.x = Math.random() * w;
+    this.y = Math.random() * h;
+    this.vx = (Math.random() - 0.5) * 0.25;
+    this.vy = (Math.random() - 0.5) * 0.25;
+    this.r = Math.random() * 1.2 + 0.4;
+    this.alpha = Math.random() * 0.35 + 0.05;
+  };
+  Particle.prototype.update = function() {
+    this.x += this.vx;
+    this.y += this.vy;
+    if (this.x < 0 || this.x > w || this.y < 0 || this.y > h) this.reset();
+  };
+  Particle.prototype.draw = function() {
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, Math.max(0.1, this.r), 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(0,255,170,' + this.alpha + ')';
+    ctx.fill();
+  };
+
+  var count = Math.min(60, Math.floor(w * h / 20000));
+  for (var i = 0; i < count; i++) particles.push(new Particle());
+
+  function animate() {
+    ctx.clearRect(0, 0, w, h);
+    for (var i = 0; i < particles.length; i++) {
+      particles[i].update();
+      particles[i].draw();
+    }
+    // 连线
+    for (var i = 0; i < particles.length; i++) {
+      for (var j = i + 1; j < particles.length; j++) {
+        var dx = particles[i].x - particles[j].x;
+        var dy = particles[i].y - particles[j].y;
+        var dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < 100) {
+          ctx.beginPath();
+          ctx.moveTo(particles[i].x, particles[i].y);
+          ctx.lineTo(particles[j].x, particles[j].y);
+          ctx.strokeStyle = 'rgba(0,255,170,' + (0.04 * (1 - dist / 100)) + ')';
+          ctx.lineWidth = 0.5;
+          ctx.stroke();
+        }
+      }
+    }
+    requestAnimationFrame(animate);
+  }
+  animate();
+})();
+
+/* ========================================
+   WATERMARK FUNCTIONALITY
+   ======================================== */
+var wmOriginalImage = null;
+var wmLogoImage = null;
+var wmCurrentFileName = '';
+var wmFiles = []; // 批量文件列表
+
+var wmCanvas = document.getElementById('wmCanvas');
+var wmCtx = wmCanvas.getContext('2d');
+var wmFileInput = document.getElementById('wmFileInput');
+var wmPreviewArea = document.getElementById('wmPreviewArea');
+
+// 滑块联动
+var sliders = [
+  { id: 'wmOpacity', valId: 'wmOpacityVal', suffix: '%' },
+  { id: 'wmFontScale', valId: 'wmFontScaleVal', suffix: '', transform: function(v) { return (v / 10).toFixed(1) + '%'; } },
+  { id: 'wmGapScale', valId: 'wmGapScaleVal', suffix: '', transform: function(v) { return (v / 10).toFixed(1) + '%'; } },
+  { id: 'wmRotation', valId: 'wmRotationVal', suffix: '°' },
+  { id: 'wmLogoSize', valId: 'wmLogoSizeVal', suffix: 'px' }
+];
+sliders.forEach(function(s) {
+  var el = document.getElementById(s.id);
+  var valEl = document.getElementById(s.valId);
+  if (!el || !valEl) return;
+  el.addEventListener('input', function() {
+    if (s.transform) { valEl.textContent = s.transform(el.value); }
+    else { valEl.textContent = el.value + s.suffix; }
+    wmRenderPreview();
+  });
+});
+
+// 颜色联动
+var wmColorPicker = document.getElementById('wmColorPicker');
+var wmColorHex = document.getElementById('wmColorHex');
+var wmColorDot = document.getElementById('wmColorDot');
+
+wmColorPicker.addEventListener('input', function() {
+  wmColorHex.value = wmColorPicker.value;
+  wmColorDot.style.background = wmColorPicker.value;
+  wmRenderPreview();
+});
+wmColorHex.addEventListener('input', function() {
+  if (/^#[0-9a-fA-F]{6}$/.test(wmColorHex.value)) {
+    wmColorPicker.value = wmColorHex.value;
+    wmColorDot.style.background = wmColorHex.value;
+    wmRenderPreview();
+  }
+});
+
+// 文字输入
+document.getElementById('wmText').addEventListener('input', function() { wmRenderPreview(); });
+document.getElementById('wmBoxW').addEventListener('input', function() { wmRenderPreview(); });
+document.getElementById('wmBoxH').addEventListener('input', function() { wmRenderPreview(); });
+document.getElementById('wmRepeat').addEventListener('change', function() { wmRenderPreview(); });
+document.getElementById('wmRatioMode').addEventListener('change', function() { wmRenderPreview(); });
+
+// 文件上传
+wmPreviewArea.addEventListener('click', function(e) {
+  // 不在工具栏内时触发
+  if (!e.target.closest('.preview-toolbar') && !e.target.closest('.preview-canvas-wrap')) {
+    wmFileInput.click();
+  }
+});
+
+wmFileInput.addEventListener('change', function(e) {
+  if (e.target.files && e.target.files[0]) wmLoadImage(e.target.files[0]);
+});
+
+// 拖拽
+['dragenter', 'dragover'].forEach(function(evt) {
+  wmPreviewArea.addEventListener(evt, function(e) {
+    e.preventDefault(); e.stopPropagation();
+    wmPreviewArea.classList.add('dragover');
+  });
+});
+['dragleave', 'drop'].forEach(function(evt) {
+  wmPreviewArea.addEventListener(evt, function(e) {
+    e.preventDefault(); e.stopPropagation();
+    wmPreviewArea.classList.remove('dragover');
+  });
+});
+wmPreviewArea.addEventListener('drop', function(e) {
+  var files = e.dataTransfer.files;
+  if (files && files[0]) wmLoadImage(files[0]);
+});
+
+function wmLoadImage(file) {
+  if (!file.type.match(/^image\/(jpeg|png|webp)$/)) {
+    showToast('仅支持 JPG、PNG、WebP 格式', 'error');
+    return;
+  }
+  wmCurrentFileName = file.name;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var img = new Image();
+    img.onload = function() {
+      wmOriginalImage = img;
+      // 显示预览
+      document.getElementById('wmPlaceholder').style.display = 'none';
+      document.getElementById('wmCanvasWrap').classList.add('active');
+      document.getElementById('wmFileName').textContent = file.name;
+      document.getElementById('wmFileSize').textContent = formatSize(file.size);
+      wmRenderPreview();
+      // 添加到文件列表
+      wmAddFileThumb(file, img);
+      showToast('图片加载成功', 'success');
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function formatSize(bytes) {
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+  return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+}
+
+function wmAddFileThumb(file, img) {
+  // 检查是否已存在
+  var exists = wmFiles.some(function(f) { return f.name === file.name; });
+  if (!exists) {
+    wmFiles.push({ name: file.name, file: file, img: img });
+  }
+  document.getElementById('wmFileCount').textContent = wmFiles.length;
+  wmRenderFileStrip();
+}
+
+function wmRenderFileStrip() {
+  var strip = document.getElementById('wmFileStrip');
+  strip.innerHTML = '';
+  wmFiles.forEach(function(f, i) {
+    var thumb = document.createElement('div');
+    thumb.className = 'file-thumb' + (f.name === wmCurrentFileName ? ' active' : '');
+    // 缩略图用 canvas 渲染
+    var c = document.createElement('canvas');
+    c.width = 64; c.height = 64;
+    var cctx = c.getContext('2d');
+    var scale = Math.min(64 / f.img.width, 64 / f.img.height);
+    var dw = f.img.width * scale, dh = f.img.height * scale;
+    cctx.fillStyle = '#111a2e';
+    cctx.fillRect(0, 0, 64, 64);
+    cctx.drawImage(f.img, (64 - dw) / 2, (64 - dh) / 2, dw, dh);
+    thumb.style.backgroundImage = 'url(' + c.toDataURL() + ')';
+    thumb.style.backgroundSize = 'cover';
+    thumb.addEventListener('click', function() {
+      wmOriginalImage = f.img;
+      wmCurrentFileName = f.name;
+      document.getElementById('wmPlaceholder').style.display = 'none';
+      document.getElementById('wmCanvasWrap').classList.add('active');
+      document.getElementById('wmFileName').textContent = f.name;
+      wmRenderPreview();
+      wmRenderFileStrip();
+    });
+    strip.appendChild(thumb);
+  });
+}
+
+function wmChangeImage() {
+  wmFileInput.click();
+}
+
+// Logo 上传
+document.getElementById('wmLogoInput').addEventListener('change', function(e) {
+  if (e.target.files && e.target.files[0]) {
+    var reader = new FileReader();
+    reader.onload = function(ev) {
+      var img = new Image();
+      img.onload = function() {
+        wmLogoImage = img;
+        showToast('Logo 加载成功', 'success');
+        wmRenderPreview();
+      };
+      img.src = ev.target.result;
+    };
+    reader.readAsDataURL(e.target.files[0]);
+  }
+});
+
+// 渲染水印
+function wmRenderPreview() {
+  if (!wmOriginalImage) return;
+  var img = wmOriginalImage;
+  var maxDim = 1200;
+  var cw = img.width, ch = img.height;
+  if (cw > maxDim || ch > maxDim) {
+    var ratio = Math.min(maxDim / cw, maxDim / ch);
+    cw = Math.round(cw * ratio);
+    ch = Math.round(ch * ratio);
+  }
+  wmCanvas.width = cw;
+  wmCanvas.height = ch;
+  wmCtx.clearRect(0, 0, cw, ch);
+  wmCtx.drawImage(img, 0, 0, cw, ch);
+
+  var text = document.getElementById('wmText').value.trim();
+  if (!text && !wmLogoImage) return;
+
+  var alpha = parseInt(document.getElementById('wmOpacity').value) / 100;
+  var fontScale = parseInt(document.getElementById('wmFontScale').value) / 1000;
+  var fontSize = Math.max(8, cw * fontScale);
+  var rotation = parseInt(document.getElementById('wmRotation').value) * Math.PI / 180;
+  var repeat = document.getElementById('wmRepeat').checked;
+  var gap = cw * (parseInt(document.getElementById('wmGapScale').value) / 1000);
+
+  var hex = document.getElementById('wmColorHex').value || '#000000';
+  var r = parseInt(hex.slice(1, 3), 16) || 0;
+  var g = parseInt(hex.slice(3, 5), 16) || 0;
+  var b = parseInt(hex.slice(5, 7), 16) || 0;
+  var fillColor = 'rgba(' + r + ',' + g + ',' + b + ',' + alpha + ')';
+
+  wmCtx.save();
+
+  if (repeat) {
+    var stepX = Math.max(fontSize * 2, fontSize * (text ? text.length * 0.7 : 2) + gap);
+    var stepY = Math.max(fontSize * 2, fontSize * 2 + gap);
+    var diagonal = Math.sqrt(cw * cw + ch * ch);
+    var startX = -diagonal / 2;
+    var startY = -diagonal / 2;
+
+    wmCtx.translate(cw / 2, ch / 2);
+    wmCtx.rotate(rotation);
+    wmCtx.font = Math.round(fontSize) + 'px "Noto Sans SC", sans-serif';
+    wmCtx.fillStyle = fillColor;
+    wmCtx.textAlign = 'center';
+    wmCtx.textBaseline = 'middle';
+
+    for (var y = startY; y < diagonal / 2; y += stepY) {
+      for (var x = startX; x < diagonal / 2; x += stepX) {
+        if (text) wmCtx.fillText(text, x, y);
+        if (wmLogoImage) {
+          var ls = fontSize * 2;
+          wmCtx.globalAlpha = alpha;
+          wmCtx.drawImage(wmLogoImage, x - ls / 2, y - ls / 2 - fontSize * 1.5, ls, ls);
+          wmCtx.globalAlpha = 1;
+        }
+      }
+    }
+  } else {
+    wmCtx.translate(cw / 2, ch / 2);
+    wmCtx.rotate(rotation);
+    wmCtx.font = Math.round(fontSize) + 'px "Noto Sans SC", sans-serif';
+    wmCtx.fillStyle = fillColor;
+    wmCtx.textAlign = 'center';
+    wmCtx.textBaseline = 'middle';
+    if (text) wmCtx.fillText(text, 0, 0);
+    if (wmLogoImage) {
+      var ls2 = fontSize * 2;
+      wmCtx.globalAlpha = alpha;
+      wmCtx.drawImage(wmLogoImage, -ls2 / 2, -ls2 / 2 - fontSize, ls2, ls2);
+      wmCtx.globalAlpha = 1;
+    }
+  }
+  wmCtx.restore();
+}
+
+// 下载
+function wmDownload() {
+  if (!wmOriginalImage) return;
+  var img = wmOriginalImage;
+  var tc = document.createElement('canvas');
+  tc.width = img.width; tc.height = img.height;
+  var tCtx = tc.getContext('2d');
+  tCtx.drawImage(img, 0, 0);
+
+  var text = document.getElementById('wmText').value.trim();
+  var alpha = parseInt(document.getElementById('wmOpacity').value) / 100;
+  var fontScale = parseInt(document.getElementById('wmFontScale').value) / 1000;
+  var fontSize = Math.max(8, img.width * fontScale);
+  var rotation = parseInt(document.getElementById('wmRotation').value) * Math.PI / 180;
+  var repeat = document.getElementById('wmRepeat').checked;
+  var gap = img.width * (parseInt(document.getElementById('wmGapScale').value) / 1000);
+
+  var hex = document.getElementById('wmColorHex').value || '#000000';
+  var r2 = parseInt(hex.slice(1, 3), 16) || 0;
+  var g2 = parseInt(hex.slice(3, 5), 16) || 0;
+  var b2 = parseInt(hex.slice(5, 7), 16) || 0;
+  var fillColor = 'rgba(' + r2 + ',' + g2 + ',' + b2 + ',' + alpha + ')';
+
+  tCtx.save();
+  if (repeat && (text || wmLogoImage)) {
+    var stepX = Math.max(fontSize * 2, fontSize * (text ? text.length * 0.7 : 2) + gap);
+    var stepY = Math.max(fontSize * 2, fontSize * 2 + gap);
+    var diagonal = Math.sqrt(img.width * img.width + img.height * img.height);
+    tCtx.translate(img.width / 2, img.height / 2);
+    tCtx.rotate(rotation);
+    tCtx.font = Math.round(fontSize) + 'px "Noto Sans SC", sans-serif';
+    tCtx.fillStyle = fillColor;
+    tCtx.textAlign = 'center';
+    tCtx.textBaseline = 'middle';
+    for (var y = -diagonal / 2; y < diagonal / 2; y += stepY) {
+      for (var x = -diagonal / 2; x < diagonal / 2; x += stepX) {
+        if (text) tCtx.fillText(text, x, y);
+        if (wmLogoImage) {
+          var ls = fontSize * 2;
+          tCtx.globalAlpha = alpha;
+          tCtx.drawImage(wmLogoImage, x - ls / 2, y - ls / 2 - fontSize * 1.5, ls, ls);
+          tCtx.globalAlpha = 1;
+        }
+      }
+    }
+  } else if (text || wmLogoImage) {
+    tCtx.translate(img.width / 2, img.height / 2);
+    tCtx.rotate(rotation);
+    tCtx.font = Math.round(fontSize) + 'px "Noto Sans SC", sans-serif';
+    tCtx.fillStyle = fillColor;
+    tCtx.textAlign = 'center';
+    tCtx.textBaseline = 'middle';
+    if (text) tCtx.fillText(text, 0, 0);
+    if (wmLogoImage) {
+      var ls2 = fontSize * 2;
+      tCtx.globalAlpha = alpha;
+      tCtx.drawImage(wmLogoImage, -ls2 / 2, -ls2 / 2 - fontSize, ls2, ls2);
+      tCtx.globalAlpha = 1;
+    }
+  }
+  tCtx.restore();
+
+  var link = document.createElement('a');
+  var nameNoExt = wmCurrentFileName.replace(/\.[^.]+$/, '');
+  link.download = nameNoExt + '_watermarked.png';
+  link.href = tc.toDataURL('image/png');
+  link.click();
+  showToast('图片下载成功', 'success');
+}
+
+// 保存当前
+function wmSaveCurrent() {
+  wmDownload();
+}
+
+// 清理列表
+function wmClearList() {
+  wmFiles = [];
+  wmOriginalImage = null;
+  wmLogoImage = null;
+  wmCurrentFileName = '';
+  document.getElementById('wmFileCount').textContent = '0';
+  document.getElementById('wmFileStrip').innerHTML = '';
+  document.getElementById('wmPlaceholder').style.display = 'flex';
+  document.getElementById('wmCanvasWrap').classList.remove('active');
+  showToast('列表已清理', 'info');
+}
+
+// 重置设置
+function wmResetAll() {
+  document.getElementById('wmText').value = 'Gouer.Vip';
+  document.getElementById('wmColorPicker').value = '#000000';
+  document.getElementById('wmColorHex').value = '#000000';
+  document.getElementById('wmColorDot').style.background = '#000000';
+  document.getElementById('wmOpacity').value = 60;
+  document.getElementById('wmOpacityVal').textContent = '60%';
+  document.getElementById('wmFontScale').value = 30;
+  document.getElementById('wmFontScaleVal').textContent = '3.0%';
+  document.getElementById('wmGapScale').value = 50;
+  document.getElementById('wmGapScaleVal').textContent = '5.0%';
+  document.getElementById('wmRotation').value = -30;
+  document.getElementById('wmRotationVal').textContent = '-30°';
+  document.getElementById('wmBoxW').value = 100;
+  document.getElementById('wmBoxH').value = 100;
+  document.getElementById('wmRepeat').checked = true;
+  document.getElementById('wmRatioMode').checked = true;
+  document.getElementById('wmLogoSize').value = 80;
+  document.getElementById('wmLogoSizeVal').textContent = '80px';
+  wmLogoImage = null;
+  wmRenderPreview();
+  showToast('设置已重置', 'info');
+}
+
+/* ========================================
+   RANGE SLIDER TRACK FILL (全局)
+   为所有 range 输入添加渐变填充效果
+   ======================================== */
+function updateRangeTrack(input) {
+  var min = parseFloat(input.min) || 0;
+  var max = parseFloat(input.max) || 100;
+  var val = parseFloat(input.value) || 0;
+  var pct = ((val - min) / (max - min)) * 100;
+  input.style.background = 'linear-gradient(90deg, rgba(0,255,170,0.5) 0%, rgba(0,212,255,0.5) ' + pct + '%, rgba(255,255,255,0.08) ' + pct + '%)';
+}
+document.querySelectorAll('input[type="range"]').forEach(function(r) {
+  updateRangeTrack(r);
+  r.addEventListener('input', function() { updateRangeTrack(r); });
+});
+
+/* ========================================
+   INIT
+   ======================================== */
+showToast('工具包包已就绪', 'info');
+</script>
+</body>
+</html>

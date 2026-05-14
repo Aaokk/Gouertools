@@ -1,295 +1,250 @@
 <template>
-  <div>
-    <div class="watermark-editor">
-      <div class="main-container">
-        <!-- 左侧区域 - 包含画布和文件列表 -->
-        <div class="left-area">
-          <!-- 画布区域 -->
-          <div class="canvas-area">
-            <div
-                class="drop-zone"
-                @dragover.prevent
-                @dragenter="handleDragEnter"
-                @dragleave="handleDragLeave"
-                @drop="handleDrop"
-                @click="!imageList.length && handleFileSelect()"
-                :class="{ dragging: isDragging, clickable: !imageList.length }"
-            >
-              <canvas
-                  ref="canvasRef"
-                  v-show="imageList.length > 0"
-                  @mousedown="startWatermarkDrag"
-                  style="cursor: move;"
-              />
-              <div v-show="!imageList.length" class="drop-text">
-                <div class="upload-icon">🖼️</div>
-                <p>点击或拖拽图片文件到此处</p>
-              </div>
-            </div>
-          </div>
+  <div class="tool-page">
+    <div class="tool-header">
+      <h2>Gouer.vip 图片加水印</h2>
+      <div class="divider"></div>
+    </div>
 
-          <!-- 多文件列表显示 - 在画布底部 -->
-          <div v-if="imageList.length > 1" class="file-list-bottom">
-            <h3>已选择 {{ imageList.length }} 个文件：</h3>
-            <div class="file-items">
-              <div
-                v-for="(image, index) in imageList"
-                :key="image.id"
-                :class="['file-item', { active: index === currentImageIndex }]"
-                @click="switchToImage(index)"
-              >
-                <div class="file-preview">
-                  <img :src="image.src" :alt="image.name" class="file-thumbnail">
-                </div>
-                <div class="file-info">
-                  <span class="file-name">{{ image.name }}</span>
-                  <button @click.stop="removeImage(index)" class="remove-btn">删除</button>
-                </div>
-              </div>
+    <div class="tool-body">
+      <!-- 预览列：虚线框 + 其下文件缩略列表 -->
+      <div class="preview-stack">
+        <div
+          class="preview-area"
+          @dragover.prevent
+          @dragenter="handleDragEnter"
+          @dragleave="handleDragLeave"
+          @drop="handleDrop"
+          @click="!imageList.length && handleFileSelect()"
+          :class="{ dragging: isDragging }"
+        >
+          <template v-if="!imageList.length">
+            <div class="placeholder-icon">
+              <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
             </div>
-            <div class="navigation-buttons">
-              <button @click="previousImage" :disabled="currentImageIndex === 0">上一张</button>
-              <span class="current-info">{{ currentImageIndex + 1 }} / {{ imageList.length }}</span>
-              <button @click="nextImage" :disabled="currentImageIndex === imageList.length - 1">下一张</button>
-            </div>
-          </div>
+            <span class="placeholder-text">点击或拖拽图片文件到此处</span>
+            <span class="placeholder-hint">支持 JPG、PNG、WebP 格式</span>
+          </template>
+          <canvas
+            v-show="imageList.length > 0"
+            ref="canvasRef"
+            @mousedown="startWatermarkDrag"
+            class="preview-canvas"
+          />
         </div>
 
-        <!-- 右侧控制板 -->
-        <div class="control-panel">
-          <h1 class="app-title">Gouer.vip 图片加水印</h1>
-
-          <div class="button-group">
-            <button @click="handleFileSelect">选择文件</button>
-            <button v-if="imageList.length" @click="saveImage">保存当前图片</button>
-            <button v-if="imageList.length > 1" @click="saveAllImages" class="save-all-button">批量保存</button>
-            <button v-if="imageList.length" @click="clearImageList" class="clear-button">清理列表</button>
-            <button @click="resetSettings" class="reset-button">重置设置</button>
+        <div v-if="imageList.length" class="file-section">
+          <div class="file-label">已选择 {{ imageList.length }} 个文件：</div>
+          <div class="file-strip">
+            <div
+              v-for="(image, index) in imageList"
+              :key="image.id"
+              :class="['file-thumb', { active: index === currentImageIndex }]"
+              @click="switchToImage(index)"
+            >
+              <img v-if="image.src" :src="image.src" :alt="image.name" style="width:100%;height:100%;object-fit:cover;">
+            </div>
           </div>
-
-          <div class="settings-group">
-            <div class="setting-item">
-              <label>配置模式:</label>
-              <div class="mode-switch">
-                <label class="switch-label">
-                  <input
-                    type="checkbox"
-                    v-model="watermarkSettings.useProportionalMode"
-                    @change="updateWatermark"
-                  />
-                  <span class="switch-text">
-                    {{ watermarkSettings.useProportionalMode ? '比例模式【自动调整水印大小】' : '固定模式【使用固定】' }}
-                  </span>
-                </label>
-                <!-- <div class="setting-tip">
-                  {{ watermarkSettings.useProportionalMode ? '自动调整' : '使用固定像素值' }}
-                </div> -->
-              </div>
-            </div>
-
-            <div class="setting-item">
-              <label>水印文字:</label>
-              <input type="text" v-model="watermarkSettings.text" maxlength="130">
-            </div>
-
-            <!-- 添加提示文本 -->
-            <div class="setting-tip">
-              提示：可以在左侧预览窗口拖动水印位置
-            </div>
-
-            <template v-if="imageList.length > 0">
-              <div class="setting-item">
-                <label>添加LOGO:</label>
-                <div class="logo-controls">
-                  <button @click="handleLogoSelect" class="small-button">选择LOGO</button>
-                  <select v-model="logoSettings.position" class="position-select">
-                    <option value="top-left">左上角</option>
-                    <option value="top-right">右上角</option>
-                    <option value="bottom-left">左下角</option>
-                    <option value="bottom-right">右下角</option>
-                  </select>
-                  <button
-                      v-if="logoSettings.image"
-                      @click="clearLogo"
-                      class="small-button danger"
-                  >清除</button>
-                </div>
-              </div>
-
-              <div class="setting-item" v-if="logoSettings.image">
-                <label>LOGO大小:</label>
-                <input
-                    type="range"
-                    v-model="logoSettings.size"
-                    min="20"
-                    max="200"
-                    @input="updateWatermark"
-                >
-                <span>{{ logoSettings.size }}px</span>
-              </div>
-
-              <div class="setting-item" v-if="logoSettings.image">
-                <label>LOGO边距:</label>
-                <input
-                    type="range"
-                    v-model="logoSettings.padding"
-                    min="0"
-                    max="100"
-                    @input="updateWatermark"
-                >
-                <span>{{ logoSettings.padding }}px</span>
-              </div>
-
-              <div class="setting-item" v-if="logoSettings.image">
-                <label>LOGO透明:</label>
-                <input
-                    type="range"
-                    v-model="logoSettings.opacity"
-                    min="0"
-                    max="1"
-                    step="0.1"
-                    @input="updateWatermark"
-                >
-                <span>{{ Math.round(logoSettings.opacity * 100) }}%</span>
-              </div>
-            </template>
-
-            <div class="setting-item">
-              <label>水印颜色:</label>
-              <div class="color-picker-container">
-                <div
-                    class="color-preview"
-                    @click="toggleColorPicker"
-                    :style="{ backgroundColor: watermarkSettings.color }"
-                ></div>
-                <div
-                    v-if="showColorPicker"
-                    class="color-picker-popup"
-                >
-                  <Chrome
-                      v-model="watermarkSettings.color"
-                      :value="watermarkSettings.color"
-                      @update:modelValue="updateColor"
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div class="setting-item">
-              <label>水印透明:</label>
-              <input
-                  type="range"
-                  v-model="watermarkSettings.rgb.a"
-                  min="0"
-                  max="1"
-                  step="0.1"
-              >
-            </div>
-
-            <!-- 字体大小控制 - 根据模式显示不同控制 -->
-            <div class="setting-item" v-if="!watermarkSettings.useProportionalMode">
-              <label>字体大小:</label>
-              <input
-                  type="range"
-                  v-model="watermarkSettings.fontSize"
-                  min="12"
-                  max="100"
-              >
-              <span class="value-display">{{ watermarkSettings.fontSize }}px</span>
-            </div>
-
-            <div class="setting-item" v-else>
-              <label>字体比例:</label>
-              <input
-                  type="range"
-                  v-model="watermarkSettings.fontSizeRatio"
-                  min="0.01"
-                  max="0.1"
-                  step="0.005"
-              >
-              <span class="value-display">{{ (watermarkSettings.fontSizeRatio * 100).toFixed(1) }}%</span>
-            </div>
-
-            <div class="setting-item">
-              <label>水印框宽:</label>
-              <input
-                  type="range"
-                  v-model="watermarkSettings.watermarkWidth"
-                  min="100"
-                  max="500"
-              >
-            </div>
-
-            <div class="setting-item">
-              <label>水印框高:</label>
-              <input
-                  type="range"
-                  v-model="watermarkSettings.watermarkHeight"
-                  min="100"
-                  max="500"
-              >
-            </div>
-
-            <!-- 水印间距控制 - 根据模式显示不同控制 -->
-            <div class="setting-item" v-if="watermarkSettings.repeat && !watermarkSettings.useProportionalMode">
-              <label>水印间距:</label>
-              <input
-                  type="range"
-                  v-model="watermarkSettings.spacing"
-                  min="0"
-                  max="300"
-              >
-              <span class="value-display">{{ watermarkSettings.spacing }}px</span>
-            </div>
-
-            <div class="setting-item" v-if="watermarkSettings.repeat && watermarkSettings.useProportionalMode">
-              <label>间距比例:</label>
-              <input
-                  type="range"
-                  v-model="watermarkSettings.spacingRatio"
-                  min="0"
-                  max="0.2"
-                  step="0.01"
-              >
-              <span class="value-display">{{ (watermarkSettings.spacingRatio * 100).toFixed(1) }}%</span>
-            </div>
-
-            <div class="setting-item">
-              <label>重复水印:</label>
-              <input type="checkbox" v-model="watermarkSettings.repeat">
-            </div>
-
-            <div class="setting-item">
-              <label>角度:</label>
-              <div class="angle-control">
-                <div
-                    class="angle-slider"
-                    @mousedown="startDragAngle"
-                >
-                  <div
-                      class="angle-handle"
-                      :style="{ transform: `rotate(${watermarkSettings.angle}deg)` }"
-                  ></div>
-                </div>
-                <input
-                    type="number"
-                    v-model="watermarkSettings.angle"
-                    min="0"
-                    max="360"
-                >
-                <button
-                    v-if="imageList.length"
-                    @click="rotate"
-                    class="rotate-button"
-                >旋转90°</button>
-              </div>
-            </div>
+          <div class="file-nav" v-if="imageList.length > 1">
+            <button class="btn btn-ghost btn-sm" @click="previousImage" :disabled="currentImageIndex === 0">上一张</button>
+            <span class="page-indicator">{{ currentImageIndex + 1 }} / {{ imageList.length }}</span>
+            <button class="btn btn-ghost btn-sm" @click="nextImage" :disabled="currentImageIndex === imageList.length - 1">下一张</button>
           </div>
         </div>
       </div>
 
-      <!-- 修改版权信息 -->
-      <Copyright />
+      <!-- 右侧控制面板 -->
+      <div class="control-panel">
+        <div class="btn-group">
+          <button class="btn btn-secondary btn-sm" @click="handleFileSelect">选择文件</button>
+          <button class="btn btn-primary btn-sm" v-if="imageList.length" @click="saveImage">保存当前</button>
+          <button class="btn btn-sm" v-if="imageList.length > 1" @click="saveAllImages" style="background:#7C3AED;color:#FFF;">批量保存</button>
+          <button class="btn btn-danger btn-sm" v-if="imageList.length" @click="clearImageList">清理列表</button>
+        </div>
+
+        <!-- 基础设置 -->
+        <div class="setting-card">
+          <div class="setting-card-header" @click="toggleCard('basic')">
+            <h4>基础设置</h4>
+            <svg class="arrow" :class="{ rotated: !cardOpen.basic }" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+          </div>
+          <div class="setting-card-body" v-show="cardOpen.basic">
+            <div class="setting-row">
+              <label>配置模式</label>
+              <div class="control">
+                <label class="toggle">
+                  <input type="checkbox" v-model="watermarkSettings.useProportionalMode" @change="updateWatermark" />
+                  <span class="toggle-track"></span>
+                  <span class="toggle-label">{{ watermarkSettings.useProportionalMode ? '比例模式' : '固定模式' }}</span>
+                </label>
+              </div>
+            </div>
+            <div class="setting-row">
+              <label>水印文字</label>
+              <div class="control"><input class="input" type="text" v-model="watermarkSettings.text" maxlength="130"></div>
+            </div>
+            <div class="setting-row">
+              <label>文字颜色</label>
+              <div class="control" style="display:flex;align-items:center;gap:8px;">
+                <div class="color-dot" :style="{ backgroundColor: watermarkSettings.color }" @click="toggleColorPicker"></div>
+                <input class="input" :value="watermarkSettings.color" @input="e => { watermarkSettings.color = e.target.value; updateColorFromHex(e.target.value) }" style="width:90px;">
+                <div v-if="showColorPicker" class="color-picker-popup">
+                  <Chrome v-model="watermarkSettings.color" :value="watermarkSettings.color" @update:modelValue="updateColor" />
+                </div>
+              </div>
+            </div>
+            <div class="setting-row">
+              <label>不透明度</label>
+              <div class="control">
+                <div class="range-group">
+                  <input type="range" min="0" max="100" :value="Math.round(watermarkSettings.rgb.a * 100)" @input="e => { watermarkSettings.rgb.a = Number(e.target.value) / 100; updateWatermark() }">
+                  <span class="range-value">{{ Math.round(watermarkSettings.rgb.a * 100) }}%</span>
+                </div>
+              </div>
+            </div>
+            <div class="setting-row" v-if="!watermarkSettings.useProportionalMode">
+              <label>字体大小</label>
+              <div class="control">
+                <div class="range-group">
+                  <input type="range" min="12" max="100" v-model.number="watermarkSettings.fontSize">
+                  <span class="range-value">{{ watermarkSettings.fontSize }}px</span>
+                </div>
+              </div>
+            </div>
+            <div class="setting-row" v-else>
+              <label>字体比例</label>
+              <div class="control">
+                <div class="range-group">
+                  <input type="range" min="0.5" max="10" step="0.5" :value="watermarkSettings.fontSizeRatio * 100" @input="e => { watermarkSettings.fontSizeRatio = Number(e.target.value) / 100; updateWatermark() }">
+                  <span class="range-value">{{ (watermarkSettings.fontSizeRatio * 100).toFixed(1) }}%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 高级设置 -->
+        <div class="setting-card">
+          <div class="setting-card-header" @click="toggleCard('advanced')">
+            <h4>高级设置</h4>
+            <svg class="arrow" :class="{ rotated: !cardOpen.advanced }" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+          </div>
+          <div class="setting-card-body" v-show="cardOpen.advanced">
+            <div class="setting-row">
+              <label>重复水印</label>
+              <div class="control">
+                <label class="toggle">
+                  <input type="checkbox" v-model="watermarkSettings.repeat">
+                  <span class="toggle-track"></span>
+                </label>
+              </div>
+            </div>
+            <div class="setting-row" v-if="watermarkSettings.repeat && !watermarkSettings.useProportionalMode">
+              <label>水印间距</label>
+              <div class="control">
+                <div class="range-group">
+                  <input type="range" min="0" max="300" v-model.number="watermarkSettings.spacing">
+                  <span class="range-value">{{ watermarkSettings.spacing }}px</span>
+                </div>
+              </div>
+            </div>
+            <div class="setting-row" v-if="watermarkSettings.repeat && watermarkSettings.useProportionalMode">
+              <label>间距比例</label>
+              <div class="control">
+                <div class="range-group">
+                  <input type="range" min="0" max="20" step="1" :value="watermarkSettings.spacingRatio * 100" @input="e => { watermarkSettings.spacingRatio = Number(e.target.value) / 100; updateWatermark() }">
+                  <span class="range-value">{{ (watermarkSettings.spacingRatio * 100).toFixed(1) }}%</span>
+                </div>
+              </div>
+            </div>
+            <div class="setting-row">
+              <label>水印框宽</label>
+              <div class="control">
+                <div class="range-group">
+                  <input type="range" min="100" max="500" v-model.number="watermarkSettings.watermarkWidth">
+                  <span class="range-value">{{ watermarkSettings.watermarkWidth }}px</span>
+                </div>
+              </div>
+            </div>
+            <div class="setting-row">
+              <label>水印框高</label>
+              <div class="control">
+                <div class="range-group">
+                  <input type="range" min="100" max="500" v-model.number="watermarkSettings.watermarkHeight">
+                  <span class="range-value">{{ watermarkSettings.watermarkHeight }}px</span>
+                </div>
+              </div>
+            </div>
+            <div class="setting-row">
+              <label>旋转角度</label>
+              <div class="control" style="display:flex;align-items:center;gap:8px;">
+                <div class="range-group">
+                  <input type="range" min="-90" max="90" v-model.number="watermarkSettings.angle">
+                  <span class="range-value">{{ watermarkSettings.angle }}°</span>
+                </div>
+                <button class="btn btn-secondary btn-sm" v-if="imageList.length" @click="rotate" style="flex-shrink:0;">旋转90°</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Logo 设置 -->
+        <div class="setting-card">
+          <div class="setting-card-header" @click="toggleCard('logo')">
+            <h4>Logo 设置</h4>
+            <svg class="arrow" :class="{ rotated: !cardOpen.logo }" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+          </div>
+          <div class="setting-card-body" v-show="cardOpen.logo">
+            <div class="setting-row">
+              <label>选择Logo</label>
+              <div class="control"><button class="btn btn-secondary btn-sm" @click="handleLogoSelect">选择文件</button></div>
+            </div>
+            <div class="setting-row" v-if="logoSettings.image">
+              <label>位置</label>
+              <div class="control">
+                <select class="select" v-model="logoSettings.position">
+                  <option value="top-left">左上角</option>
+                  <option value="top-right">右上角</option>
+                  <option value="bottom-left">左下角</option>
+                  <option value="bottom-right">右下角</option>
+                </select>
+              </div>
+            </div>
+            <div class="setting-row" v-if="logoSettings.image">
+              <label>Logo大小</label>
+              <div class="control">
+                <div class="range-group">
+                  <input type="range" min="20" max="200" v-model.number="logoSettings.size" @input="updateWatermark">
+                  <span class="range-value">{{ logoSettings.size }}px</span>
+                </div>
+              </div>
+            </div>
+            <div class="setting-row" v-if="logoSettings.image">
+              <label>Logo边距</label>
+              <div class="control">
+                <div class="range-group">
+                  <input type="range" min="0" max="100" v-model.number="logoSettings.padding" @input="updateWatermark">
+                  <span class="range-value">{{ logoSettings.padding }}px</span>
+                </div>
+              </div>
+            </div>
+            <div class="setting-row" v-if="logoSettings.image">
+              <label>Logo透明</label>
+              <div class="control">
+                <div class="range-group">
+                  <input type="range" min="0" max="100" :value="Math.round(logoSettings.opacity * 100)" @input="e => { logoSettings.opacity = Number(e.target.value) / 100; updateWatermark() }">
+                  <span class="range-value">{{ Math.round(logoSettings.opacity * 100) }}%</span>
+                </div>
+              </div>
+            </div>
+            <div class="setting-row" v-if="logoSettings.image">
+              <label></label>
+              <div class="control"><button class="btn btn-danger btn-sm" @click="clearLogo">清除Logo</button></div>
+            </div>
+          </div>
+        </div>
+
+        <button class="btn btn-ghost btn-sm" style="align-self:center;" @click="resetSettings">重置全部设置</button>
+      </div>
     </div>
   </div>
 </template>
@@ -297,7 +252,18 @@
 <script setup>
 import { Chrome } from '@ckpack/vue-color'
 import { ref, reactive, onMounted, watch, nextTick, onUnmounted } from 'vue'
-import Copyright from './Copyright.vue'
+import { showToast } from '../utils/toast.js'
+
+// Card toggle state
+const cardOpen = reactive({
+  basic: true,
+  advanced: true,
+  logo: false
+})
+
+function toggleCard(name) {
+  cardOpen[name] = !cardOpen[name]
+}
 
 // 从 localStorage 获取保存的设置或使用默认值
 const getStoredSettings = () => {
@@ -311,41 +277,33 @@ const getStoredSettings = () => {
     angle: -45,
     repeat: true,
     spacing: 0,
-    // 新增：比例模式配置
-    useProportionalMode: true, // 是否使用比例模式
-    fontSizeRatio: 0.03, // 字体大小相对于图片宽度的比例 (3%)
-    spacingRatio: 0.05, // 间距相对于图片宽度的比例 (5%)
-    watermarkHeightRatio: 0.15, // 水印高度相对于图片高度的比例 (15%)
-    watermarkWidthRatio: 0.25 // 水印宽度相对于图片宽度的比例 (25%)
+    useProportionalMode: true,
+    fontSizeRatio: 0.03,
+    spacingRatio: 0.05,
+    watermarkHeightRatio: 0.15,
+    watermarkWidthRatio: 0.25
   }
 
   const stored = localStorage.getItem('watermarkSettings')
   if (stored) {
     try {
       const settings = JSON.parse(stored)
-      // 合并默认设置和存储的设置，确保所有属性都存在
       const mergedSettings = {
         ...defaultSettings,
         ...settings,
-        // 确保 rgb 对象的完整性
         rgb: { ...defaultSettings.rgb, ...settings.rgb }
       }
-
-      // 确保数值类型的正确性
       mergedSettings.fontSize = parseInt(mergedSettings.fontSize) || defaultSettings.fontSize
       mergedSettings.watermarkHeight = parseInt(mergedSettings.watermarkHeight) || defaultSettings.watermarkHeight
       mergedSettings.watermarkWidth = parseInt(mergedSettings.watermarkWidth) || defaultSettings.watermarkWidth
       mergedSettings.spacing = parseInt(mergedSettings.spacing) || defaultSettings.spacing
       mergedSettings.angle = parseFloat(mergedSettings.angle) || defaultSettings.angle
-
-      // 恢复 LOGO 配置（不包括图片数据）
       if (settings.logoConfig) {
         logoSettings.position = settings.logoConfig.position || 'top-right'
         logoSettings.size = parseInt(settings.logoConfig.size) || 100
         logoSettings.padding = parseInt(settings.logoConfig.padding) || 20
         logoSettings.opacity = parseFloat(settings.logoConfig.opacity) || 0.6
       }
-
       return mergedSettings
     } catch (e) {
       console.error('解析存储的设置失败:', e)
@@ -355,25 +313,16 @@ const getStoredSettings = () => {
   return defaultSettings
 }
 
-// 初始化水印设置状态
 const watermarkSettings = reactive(getStoredSettings())
-
-// 图片相关状态
 const imageList = ref([])
 const currentImageIndex = ref(0)
 const isDragging = ref(false)
 const canvasRef = ref(null)
-
-// 添加水印拖动相关的状态
 const watermarkDragging = ref(false)
 const watermarkStartPos = ref({ x: 0, y: 0 })
-const watermarkOffset = reactive({ x: 100, y: 100 }) // 水印的初始位置
-
-// 添加颜色选择器显示状态
+const watermarkOffset = reactive({ x: 100, y: 100 })
 const showColorPicker = ref(false)
-const colorPickerPosition = reactive({ top: '0px', left: '0px' })
 
-// 添加 LOGO 相关状态
 const logoSettings = reactive({
   image: null,
   position: 'top-right',
@@ -385,19 +334,15 @@ const logoSettings = reactive({
   originalHeight: 0
 })
 
-// 初始化水印
 onMounted(() => {
   if (canvasRef.value) {
     updateWatermark()
   }
-  document.addEventListener('mousemove', handleDragAngle)
-  document.addEventListener('mouseup', stopDragAngle)
   document.addEventListener('mousemove', handleWatermarkDrag)
   document.addEventListener('mouseup', stopWatermarkDrag)
   document.addEventListener('click', handleClickOutside)
 })
 
-// 计算实际水印参数（基于图片尺寸和配置模式）
 const calculateWatermarkParams = (imageWidth, imageHeight) => {
   if (watermarkSettings.useProportionalMode) {
     return {
@@ -416,38 +361,28 @@ const calculateWatermarkParams = (imageWidth, imageHeight) => {
   }
 }
 
-// 创建优化的PNG数据URL，确保预览正常
 const createOptimizedDataURL = (canvas, format, quality) => {
   if (format === 'image/png') {
-    // 对于PNG，创建一个临时canvas确保背景正确
     const tempCanvas = document.createElement('canvas')
     const tempCtx = tempCanvas.getContext('2d')
     tempCanvas.width = canvas.width
     tempCanvas.height = canvas.height
-
-    // 填充白色背景
     tempCtx.fillStyle = '#FFFFFF'
     tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height)
-
-    // 绘制原始canvas内容
     tempCtx.drawImage(canvas, 0, 0)
-
     return tempCanvas.toDataURL('image/png')
   } else {
     return canvas.toDataURL(format, quality)
   }
 }
 
-// 更新水印设置
 const updateWatermark = () => {
   if (!canvasRef.value || !imageList.value.length) return
-
   const canvas = canvasRef.value
   const ctx = canvas.getContext('2d')
   const img = new Image()
   const logo = logoSettings.image ? new Image() : null
 
-  // 创建一个 Promise 来处理图片加载
   const loadImages = () => {
     return new Promise((resolve) => {
       img.onload = () => {
@@ -458,7 +393,6 @@ const updateWatermark = () => {
           resolve()
         }
       }
-
       const currentImage = imageList.value[currentImageIndex.value]
       if (currentImage && currentImage.src) {
         img.src = currentImage.src
@@ -466,58 +400,39 @@ const updateWatermark = () => {
     })
   }
 
-  // 使用 async/await 处理图片加载和绘制
   loadImages().then(() => {
-    // 设置画布大小
     canvas.width = img.naturalWidth
     canvas.height = img.naturalHeight
-
-    // 计算当前图片的实际水印参数
     const actualParams = calculateWatermarkParams(canvas.width, canvas.height)
-
-    // 清除画布
     ctx.clearRect(0, 0, canvas.width, canvas.height)
 
-    // 对于PNG图片，先填充白色背景以确保预览正常
     const currentImage = imageList.value[currentImageIndex.value]
     if (currentImage && currentImage.name.toLowerCase().endsWith('.png')) {
       ctx.fillStyle = '#FFFFFF'
       ctx.fillRect(0, 0, canvas.width, canvas.height)
     }
 
-    // 绘制原始图片
     ctx.drawImage(img, 0, 0)
-
-    // 绘制水印
     ctx.save()
     ctx.globalAlpha = watermarkSettings.rgb.a
     ctx.fillStyle = `rgba(${watermarkSettings.rgb.r}, ${watermarkSettings.rgb.g}, ${watermarkSettings.rgb.b}, ${watermarkSettings.rgb.a})`
     ctx.font = `${actualParams.fontSize}px Arial`
 
     if (watermarkSettings.repeat) {
-      // 计算水印网格的总宽度和高度（使用实际参数）
       const gridWidth = Math.max(actualParams.watermarkWidth, actualParams.fontSize * watermarkSettings.text.length)
       const gridHeight = Math.max(actualParams.watermarkHeight, actualParams.fontSize * 1.5)
       const spacing = parseInt(actualParams.spacing)
-
-      // 计算实际的网格大小（包含间距）
       const cellWidth = gridWidth + spacing
       const cellHeight = gridHeight + spacing
-
-      // 计算需要的水印行列数
       const cols = Math.ceil(canvas.width / cellWidth) + 2
       const rows = Math.ceil(canvas.height / cellHeight) + 2
-
-      // 计算起始偏移，使用模运算确保水印位置循环
       const offsetX = ((watermarkOffset.x % cellWidth) + cellWidth) % cellWidth - cellWidth
       const offsetY = ((watermarkOffset.y % cellHeight) + cellHeight) % cellHeight - cellHeight
 
-      // 绘制水印网格
       for (let row = -1; row < rows; row++) {
         for (let col = -1; col < cols; col++) {
           const x = offsetX + col * cellWidth
           const y = offsetY + row * cellHeight
-
           ctx.save()
           ctx.translate(x + gridWidth/2, y + gridHeight/2)
           ctx.rotate((watermarkSettings.angle * Math.PI) / 180)
@@ -527,32 +442,23 @@ const updateWatermark = () => {
         }
       }
     } else {
-      // 单个水印，默认居中显示（使用实际参数）
       const textWidth = ctx.measureText(watermarkSettings.text).width
-      const textHeight = actualParams.fontSize * 1.5
-
-      // 如果是首次显示或重置后将水印位置设置到中心
       if (watermarkOffset.x === 100 && watermarkOffset.y === 100) {
         watermarkOffset.x = canvas.width / 2
         watermarkOffset.y = canvas.height / 2
       }
-
       ctx.save()
       ctx.translate(watermarkOffset.x, watermarkOffset.y)
       ctx.rotate((watermarkSettings.angle * Math.PI) / 180)
       ctx.fillText(watermarkSettings.text, -textWidth/2, watermarkSettings.fontSize/3)
       ctx.restore()
     }
-
     ctx.restore()
 
-    // 绘制 LOGO
     if (logo) {
       const padding = logoSettings.padding
       const baseSize = logoSettings.size
       let width, height
-
-      // 根据原始宽高比计算实际尺寸
       if (logoSettings.aspectRatio > 1) {
         width = baseSize
         height = baseSize / logoSettings.aspectRatio
@@ -560,32 +466,23 @@ const updateWatermark = () => {
         height = baseSize
         width = baseSize * logoSettings.aspectRatio
       }
-
       let x, y
-
       switch (logoSettings.position) {
         case 'top-left':
-          x = padding
-          y = padding
+          x = padding; y = padding
           break
         case 'top-right':
-          x = canvas.width - width - padding
-          y = padding
+          x = canvas.width - width - padding; y = padding
           break
         case 'bottom-left':
-          x = padding
-          y = canvas.height - height - padding
+          x = padding; y = canvas.height - height - padding
           break
         case 'bottom-right':
-          x = canvas.width - width - padding
-          y = canvas.height - height - padding
+          x = canvas.width - width - padding; y = canvas.height - height - padding
           break
       }
-
-      // 设置抗锯齿
       ctx.imageSmoothingEnabled = true
       ctx.imageSmoothingQuality = 'high'
-
       ctx.save()
       ctx.globalAlpha = logoSettings.opacity
       ctx.drawImage(logo, x, y, width, height)
@@ -594,181 +491,113 @@ const updateWatermark = () => {
   })
 }
 
-// 改进的拖拽事件处理
-const handleDragEnter = (e) => {
-  e.preventDefault()
-  isDragging.value = true
-}
-
+const handleDragEnter = (e) => { e.preventDefault(); isDragging.value = true }
 const handleDragLeave = (e) => {
   e.preventDefault()
-  // 只有当鼠标真正离开拖拽区域时才设置为false
-  // 检查是否离开了拖拽区域的边界
   const rect = e.currentTarget.getBoundingClientRect()
-  const x = e.clientX
-  const y = e.clientY
-
+  const x = e.clientX; const y = e.clientY
   if (x < rect.left || x > rect.right || y < rect.top || y > rect.bottom) {
     isDragging.value = false
   }
 }
 
-// 处理文件上传
 const handleDrop = (e) => {
-  e.preventDefault()
-  isDragging.value = false
-
+  e.preventDefault(); isDragging.value = false
   const files = Array.from(e.dataTransfer.files)
   const imageFiles = files.filter(file =>
-      file.type.startsWith('image/') ||
-      file.name.match(/\.(jpg|jpeg|png|gif)$/i)
+    file.type.startsWith('image/') || file.name.match(/\.(jpg|jpeg|png|gif)$/i)
   )
-
   if (imageFiles.length === 0) return
-
-  // 清空现有图片列表
-  imageList.value = []
-  currentImageIndex.value = 0
-
-  // 处理多个文件
+  imageList.value = []; currentImageIndex.value = 0
   imageFiles.forEach((file, index) => {
     const reader = new FileReader()
     reader.onload = (e) => {
-      const newImage = {
-        id: Date.now() + index, // 确保每个图片有唯一ID
-        src: e.target.result,
-        file: file,
-        name: file.name
-      }
+      const newImage = { id: Date.now() + index, src: e.target.result, file: file, name: file.name }
       imageList.value.push(newImage)
-
-      // 如果是第一张图片，更新水印
       if (imageList.value.length === 1) {
-        // 确保 DOM 更新后再更新水印
-        nextTick(() => {
-          updateWatermark()
-        })
+        nextTick(() => { updateWatermark() })
       }
     }
     reader.readAsDataURL(file)
   })
 }
 
-// 旋转水印
-const rotate = () => {
-  watermarkSettings.angle = (watermarkSettings.angle + 90) % 360
-  updateWatermark()
-}
+const rotate = () => { watermarkSettings.angle = (watermarkSettings.angle + 90) % 360; updateWatermark() }
 
-// 保存图片
 const saveImage = async () => {
   if (!canvasRef.value) return
-
   if (window.electron) {
     try {
-      // 获取当前图片的文件名和类型
       const currentImage = imageList.value[currentImageIndex.value]
-      const originalName = currentImage.name
-      const originalType = currentImage.file.type || 'image/jpeg'
-
-      // 生成时间戳的新文件名
+      const originalName = currentImage.name; const originalType = currentImage.file.type || 'image/jpeg'
       const now = new Date()
-      const timestamp = now.getFullYear() +
-          ('0' + (now.getMonth() + 1)).slice(-2) +
-          ('0' + now.getDate()).slice(-2) +
-          '_' +
-          ('0' + now.getHours()).slice(-2) +
-          ('0' + now.getMinutes()).slice(-2) +
-          ('0' + now.getSeconds()).slice(-2)
-
-      // 分离文件名和扩展名
+      const timestamp = now.getFullYear() + ('0' + (now.getMonth() + 1)).slice(-2) + ('0' + now.getDate()).slice(-2) + '_' + ('0' + now.getHours()).slice(-2) + ('0' + now.getMinutes()).slice(-2) + ('0' + now.getSeconds()).slice(-2)
       const lastDotIndex = originalName.lastIndexOf('.')
       const nameWithoutExt = originalName.substring(0, lastDotIndex)
       const extension = originalName.substring(lastDotIndex)
-
-      // 构建新的文件名
       const suggestedName = `${nameWithoutExt}_${timestamp}${extension}`
-
-      // 获取画布数据，使用优化函数确保PNG预览正常
       const dataUrl = createOptimizedDataURL(canvasRef.value, originalType, 0.92)
-
-      // 调用保存文件对话框
       const savePath = await window.electron.saveFile(suggestedName)
       if (!savePath) return
-
-      // 保存图片
-      await window.electron.saveImage({
-        dataUrl,
-        path: savePath
-      })
-
-      alert('保存成功！')
+      await window.electron.saveImage({ dataUrl, path: savePath })
+      showToast({ message: '保存成功', type: 'success' })
     } catch (error) {
       console.error('保存失败:', error)
-      alert('保存失败: ' + error.message)
+      showToast({ message: `保存失败：${error.message}`, type: 'error' })
     }
   } else {
-    // 浏览器环境下的保存
     const currentImage = imageList.value[currentImageIndex.value]
     const originalType = currentImage.file.type || 'image/jpeg'
     const now = new Date()
-    const timestamp = now.getFullYear() +
-        ('0' + (now.getMonth() + 1)).slice(-2) +
-        ('0' + now.getDate()).slice(-2) +
-        '_' +
-        ('0' + now.getHours()).slice(-2) +
-        ('0' + now.getMinutes()).slice(-2) +
-        ('0' + now.getSeconds()).slice(-2)
-
+    const timestamp = now.getFullYear() + ('0' + (now.getMonth() + 1)).slice(-2) + ('0' + now.getDate()).slice(-2) + '_' + ('0' + now.getHours()).slice(-2) + ('0' + now.getMinutes()).slice(-2) + ('0' + now.getSeconds()).slice(-2)
     const lastDotIndex = currentImage.name.lastIndexOf('.')
     const nameWithoutExt = currentImage.name.substring(0, lastDotIndex)
     const extension = currentImage.name.substring(lastDotIndex)
     const fileName = `${nameWithoutExt}_${timestamp}${extension}`
-
     const link = document.createElement('a')
     link.download = fileName
-
-    // 使用优化函数确保PNG预览正常
     link.href = createOptimizedDataURL(canvasRef.value, originalType, 0.92)
-
     link.click()
   }
 }
 
-// 修改颜色更新函数
 const updateColor = (color) => {
-  // 更新十六进制颜色值
   watermarkSettings.color = color.hex
-
-  // 更新 RGB 值
-  watermarkSettings.rgb = {
-    ...watermarkSettings.rgb,
-    r: color.rgba.r,
-    g: color.rgba.g,
-    b: color.rgba.b
-  }
-
+  watermarkSettings.rgb = { ...watermarkSettings.rgb, r: color.rgba.r, g: color.rgba.g, b: color.rgba.b }
   updateWatermark()
 }
 
-// 修改颜色选择器显示/隐藏处理函数
-const toggleColorPicker = (event) => {
-  const rect = event.target.getBoundingClientRect()
-  const popup = document.querySelector('.color-picker-popup')
-  if (popup) {
-    popup.style.transform = `translate(${rect.left}px, ${rect.bottom + 5}px)`
+const updateColorFromHex = (hex) => {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
+  if (result) {
+    watermarkSettings.rgb.r = parseInt(result[1], 16)
+    watermarkSettings.rgb.g = parseInt(result[2], 16)
+    watermarkSettings.rgb.b = parseInt(result[3], 16)
+    updateWatermark()
   }
-  showColorPicker.value = !showColorPicker.value
 }
 
-// 添加点击外部关闭颜色选择器
+const toggleColorPicker = (event) => {
+  showColorPicker.value = !showColorPicker.value
+  if (showColorPicker.value) {
+    nextTick(() => {
+      const popup = document.querySelector('.color-picker-popup')
+      if (popup) {
+        const rect = event.target.getBoundingClientRect()
+        popup.style.position = 'fixed'
+        popup.style.top = `${rect.bottom + 5}px`
+        popup.style.left = `${rect.left}px`
+      }
+    })
+  }
+}
+
 const handleClickOutside = (event) => {
-  if (showColorPicker.value && !event.target.closest('.color-picker-container')) {
+  if (showColorPicker.value && !event.target.closest('.color-picker-popup') && !event.target.closest('.color-dot')) {
     showColorPicker.value = false
   }
 }
 
-// 修改监听置变
 watch([
   () => watermarkSettings.text,
   () => watermarkSettings.color,
@@ -785,17 +614,13 @@ watch([
   () => watermarkSettings.watermarkHeightRatio,
   () => watermarkSettings.watermarkWidthRatio
 ], (newValues, oldValues) => {
-  // 查是否是 repeat 值发生变化
-  const repeatIndex = 7 // repeat 在数组中的索引
+  const repeatIndex = 7
   if (newValues[repeatIndex] !== oldValues[repeatIndex]) {
-    // 如果从重复切换到单个水印，重置位置到中心
     if (!newValues[repeatIndex] && canvasRef.value) {
       watermarkOffset.x = canvasRef.value.width / 2
       watermarkOffset.y = canvasRef.value.height / 2
     }
   }
-
-  // 保存设置的逻辑保持不变
   const settingsToSave = {
     text: watermarkSettings.text,
     color: watermarkSettings.color,
@@ -806,13 +631,11 @@ watch([
     angle: watermarkSettings.angle,
     repeat: watermarkSettings.repeat,
     spacing: watermarkSettings.spacing,
-    // 新增比例模式参数
     useProportionalMode: watermarkSettings.useProportionalMode,
     fontSizeRatio: watermarkSettings.fontSizeRatio,
     spacingRatio: watermarkSettings.spacingRatio,
     watermarkHeightRatio: watermarkSettings.watermarkHeightRatio,
     watermarkWidthRatio: watermarkSettings.watermarkWidthRatio,
-    // 添加 LOGO 设置
     logoSettings: {
       image: logoSettings.image,
       position: logoSettings.position,
@@ -825,394 +648,208 @@ watch([
   updateWatermark()
 }, { deep: true })
 
-// 修改文件选择处理
 const handleFileSelect = () => {
   const input = document.createElement('input')
-  input.type = 'file'
-  input.accept = 'image/*'
-  input.multiple = true
-
+  input.type = 'file'; input.accept = 'image/*'; input.multiple = true
   input.onchange = (e) => {
     const files = Array.from(e.target.files)
     if (files.length === 0) return
-
-    // 清空现有图片表
-    imageList.value = []
-    currentImageIndex.value = 0
-
+    imageList.value = []; currentImageIndex.value = 0
     files.forEach((file, index) => {
       const reader = new FileReader()
       reader.onload = (e) => {
-        imageList.value.push({
-          id: Date.now() + index,
-          src: e.target.result,
-          file: file,
-          name: file.name
-        })
-        // 如果是第一张图片，更水印
+        imageList.value.push({ id: Date.now() + index, src: e.target.result, file: file, name: file.name })
         if (imageList.value.length === 1) {
-          nextTick(() => {
-            updateWatermark()
-          })
+          nextTick(() => { updateWatermark() })
         }
       }
       reader.readAsDataURL(file)
     })
   }
-
   input.click()
 }
 
-// 切换到指定图片
 const switchToImage = (index) => {
   if (index >= 0 && index < imageList.value.length) {
     currentImageIndex.value = index
-    nextTick(() => {
-      updateWatermark()
-    })
+    nextTick(() => { updateWatermark() })
   }
 }
 
-// 删除指定图片
 const removeImage = (index) => {
   if (imageList.value.length <= 1) {
-    // 如果只有一张图片，清空所有
-    imageList.value = []
-    currentImageIndex.value = 0
+    imageList.value = []; currentImageIndex.value = 0
     return
   }
-
   imageList.value.splice(index, 1)
-
-  // 调整当前索引
   if (currentImageIndex.value >= imageList.value.length) {
     currentImageIndex.value = imageList.value.length - 1
   } else if (currentImageIndex.value > index) {
     currentImageIndex.value--
   }
-
-  nextTick(() => {
-    updateWatermark()
-  })
+  nextTick(() => { updateWatermark() })
 }
 
-// 上一张图片
-const previousImage = () => {
-  if (currentImageIndex.value > 0) {
-    switchToImage(currentImageIndex.value - 1)
-  }
-}
+const previousImage = () => { if (currentImageIndex.value > 0) switchToImage(currentImageIndex.value - 1) }
+const nextImage = () => { if (currentImageIndex.value < imageList.value.length - 1) switchToImage(currentImageIndex.value + 1) }
 
-// 下一张图片
-const nextImage = () => {
-  if (currentImageIndex.value < imageList.value.length - 1) {
-    switchToImage(currentImageIndex.value + 1)
-  }
-}
-
-// 批量保存所有图片
 const saveAllImages = async () => {
   if (!canvasRef.value || imageList.value.length === 0) return
-
   if (window.electron) {
     try {
-      // 选择保存目录
       const result = await window.electron.selectDirectory()
       if (!result || result.canceled) return
-
       const saveDir = result.filePaths[0]
-      let successCount = 0
-      let failCount = 0
-
+      let successCount = 0; let failCount = 0
       for (let i = 0; i < imageList.value.length; i++) {
         try {
-          console.log(`开始处理第 ${i + 1} 张图片...`)
-
-          // 切换到当前图片
           currentImageIndex.value = i
-          await new Promise(resolve => {
-            nextTick(() => {
-              updateWatermark()
-              setTimeout(resolve, 200) // 增加等待时间确保渲染完成
-            })
-          })
-
-          // 获取当前图片信息
+          await new Promise(resolve => { nextTick(() => { updateWatermark(); setTimeout(resolve, 200) }) })
           const currentImage = imageList.value[i]
-          if (!currentImage) {
-            throw new Error(`无法获取第 ${i + 1} 张图片信息`)
-          }
-
-          console.log(`处理图片: ${currentImage.name}`)
-
+          if (!currentImage) throw new Error(`无法获取第 ${i + 1} 张图片信息`)
           const originalName = currentImage.name
           const nameWithoutExt = originalName.substring(0, originalName.lastIndexOf('.')) || originalName
           const extension = originalName.substring(originalName.lastIndexOf('.')) || '.jpg'
-
-          // 生成文件名
           const now = new Date()
-          const timestamp = now.getFullYear() +
-              ('0' + (now.getMonth() + 1)).slice(-2) +
-              ('0' + now.getDate()).slice(-2) +
-              ('0' + now.getHours()).slice(-2) +
-              ('0' + now.getMinutes()).slice(-2) +
-              ('0' + now.getSeconds()).slice(-2) +
-              ('0' + now.getMilliseconds()).slice(-3) // 添加毫秒避免重名
-
+          const timestamp = now.getFullYear() + ('0' + (now.getMonth() + 1)).slice(-2) + ('0' + now.getDate()).slice(-2) + ('0' + now.getHours()).slice(-2) + ('0' + now.getMinutes()).slice(-2) + ('0' + now.getSeconds()).slice(-2) + ('0' + now.getMilliseconds()).slice(-3)
           const fileName = `${nameWithoutExt}_watermark_${timestamp}${extension}`
           const filePath = `${saveDir}/${fileName}`
-
-          // 检查canvas是否有内容
-          if (!canvasRef.value) {
-            throw new Error('Canvas未初始化')
-          }
-
-          // 保存图片 - 保持原始格式并优化PNG
+          if (!canvasRef.value) throw new Error('Canvas未初始化')
           const originalType = currentImage.name.toLowerCase().endsWith('.png') ? 'image/png' : 'image/jpeg'
           const dataUrl = createOptimizedDataURL(canvasRef.value, originalType, 0.9)
-
-          if (!dataUrl || dataUrl === 'data:,') {
-            throw new Error('无法生成图片数据')
-          }
-
+          if (!dataUrl || dataUrl === 'data:,') throw new Error('无法生成图片数据')
           await window.electron.saveImage({ dataUrl, path: filePath })
-          console.log(`第 ${i + 1} 张图片保存成功: ${fileName}`)
-
           successCount++
         } catch (error) {
           console.error(`保存第 ${i + 1} 张图片失败:`, error)
           failCount++
         }
       }
-
-      alert(`批量保存完成！成功：${successCount} 张，失败：${failCount} 张`)
+      showToast({
+        message: `批量保存完成 · 成功 ${successCount} 张 · 失败 ${failCount} 张`,
+        type: failCount === 0 ? 'success' : successCount === 0 ? 'error' : 'info',
+      })
     } catch (error) {
       console.error('批量保存失败:', error)
-      alert('批量保存失败: ' + error.message)
+      showToast({ message: `批量保存失败：${error.message}`, type: 'error' })
     }
   } else {
-    // 浏览器版本的批量保存
     try {
-      let successCount = 0
-      let failCount = 0
-
+      let successCount = 0; let failCount = 0
       for (let i = 0; i < imageList.value.length; i++) {
         try {
-          console.log(`开始处理第 ${i + 1} 张图片...`)
-
-          // 切换到当前图片
           currentImageIndex.value = i
-          await new Promise(resolve => {
-            nextTick(() => {
-              updateWatermark()
-              setTimeout(resolve, 200) // 增加等待时间确保渲染完成
-            })
-          })
-
-          // 获取当前图片信息
+          await new Promise(resolve => { nextTick(() => { updateWatermark(); setTimeout(resolve, 200) }) })
           const currentImage = imageList.value[i]
-          if (!currentImage) {
-            throw new Error(`无法获取第 ${i + 1} 张图片信息`)
-          }
-
-          console.log(`处理图片: ${currentImage.name}`)
-
+          if (!currentImage) throw new Error(`无法获取第 ${i + 1} 张图片信息`)
           const originalName = currentImage.name
           const nameWithoutExt = originalName.substring(0, originalName.lastIndexOf('.')) || originalName
           const extension = originalName.substring(originalName.lastIndexOf('.')) || '.jpg'
-
-          // 生成文件名
           const now = new Date()
-          const timestamp = now.getFullYear() +
-              ('0' + (now.getMonth() + 1)).slice(-2) +
-              ('0' + now.getDate()).slice(-2) +
-              ('0' + now.getHours()).slice(-2) +
-              ('0' + now.getMinutes()).slice(-2) +
-              ('0' + now.getSeconds()).slice(-2) +
-              ('0' + now.getMilliseconds()).slice(-3) // 添加毫秒避免重名
-
+          const timestamp = now.getFullYear() + ('0' + (now.getMonth() + 1)).slice(-2) + ('0' + now.getDate()).slice(-2) + ('0' + now.getHours()).slice(-2) + ('0' + now.getMinutes()).slice(-2) + ('0' + now.getSeconds()).slice(-2) + ('0' + now.getMilliseconds()).slice(-3)
           const fileName = `${nameWithoutExt}_watermark_${timestamp}${extension}`
-
-          // 检查canvas是否有内容
-          if (!canvasRef.value) {
-            throw new Error('Canvas未初始化')
-          }
-
-          // 保存图片
+          if (!canvasRef.value) throw new Error('Canvas未初始化')
           const originalType = currentImage.name.toLowerCase().endsWith('.png') ? 'image/png' : 'image/jpeg'
           const dataUrl = createOptimizedDataURL(canvasRef.value, originalType, 0.9)
-
-          if (!dataUrl || dataUrl === 'data:,') {
-            throw new Error('无法生成图片数据')
-          }
-
+          if (!dataUrl || dataUrl === 'data:,') throw new Error('无法生成图片数据')
           const link = document.createElement('a')
-          link.download = fileName
-          link.href = dataUrl
-          link.click()
-
-          console.log(`第 ${i + 1} 张图片保存成功: ${fileName}`)
-
+          link.download = fileName; link.href = dataUrl; link.click()
           successCount++
-
-          // 添加延迟避免浏览器阻止多个下载
           await new Promise(resolve => setTimeout(resolve, 800))
         } catch (error) {
           console.error(`保存第 ${i + 1} 张图片失败:`, error)
           failCount++
         }
       }
-
-      alert(`批量保存完成！成功：${successCount} 张，失败：${failCount} 张`)
+      showToast({
+        message: `批量保存完成 · 成功 ${successCount} 张 · 失败 ${failCount} 张`,
+        type: failCount === 0 ? 'success' : successCount === 0 ? 'error' : 'info',
+      })
     } catch (error) {
       console.error('批量保存失败:', error)
-      alert('批量保存失败: ' + error.message)
+      showToast({ message: `批量保存失败：${error.message}`, type: 'error' })
     }
   }
 }
 
-// 添加角度拖动处理函数
-const startDragAngle = (e) => {
-  watermarkSettings.isDragging = true
-  watermarkSettings.startAngle = watermarkSettings.angle
-  watermarkSettings.startX = e.clientX
-}
-
-const handleDragAngle = (e) => {
-  if (!watermarkSettings.isDragging) return
-
-  const deltaX = e.clientX - watermarkSettings.startX
-  watermarkSettings.angle = watermarkSettings.startAngle + deltaX
-  updateWatermark()
-}
-
-const stopDragAngle = () => {
-  watermarkSettings.isDragging = false
-}
-
-// 添加水印拖动处理函数
 const startWatermarkDrag = (e) => {
   e.preventDefault()
   watermarkDragging.value = true
-
   const canvas = canvasRef.value
   const rect = canvas.getBoundingClientRect()
   const scaleX = canvas.width / rect.width
   const scaleY = canvas.height / rect.height
-
-  watermarkStartPos.value = {
-    x: e.clientX - (watermarkOffset.x / scaleX),
-    y: e.clientY - (watermarkOffset.y / scaleY)
-  }
+  watermarkStartPos.value = { x: e.clientX - (watermarkOffset.x / scaleX), y: e.clientY - (watermarkOffset.y / scaleY) }
 }
 
 const handleWatermarkDrag = (e) => {
   if (!watermarkDragging.value || !canvasRef.value) return
-
   const canvas = canvasRef.value
   const rect = canvas.getBoundingClientRect()
   const scaleX = canvas.width / rect.width
   const scaleY = canvas.height / rect.height
-
   watermarkOffset.x = (e.clientX - watermarkStartPos.value.x) * scaleX
   watermarkOffset.y = (e.clientY - watermarkStartPos.value.y) * scaleY
-
   updateWatermark()
 }
 
-const stopWatermarkDrag = () => {
-  watermarkDragging.value = false
-}
+const stopWatermarkDrag = () => { watermarkDragging.value = false }
 
-// 在组件卸载时移除事件监听
 onUnmounted(() => {
-  document.removeEventListener('mousemove', handleDragAngle)
-  document.removeEventListener('mouseup', stopDragAngle)
   document.removeEventListener('mousemove', handleWatermarkDrag)
   document.removeEventListener('mouseup', stopWatermarkDrag)
   document.removeEventListener('click', handleClickOutside)
 })
 
-// 清理图片列表
 const clearImageList = () => {
   if (confirm('确定要清理所有图片吗？此操作不可撤销。')) {
-    // 清空图片列表
-    imageList.value = []
-    currentImageIndex.value = 0
-
-    // 清空画布
+    imageList.value = []; currentImageIndex.value = 0
     if (canvasRef.value) {
       const canvas = canvasRef.value
       const ctx = canvas.getContext('2d')
       ctx.clearRect(0, 0, canvas.width, canvas.height)
-
-      // 重置画布大小
-      canvas.width = 800
-      canvas.height = 600
+      canvas.width = 800; canvas.height = 600
     }
-
-    // 重置水印位置
-    watermarkOffset.x = 100
-    watermarkOffset.y = 100
-
-    console.log('图片列表已清理')
+    watermarkOffset.x = 100; watermarkOffset.y = 100
   }
 }
 
-// 修改重置设置的功能
 const resetSettings = () => {
   const defaultSettings = {
     text: "+++ 输入你要添加的水印文字 +++",
     color: "#000000",
     rgb: {r: 0, g: 0, b: 0, a: 0.6},
-    fontSize: 12,
-    watermarkHeight: 100,
-    watermarkWidth: 100,
-    angle: -45,
-    repeat: true,
-    spacing: 0
+    fontSize: 12, watermarkHeight: 100, watermarkWidth: 100,
+    angle: -45, repeat: true, spacing: 0,
+    useProportionalMode: true,
+    fontSizeRatio: 0.03,
+    spacingRatio: 0.05,
+    watermarkHeightRatio: 0.15,
+    watermarkWidthRatio: 0.25
   }
-
   Object.assign(watermarkSettings, defaultSettings)
-
-  // 重置 LOGO 设置
-  Object.assign(logoSettings, {
-    image: null,
-    position: 'top-right',
-    size: 100,
-    padding: 20,
-    opacity: 0.6
-  })
-
-  // 如果有画布，将水印位置重置到中心
+  Object.assign(logoSettings, { image: null, position: 'top-right', size: 100, padding: 20, opacity: 0.6 })
   if (canvasRef.value) {
     watermarkOffset.x = canvasRef.value.width / 2
     watermarkOffset.y = canvasRef.value.height / 2
   } else {
-    watermarkOffset.x = 100
-    watermarkOffset.y = 100
+    watermarkOffset.x = 100; watermarkOffset.y = 100
   }
-
   localStorage.removeItem('watermarkSettings')
 }
 
-// 添加位置保存到 localStorage
 watch([() => watermarkOffset.x, () => watermarkOffset.y], () => {
   const settings = JSON.parse(localStorage.getItem('watermarkSettings') || '{}')
   settings.watermarkOffset = {x: watermarkOffset.x, y: watermarkOffset.y}
   localStorage.setItem('watermarkSettings', JSON.stringify(settings))
 }, {deep: true})
 
-// 添加 LOGO 选择函数
 const handleLogoSelect = () => {
   const input = document.createElement('input')
-  input.type = 'file'
-  input.accept = 'image/*'
-
+  input.type = 'file'; input.accept = 'image/*'
   input.onchange = (e) => {
     const file = e.target.files[0]
     if (!file) return
-
     const reader = new FileReader()
     reader.onload = (e) => {
       const img = new Image()
@@ -1227,288 +864,97 @@ const handleLogoSelect = () => {
     }
     reader.readAsDataURL(file)
   }
-
   input.click()
 }
 
-// 清除 LOGO
-const clearLogo = () => {
-  logoSettings.image = null
-  updateWatermark()
-}
+const clearLogo = () => { logoSettings.image = null; updateWatermark() }
 
-// 加对 logoSettings 的监听
-watch(
-    logoSettings,
-    () => {
-      // 保存 LOGO 配置（不包括图片数据）
-      const settings = JSON.parse(localStorage.getItem('watermarkSettings') || '{}')
-      settings.logoConfig = {
-        position: logoSettings.position,
-        size: logoSettings.size,
-        padding: logoSettings.padding,
-        opacity: logoSettings.opacity
-      }
-      localStorage.setItem('watermarkSettings', JSON.stringify(settings))
-
-      // 只有在有图片的情况下才更新预览
-      if (imageList.value.length > 0) {
-        updateWatermark()
-      }
-    },
-    { deep: true }
-)
+watch(logoSettings, () => {
+  const settings = JSON.parse(localStorage.getItem('watermarkSettings') || '{}')
+  settings.logoConfig = {
+    position: logoSettings.position,
+    size: logoSettings.size,
+    padding: logoSettings.padding,
+    opacity: logoSettings.opacity
+  }
+  localStorage.setItem('watermarkSettings', JSON.stringify(settings))
+  if (imageList.value.length > 0) updateWatermark()
+}, { deep: true })
 </script>
 
 <style scoped>
-.watermark-editor {
-  padding: 20px;
-  min-height: calc(100vh - 120px); /* 减去导航栏和padding的高度 */
-  box-sizing: border-box;
-}
-
-.main-container {
-  display: flex;
-  gap: 20px;
-  min-height: 600px; /* 设置最小高度而不是固定高度 */
-  padding-bottom: 40px;
-}
-
-/* 左侧区域 - 垂直布局 */
-.left-area {
+/* 工具页结构与首页一致，视觉由全局 style.css（对齐 preview.html）承担 */
+.tool-page {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 15px;
-}
-
-.canvas-area {
-  min-width: 300px;
-  max-height: 500px;
-  height: 500px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-  box-sizing: border-box;
-}
-
-.drop-zone {
   width: 100%;
-  max-height: 460px;
-  height: 460px;
-  border: 2px dashed #ccc;
-  border-radius: 8px;
+  min-width: 0;
+}
+
+.preview-stack {
+  min-width: 0;
+  width: 100%;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #f5f5f5;
-  position: relative;
-  overflow: hidden;
+  flex-direction: column;
+  gap: var(--spacing-md);
 }
 
-.drop-zone.dragging {
-  border-color: #4CAF50;
-  background: rgba(76, 175, 80, 0.1);
-}
-
-.drop-zone.clickable {
-  cursor: pointer;
-}
-
-.drop-zone.clickable:hover {
-  border-color: #4CAF50;
-  background: rgba(76, 175, 80, 0.05);
-}
-
-.upload-icon {
-  font-size: 48px;
-  margin-bottom: 10px;
-}
-
-canvas {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+.preview-canvas {
   max-width: 100%;
   max-height: 100%;
-  cursor: move; /* 添加移动光标 */
+  cursor: move;
+  object-fit: contain;
 }
 
 .control-panel {
-  width: 400px;
-  padding: 0 10px;
-  flex-shrink: 0;
-  overflow-y: auto;
-}
-
-.button-group {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 12px;
-  justify-content: center;
-}
-
-.settings-group {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  overflow-x: hidden;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: var(--spacing-md);
+}
+.arrow {
+  transition: transform var(--transition-fast);
+  color: var(--color-text-muted);
+}
+.arrow.rotated {
+  transform: rotate(-90deg);
+}
+
+/* File Section — 跟在预览框下，不占整页居中宽 */
+.file-section {
+  padding: 0;
+  margin: 0;
   width: 100%;
+  max-width: none;
 }
-
-.setting-item {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  width: 100%;
-  min-height: 26px;
+.file-section .file-strip {
+  padding: var(--spacing-sm) 0;
+  margin: 0;
+  max-width: none;
+  overflow-x: auto;
 }
-
-.setting-item label {
-  width: 80px;
-  flex-shrink: 0;
-  white-space: nowrap;
-}
-
-.setting-item > :nth-child(2) {
-  flex: 1;
-  min-width: 0;
-}
-
-input[type="text"],
-input[type="color"] {
-  width: 100%;
-  min-width: 0;
-}
-
-input[type="range"] {
-  width: 60%; /* 调整滑动条宽度为60% */
-  min-width: 0;
-}
-
-button {
-  padding: 8px 16px;
-  background: #4CAF50;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-button:hover {
-  background: #45a049;
-}
-
-input[type="text"] {
-  flex: 1;
-  padding: 5px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-}
-
-input[type="range"] {
-  flex: 1;
-}
-
-.drop-text {
-  color: #666;
-  text-align: center;
-  padding: 20px;
-}
-
-.angle-control {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex: 1;
-}
-
-.angle-slider {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  border: 2px solid #ccc;
-  position: relative;
-  cursor: pointer;
-}
-
-.angle-handle {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 2px;
-  height: 20px;
-  background: #4CAF50;
-  transform-origin: bottom center;
-  margin-left: -1px;
-  margin-top: -20px;
-}
-
-input[type="number"] {
-  width: 60px;
-  padding: 4px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-}
-
-.reset-button {
-  background: #ff4444;
-}
-
-.reset-button:hover {
-  background: #cc0000;
-}
-
-.app-title {
-  text-align: center;
-  color: #333;
-  margin-bottom: 12px;
-  font-size: 1.2em;
-  padding: 8px 0;
-  border-bottom: 2px solid #4CAF50;
-}
-
-/* 修改版权样式 */
-.copyright {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  text-align: center;
-  padding: 10px;
+.file-label {
   font-size: 12px;
-  color: #666;
-  white-space: nowrap;  /* 防止版本号换行 */
+  color: var(--color-text-muted);
+  margin-bottom: var(--spacing-sm);
+}
+.file-nav {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-sm);
+}
+.page-indicator {
+  font-size: 13px;
+  color: var(--color-text-muted);
+  font-weight: 500;
 }
 
-.copyright a {
-  color: #666;
-  text-decoration: none;
-}
-
-.copyright a:hover {
-  color: #4CAF50;
-}
-
-.color-picker-container {
-  position: relative;
-  display: inline-block;
-}
-
-.color-preview {
-  width: 26px;
-  height: 26px;
-  border-radius: 4px;
-  border: 1px solid #ccc;
-  cursor: pointer;
-  transition: border-color 0.3s;
-}
-
-.color-preview:hover {
-  border-color: #4CAF50;
-}
-
+/* Color picker popup */
 .color-picker-popup {
   position: fixed;
   z-index: 1000;
@@ -1518,245 +964,9 @@ input[type="number"] {
   padding: 10px;
 }
 
-.rotate-button {
-  padding: 4px 8px;
-  font-size: 12px;
-  height: 28px;
-  min-width: 60px;
-}
-
-.logo-controls {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-}
-
-.small-button {
-  padding: 2px 8px;
-  font-size: 12px;
-  height: 24px;
-}
-
-.danger {
-  background: #ff4444;
-}
-
-.danger:hover {
-  background: #cc0000;
-}
-
-.position-select {
-  padding: 4px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  background: white;
-}
-
-/* 调整输入框的度 */
-input[type="text"],
-input[type="number"] {
-  height: 24px;
-  padding: 2px 5px;
-}
-
-/* 调整范围滑块的大小 */
-input[type="range"] {
-  height: 4px;
-  margin: 8px 0;
-}
-
-/* 调整选择框的高度 */
-.position-select {
-  height: 24px;
-  padding: 2px 4px;
-}
-
-/* 调整小按钮的高度 */
-.small-button {
-  padding: 2px 8px;
-  height: 24px;
-}
-
-.setting-tip {
-  font-size: 12px;
-  color: #666;
-  padding-left: 86px;  /* 与输入框对齐 */
-  margin-top: -4px;
-  margin-bottom: 2px;
-}
-
-/* 模式切换样式 */
-.mode-switch {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.switch-label {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  cursor: pointer;
-}
-
-.switch-label input[type="checkbox"] {
-  margin: 0;
-}
-
-.switch-text {
-  font-weight: 500;
-  color: #333;
-}
-
-.value-display {
-  font-size: 12px;
-  color: #666;
-  margin-left: 8px;
-}
-
-.save-all-button {
-  background: #9c27b0;
-}
-
-.save-all-button:hover {
-  background: #7b1fa2;
-}
-
-.clear-button {
-  background: #f44336;
-}
-
-.clear-button:hover {
-  background: #d32f2f;
-}
-
-/* 多文件列表样式 - 位于画布底部 */
-.file-list-bottom {
-  padding: 12px;
-  background: #f9f9f9;
-  border-radius: 8px;
-  border: 1px solid #e0e0e0;
-  margin: 0 20px; /* 与画布区域的padding保持一致 */
-  box-sizing: border-box;
-}
-
-.file-list h3 {
-  margin: 0 0 12px 0;
-  color: #333;
-  font-size: 13px;
-  text-align: center;
-}
-
-.file-items {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  max-height: 200px;
-  overflow-y: auto;
-  margin-bottom: 12px;
-  justify-content: flex-start;
-}
-
-.file-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 8px;
-  background: white;
-  border-radius: 6px;
-  border: 2px solid transparent;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  width: 80px;
-  min-height: 100px;
-}
-
-.file-item:hover {
-  border-color: #e0e0e0;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.file-item.active {
-  border-color: #4CAF50;
-  background: #f0f8f0;
-}
-
-.file-preview {
-  width: 50px;
-  height: 50px;
-  margin-bottom: 6px;
-  border-radius: 4px;
-  overflow: hidden;
-  flex-shrink: 0;
-}
-
-.file-thumbnail {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.file-info {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  width: 100%;
-}
-
-.file-name {
-  font-size: 10px;
-  color: #333;
-  text-align: center;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 70px;
-  line-height: 1.2;
-}
-
-.remove-btn {
-  padding: 2px 6px;
-  font-size: 10px;
-  background: #f44336;
-  color: white;
-  border: none;
-  border-radius: 3px;
-  cursor: pointer;
-  flex-shrink: 0;
-}
-
-.remove-btn:hover {
-  background: #d32f2f;
-}
-
-.navigation-buttons {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 15px;
-  padding-top: 8px;
-  border-top: 1px solid #e0e0e0;
-}
-
-.navigation-buttons button {
-  padding: 4px 10px;
-  font-size: 11px;
-  background: #2196F3;
-}
-
-.navigation-buttons button:hover:not(:disabled) {
-  background: #1976D2;
-}
-
-.navigation-buttons button:disabled {
-  background: #ccc;
-  cursor: not-allowed;
-}
-
-.current-info {
-  font-size: 11px;
-  color: #666;
-  font-weight: bold;
+@media (max-width: 900px) {
+  .preview-area {
+    height: 350px;
+  }
 }
 </style>

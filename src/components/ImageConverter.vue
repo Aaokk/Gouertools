@@ -1,137 +1,112 @@
 <template>
-  <div class="image-converter">
-    <div class="main-container">
-      <!-- 左侧预览区域 -->
-      <div class="preview-container">
-        <div
-          class="drop-zone"
-          @click="triggerFileInput"
-          @drop.prevent="handleDrop"
-          @dragover.prevent
-          @dragenter.prevent
-        >
-          <input
-            type="file"
-            @change="handleFileChange"
-            accept="image/*"
-            ref="fileInput"
-            style="display: none"
-          >
-          <template v-if="!selectedFile">
-            <div class="upload-icon">🖼️</div>
-            <p>点击或拖拽图片文件到此处</p>
-          </template>
-          <div v-else class="preview-area">
-            <img :src="previewUrl" :alt="selectedFile.name" class="preview-image">
+  <div class="tool-page">
+    <div class="tool-header">
+      <h2>Gouer.vip 图片格式转换</h2>
+      <div class="divider"></div>
+    </div>
+
+    <div class="tool-body">
+      <!-- 预览区 -->
+      <div
+        class="preview-area"
+        @click="!selectedFile && triggerFileInput()"
+        @drop.prevent="handleDrop"
+        @dragover.prevent
+        @dragenter.prevent
+      >
+        <input type="file" @change="handleFileChange" accept="image/*" ref="fileInput" style="display:none">
+        <template v-if="!selectedFile">
+          <div class="placeholder-icon">
+            <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
           </div>
-        </div>
+          <span class="placeholder-text">点击或拖拽图片文件到此处</span>
+          <span class="placeholder-hint">支持 JPG、PNG、WebP、BMP 格式</span>
+        </template>
+        <img v-else :src="previewUrl" :alt="selectedFile.name" class="preview-image">
       </div>
 
       <!-- 右侧控制面板 -->
       <div class="control-panel">
-        <h1 class="panel-title">Gouer.vip 图片格式转换</h1>
-        
-        <div v-if="selectedFile" class="file-info">
-          <p>已选择文件：{{ selectedFile.name }}</p>
-          <p class="file-size">原始大小：{{ formatFileSize(selectedFile.size) }}</p>
-        </div>
-
-        <div class="settings-group">
-          <div class="setting-item">
-            <label>目标格式：</label>
-            <div class="format-buttons">
-              <button
-                v-for="format in formats"
-                :key="format.value"
-                :class="['format-btn', { active: targetFormat === format.value }]"
-                @click="targetFormat = format.value"
-              >
-                {{ format.label }}
-              </button>
-            </div>
-          </div>
-          
-          <div v-if="targetFormat === 'image/jpeg'" class="setting-item">
-            <label>质量：</label>
-            <div class="slider-container">
-              <input 
-                type="range" 
-                v-model.number="quality" 
-                min="1" 
-                max="100"
-                step="1"
-                @input="updatePreview"
-              >
-              <span class="slider-value">{{ quality }}%</span>
-            </div>
-          </div>
-
-          <div class="setting-item">
-            <label>分辨率：</label>
-            <div class="resolution-inputs">
-              <input 
-                type="number" 
-                v-model.number="newWidth" 
-                min="1"
-                @input="updateHeight"
-              >
-              <span>×</span>
-              <input 
-                type="number" 
-                v-model.number="newHeight" 
-                min="1"
-                @input="updateWidth"
-              >
-              <span>px</span>
-            </div>
-          </div>
-
-          <div class="setting-item">
-            <label>保持比例：</label>
-            <input type="checkbox" v-model="maintainAspectRatio">
-          </div>
-
-          <div class="setting-item">
-            <label>大小限制：</label>
-            <div class="size-inputs">
-              <input 
-                type="number" 
-                v-model.number="maxSizeInMB" 
-                min="0.1" 
-                step="0.1"
-              >
-              <span>MB</span>
-            </div>
-          </div>
-
-          <div v-if="estimatedSize" class="setting-item estimated-size">
-            <label>预计大小：</label>
-            <span>{{ formatFileSize(estimatedSize) }}</span>
-          </div>
-        </div>
-
-        <div class="actions">
-          <button @click="triggerFileInput" class="select-btn">
-            选择文件
-          </button>
-          <button @click="convertImage" class="convert-btn" :disabled="converting || !selectedFile">
+        <div class="btn-group">
+          <button class="btn btn-secondary btn-sm" @click="triggerFileInput">选择文件</button>
+          <button class="btn btn-primary btn-sm" @click="convertImage" :disabled="converting || !selectedFile">
             {{ converting ? '转换中...' : '开始转换' }}
           </button>
         </div>
+
+        <div v-if="selectedFile" class="file-info-card">
+          <span class="file-name">{{ selectedFile.name }}</span>
+          <span class="file-size">{{ formatFileSize(selectedFile.size) }}</span>
+        </div>
+
+        <div class="setting-card">
+          <div class="setting-card-header" @click="cardOpen = !cardOpen">
+            <h4>转换设置</h4>
+            <svg class="arrow" :class="{ rotated: !cardOpen }" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+          </div>
+          <div class="setting-card-body" v-show="cardOpen">
+            <div class="setting-row">
+              <label>目标格式</label>
+              <div class="control">
+                <div class="format-btns">
+                  <button
+                    v-for="fmt in formats"
+                    :key="fmt.value"
+                    :class="['format-btn', { active: targetFormat === fmt.value }]"
+                    @click="targetFormat = fmt.value"
+                  >{{ fmt.label }}</button>
+                </div>
+              </div>
+            </div>
+            <div class="setting-row" v-if="targetFormat === 'image/jpeg'">
+              <label>输出质量</label>
+              <div class="control">
+                <div class="range-group">
+                  <input type="range" min="10" max="100" v-model.number="quality">
+                  <span class="range-value">{{ quality }}%</span>
+                </div>
+              </div>
+            </div>
+            <div class="setting-row">
+              <label>分辨率</label>
+              <div class="control" style="display:flex;align-items:center;gap:4px;">
+                <input class="input" type="number" v-model.number="newWidth" min="1" @input="updateHeight">
+                <span style="color:var(--color-text-muted);">×</span>
+                <input class="input" type="number" v-model.number="newHeight" min="1" @input="updateWidth">
+              </div>
+            </div>
+            <div class="setting-row">
+              <label>保持比例</label>
+              <div class="control">
+                <label class="toggle">
+                  <input type="checkbox" v-model="maintainAspectRatio">
+                  <span class="toggle-track"></span>
+                </label>
+              </div>
+            </div>
+            <div class="setting-row">
+              <label>大小限制</label>
+              <div class="control" style="display:flex;align-items:center;gap:6px;">
+                <input class="input" type="number" v-model.number="maxSizeInMB" min="0.1" step="0.1" style="width:80px;">
+                <span style="font-size:13px;color:var(--color-text-muted);">MB</span>
+              </div>
+            </div>
+            <div v-if="estimatedSize" class="setting-row">
+              <label>预计大小</label>
+              <div class="control"><span style="font-size:13px;color:var(--color-accent);font-weight:600;">{{ formatFileSize(estimatedSize) }}</span></div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
-    <Copyright />
   </div>
 </template>
 
 <script>
-import Copyright from './Copyright.vue'
+import { showToast } from '../utils/toast.js'
 
 export default {
   name: 'ImageConverter',
-  components: {
-    Copyright
-  },
   data() {
     return {
       selectedFile: null,
@@ -147,6 +122,7 @@ export default {
       maxSizeInMB: 1,
       estimatedSize: 0,
       aspectRatio: 1,
+      cardOpen: true,
       formats: [
         { label: 'JPG', value: 'image/jpeg' },
         { label: 'PNG', value: 'image/png' },
@@ -156,152 +132,97 @@ export default {
     }
   },
   watch: {
-    targetFormat() {
-      this.updatePreview()
-    },
-    maxSizeInMB() {
-      this.updatePreview()
-    }
+    targetFormat() { this.updatePreview() },
+    maxSizeInMB() { this.updatePreview() }
   },
   methods: {
-    triggerFileInput() {
-      this.$refs.fileInput.click()
-    },
+    triggerFileInput() { this.$refs.fileInput.click() },
     handleFileChange(event) {
       const file = event.target.files[0]
-      if (file && file.type.startsWith('image/')) {
-        this.handleImageFile(file)
-      } else {
-        alert('请选择图片文件')
-      }
+      if (file && file.type.startsWith('image/')) this.handleImageFile(file)
+      else showToast({ message: '请选择图片文件', type: 'info' })
     },
     handleDrop(event) {
       const file = event.dataTransfer.files[0]
-      if (file && file.type.startsWith('image/')) {
-        this.handleImageFile(file)
-      } else {
-        alert('请选择图片文件')
-      }
+      if (file && file.type.startsWith('image/')) this.handleImageFile(file)
+      else showToast({ message: '请选择图片文件', type: 'info' })
     },
     async handleImageFile(file) {
       this.selectedFile = file
-      if (this.previewUrl) {
-        URL.revokeObjectURL(this.previewUrl)
-      }
+      if (this.previewUrl) URL.revokeObjectURL(this.previewUrl)
       this.previewUrl = URL.createObjectURL(file)
-
-      // 获取图片原始尺寸
       const img = await this.loadImage(this.previewUrl)
-      this.originalWidth = img.width
-      this.originalHeight = img.height
-      this.newWidth = img.width
-      this.newHeight = img.height
+      this.originalWidth = img.width; this.originalHeight = img.height
+      this.newWidth = img.width; this.newHeight = img.height
       this.aspectRatio = img.width / img.height
-
       this.updatePreview()
     },
     updateWidth() {
-      if (this.maintainAspectRatio && this.newHeight) {
+      if (this.maintainAspectRatio && this.newHeight)
         this.newWidth = Math.round(this.newHeight * this.aspectRatio)
-      }
       this.updatePreview()
     },
     updateHeight() {
-      if (this.maintainAspectRatio && this.newWidth) {
+      if (this.maintainAspectRatio && this.newWidth)
         this.newHeight = Math.round(this.newWidth / this.aspectRatio)
-      }
       this.updatePreview()
     },
     async updatePreview() {
       if (!this.selectedFile) return
-      
       try {
         const img = await this.loadImage(this.previewUrl)
         const canvas = document.createElement('canvas')
         const ctx = canvas.getContext('2d')
-        
-        canvas.width = this.newWidth
-        canvas.height = this.newHeight
-        
-        ctx.fillStyle = 'white'
-        ctx.fillRect(0, 0, canvas.width, canvas.height)
+        canvas.width = this.newWidth; canvas.height = this.newHeight
+        ctx.fillStyle = 'white'; ctx.fillRect(0, 0, canvas.width, canvas.height)
         ctx.drawImage(img, 0, 0, this.newWidth, this.newHeight)
-        
-        // 根据当前质量设置生成预览
         const options = this.targetFormat === 'image/jpeg' ? { quality: this.quality / 100 } : undefined
         const dataUrl = canvas.toDataURL(this.targetFormat, options)
-        
-        // 估算转换后的文件大小
         const base64str = dataUrl.split(',')[1]
-        const decoded = atob(base64str)
-        this.estimatedSize = decoded.length
-        
-        // 如果预计大小超过限制，自动调整质量
+        this.estimatedSize = atob(base64str).length
         if (this.targetFormat === 'image/jpeg' && this.estimatedSize > this.maxSizeInMB * 1024 * 1024) {
           let tempQuality = this.quality
           while (tempQuality > 10 && this.estimatedSize > this.maxSizeInMB * 1024 * 1024) {
             tempQuality -= 5
             const newDataUrl = canvas.toDataURL(this.targetFormat, { quality: tempQuality / 100 })
-            const newBase64str = newDataUrl.split(',')[1]
-            const newSize = atob(newBase64str).length
+            const newSize = atob(newDataUrl.split(',')[1]).length
             if (newSize <= this.maxSizeInMB * 1024 * 1024) {
               this.estimatedSize = newSize
-              if (tempQuality !== this.quality) {
-                this.quality = tempQuality
-              }
+              if (tempQuality !== this.quality) this.quality = tempQuality
               break
             }
             this.estimatedSize = newSize
           }
         }
-      } catch (error) {
-        console.error('预览更新失败:', error)
-      }
+      } catch (error) { console.error('预览更新失败:', error) }
     },
     async convertImage() {
       if (!this.selectedFile) return
       this.converting = true
-      
       try {
         const img = await this.loadImage(this.previewUrl)
         const canvas = document.createElement('canvas')
         const ctx = canvas.getContext('2d')
-        
-        canvas.width = this.newWidth
-        canvas.height = this.newHeight
-        
-        ctx.fillStyle = 'white'
-        ctx.fillRect(0, 0, canvas.width, canvas.height)
+        canvas.width = this.newWidth; canvas.height = this.newHeight
+        ctx.fillStyle = 'white'; ctx.fillRect(0, 0, canvas.width, canvas.height)
         ctx.drawImage(img, 0, 0, this.newWidth, this.newHeight)
-        
         const options = this.targetFormat === 'image/jpeg' ? { quality: this.quality / 100 } : undefined
         const dataUrl = canvas.toDataURL(this.targetFormat, options)
-        
-        // 检查文件大小是否超过限制
         const base64str = dataUrl.split(',')[1]
         const fileSize = atob(base64str).length
-        if (fileSize > this.maxSizeInMB * 1024 * 1024) {
+        if (fileSize > this.maxSizeInMB * 1024 * 1024)
           throw new Error(`转换后文件大小(${this.formatFileSize(fileSize)})超过限制(${this.maxSizeInMB}MB)`)
-        }
-        
         const link = document.createElement('a')
         link.href = dataUrl
-        
         const extension = this.targetFormat.split('/')[1]
         const originalName = this.selectedFile.name
         const baseName = originalName.substring(0, originalName.lastIndexOf('.'))
         link.download = `${baseName}_${this.newWidth}x${this.newHeight}.${extension}`
-        
-        document.body.appendChild(link)
-        link.click()
-        document.body.removeChild(link)
-        
+        document.body.appendChild(link); link.click(); document.body.removeChild(link)
       } catch (error) {
         console.error('转换失败:', error)
-        alert('图片转换失败: ' + error.message)
-      } finally {
-        this.converting = false
-      }
+        showToast({ message: `图片转换失败：${error.message}`, type: 'error' })
+      } finally { this.converting = false }
     },
     loadImage(url) {
       return new Promise((resolve, reject) => {
@@ -320,246 +241,98 @@ export default {
     }
   },
   beforeUnmount() {
-    if (this.previewUrl) {
-      URL.revokeObjectURL(this.previewUrl)
-    }
+    if (this.previewUrl) URL.revokeObjectURL(this.previewUrl)
   }
 }
 </script>
 
 <style scoped>
-.image-converter {
-  padding: 20px;
-  height: 100vh;
-  box-sizing: border-box;
-}
-
-.main-container {
-  display: flex;
-  gap: 20px;
-  height: 100%;
-  padding-bottom: 40px;
-}
-
-.preview-container {
+.tool-page {
   flex: 1;
-  min-width: 300px;
-  height: calc(80vh - 100px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-  box-sizing: border-box;
-}
-
-.drop-zone {
-  width: 100%;
-  height: 100%;
-  border: 2px dashed #ccc;
-  border-radius: 8px;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  background: #f5f5f5;
-  position: relative;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.drop-zone:hover {
-  border-color: #4CAF50;
-  background: rgba(76, 175, 80, 0.05);
-}
-
-.preview-area {
   width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
+  min-width: 0;
 }
 
 .preview-image {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
   max-width: 100%;
   max-height: 100%;
   object-fit: contain;
 }
 
 .control-panel {
-  width: 400px;
-  padding: 0 10px;
-  flex-shrink: 0;
-  overflow-y: auto;
-}
-
-.panel-title {
-  text-align: center;
-  color: #333;
-  margin-bottom: 20px;
-  font-size: 1.2em;
-  padding: 8px 0;
-  border-bottom: 2px solid #4CAF50;
-}
-
-.file-info {
-  margin-bottom: 20px;
-  padding: 10px;
-  background: #f5f7fa;
-  border-radius: 4px;
-}
-
-.file-size {
-  color: #666;
-  font-size: 14px;
-  margin-top: 5px;
-}
-
-.settings-group {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  overflow-x: hidden;
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: var(--spacing-md);
+}
+.arrow {
+  transition: transform var(--transition-fast);
+  color: var(--color-text-muted);
+}
+.arrow.rotated {
+  transform: rotate(-90deg);
 }
 
-.setting-item {
+.file-info-card {
   display: flex;
   align-items: center;
-  gap: 10px;
+  justify-content: space-between;
+  padding: var(--spacing-md);
+  background: var(--color-surface-solid);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: 13px;
 }
-
-.setting-item label {
-  min-width: 80px;
-  text-align: right;
-  color: #606266;
-}
-
-.setting-item select,
-.setting-item input[type="number"] {
+.file-info-card .file-name {
+  color: var(--color-foreground);
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   flex: 1;
-  padding: 8px;
-  border: 1px solid #dcdfe6;
-  border-radius: 4px;
-  outline: none;
+}
+.file-info-card .file-size {
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+  margin-left: var(--spacing-sm);
 }
 
-.format-buttons {
+.format-btns {
   display: flex;
-  gap: 8px;
-  flex: 1;
+  gap: 4px;
 }
-
 .format-btn {
-  padding: 6px 12px;
-  border: 1px solid #dcdfe6;
-  border-radius: 4px;
-  background: white;
+  padding: 4px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
   cursor: pointer;
-  transition: all 0.3s ease;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: var(--font-body);
+  transition: all var(--transition-fast);
+  color: var(--color-text-muted);
 }
-
 .format-btn:hover {
-  border-color: #4CAF50;
-  color: #4CAF50;
+  border-color: var(--color-secondary);
+  color: var(--color-secondary);
+  background: var(--color-cyan-dim);
 }
-
 .format-btn.active {
-  background: #4CAF50;
-  color: white;
-  border-color: #4CAF50;
+  background: linear-gradient(135deg, var(--color-accent), #00ddaa);
+  color: var(--color-primary);
+  border-color: transparent;
+  box-shadow: 0 0 10px var(--color-accent-glow);
 }
 
-.slider-container {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  gap: 10px;
+@media (max-width: 900px) {
+  .preview-area {
+    height: 350px;
+  }
 }
-
-.slider-container input[type="range"] {
-  flex: 1;
-}
-
-.slider-value {
-  min-width: 45px;
-  text-align: right;
-  color: #606266;
-}
-
-.resolution-inputs {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  flex: 1;
-}
-
-.resolution-inputs input {
-  width: 70px;
-}
-
-.resolution-inputs span {
-  color: #606266;
-}
-
-.size-inputs {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-}
-
-.size-inputs input {
-  width: 80px;
-}
-
-.estimated-size {
-  color: #4CAF50;
-}
-
-.actions {
-  margin-top: 20px;
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-}
-
-.select-btn,
-.convert-btn {
-  padding: 8px 16px;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
-  transition: background-color 0.3s ease;
-}
-
-.select-btn {
-  background: #4CAF50;
-}
-
-.select-btn:hover {
-  background: #45a049;
-}
-
-.convert-btn {
-  background: #4CAF50;
-}
-
-.convert-btn:hover:not(:disabled) {
-  background: #45a049;
-}
-
-.convert-btn:disabled {
-  background: #a5d6a7;
-  cursor: not-allowed;
-}
-
-.upload-icon {
-  font-size: 48px;
-  margin-bottom: 10px;
-}
-</style> 
+</style>

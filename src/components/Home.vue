@@ -1,127 +1,54 @@
 <template>
-  <div class="home">
-    <h1>给老婆的工具包包</h1>
-    <div class="menu">
-      <router-link to="/watermark" class="menu-item">
-        <div class="card">
-          <h2>添加水印</h2>
-          <p>为图片添加自定义水印</p>
+  <div class="home-page">
+    <div class="home-hero">
+      <h1>给老婆的工具包包</h1>
+      <p>一站式图片处理，简单好用</p>
+    </div>
+    <div class="home-cards">
+      <router-link to="/watermark" class="tool-card">
+        <div class="card-icon">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"/></svg>
         </div>
+        <h3>添加水印</h3>
+        <div class="card-desc">
+          为图片添加文字或图片水印<br>支持批量处理，实时预览
+        </div>
+        <span class="card-cta">开始使用 →</span>
       </router-link>
-      <router-link to="/image-converter" class="menu-item">
-        <div class="card">
-          <h2>图片格式转换</h2>
-          <p>转换为常用图片格式</p>
+      <router-link to="/image-compressor" class="tool-card">
+        <div class="card-icon">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
         </div>
+        <h3>图片压缩</h3>
+        <div class="card-desc">
+          压缩图片体积与尺寸<br>保持画质，即时预览效果
+        </div>
+        <span class="card-cta">开始使用 →</span>
       </router-link>
-      <router-link to="/image-compressor" class="menu-item">
-        <div class="card">
-          <h2>图片压缩</h2>
-          <p>压缩图片大小和尺寸</p>
+      <router-link to="/image-converter" class="tool-card">
+        <div class="card-icon">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
         </div>
+        <h3>格式转换</h3>
+        <div class="card-desc">
+          图片格式互转 PNG / JPEG / WebP<br>可调质量与分辨率
+        </div>
+        <span class="card-cta">开始使用 →</span>
       </router-link>
     </div>
-    <Copyright />
   </div>
 </template>
 
 <script>
-import Copyright from './Copyright.vue'
-
 export default {
-  name: 'Home',
-  components: {
-    Copyright
-  },
-  data() {
-    return {
-      gradients: [
-        'linear-gradient(45deg, #ff9a9e, #fad0c4)',
-        'linear-gradient(45deg, #a1c4fd, #c2e9fb)',
-        'linear-gradient(45deg, #ffecd2, #fcb69f)',
-        'linear-gradient(45deg, #84fab0, #8fd3f4)',
-        'linear-gradient(45deg, #d4fc79, #96e6a1)',
-        'linear-gradient(45deg, #a6c0fe, #f68084)',
-        'linear-gradient(45deg, #fbc2eb, #a6c1ee)',
-        'linear-gradient(45deg, #f6d365, #fda085)',
-        'linear-gradient(45deg, #667eea, #764ba2)',
-        'linear-gradient(45deg, #ff758c, #ff7eb3)',
-        'linear-gradient(45deg, #c471f5, #fa71cd)',
-        'linear-gradient(45deg, #4facfe, #00f2fe)',
-        'linear-gradient(45deg, #43e97b, #38f9d7)',
-        'linear-gradient(45deg, #fa709a, #fee140)',
-        'linear-gradient(45deg, #30cfd0, #330867)',
-        'linear-gradient(45deg, #a8edea, #fed6e3)',
-        'linear-gradient(45deg, #5ee7df, #b490ca)',
-        'linear-gradient(45deg, #d299c2, #fef9d7)',
-        'linear-gradient(45deg, #f5f7fa, #c3cfe2)',
-        'linear-gradient(45deg, #e0c3fc, #8ec5fc)',
-        'linear-gradient(45deg, #f093fb, #f5576c)',
-        'linear-gradient(45deg, #4481eb, #04befe)',
-        'linear-gradient(45deg, #0ba360, #3cba92)',
-        'linear-gradient(45deg, #f77062, #fe5196)'
-      ]
-    }
-  },
-  methods: {
-    getRandomGradient() {
-      const index = Math.floor(Math.random() * this.gradients.length)
-      return this.gradients[index]
-    }
-  },
-  mounted() {
-    const cards = document.querySelectorAll('.card')
-    cards.forEach(card => {
-      card.style.background = this.getRandomGradient()
-    })
-  }
+  name: 'Home'
 }
 </script>
 
 <style scoped>
-.home {
-  padding: 20px;
-  text-align: center;
-}
-
-h1 {
-  color: #2c3e50;
-  margin-bottom: 40px;
-}
-
-.menu {
+.home-page {
+  flex: 1;
   display: flex;
-  justify-content: center;
-  gap: 30px;
-  flex-wrap: wrap;
+  flex-direction: column;
 }
-
-.menu-item {
-  text-decoration: none;
-  color: inherit;
-}
-
-.card {
-  border-radius: 8px;
-  padding: 20px;
-  width: 200px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
-  color: #fff;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-}
-
-.card:hover {
-  transform: translateY(-5px);
-}
-
-.card h2 {
-  color: #fff;
-  margin-bottom: 10px;
-}
-
-.card p {
-  color: rgba(255, 255, 255, 0.9);
-  font-size: 14px;
-}
-</style> 
+</style>

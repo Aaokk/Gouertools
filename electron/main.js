@@ -137,7 +137,7 @@ autoUpdater.on('error', (err) => {
 
 function createWindow() {
   const win = new BrowserWindow({
-    width: 1024,
+    width: 1100,
     height: 768,
     webPreferences: {
       nodeIntegration: false,
