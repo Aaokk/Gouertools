@@ -313,12 +313,8 @@ const getStoredSettings = () => {
       mergedSettings.watermarkWidth = parseInt(mergedSettings.watermarkWidth) || defaultSettings.watermarkWidth
       mergedSettings.spacing = parseInt(mergedSettings.spacing) || defaultSettings.spacing
       mergedSettings.angle = parseFloat(mergedSettings.angle) || defaultSettings.angle
-      if (settings.logoConfig) {
-        logoSettings.position = settings.logoConfig.position || 'top-right'
-        logoSettings.size = parseInt(settings.logoConfig.size) || 100
-        logoSettings.padding = parseInt(settings.logoConfig.padding) || 20
-        logoSettings.opacity = parseFloat(settings.logoConfig.opacity) || 0.6
-      }
+      // logoConfig 在 logoSettings 声明后由 onMounted 恢复，此处仅附带传回
+      mergedSettings._savedLogoConfig = settings.logoConfig || null
       return mergedSettings
     } catch (e) {
       console.error('解析存储的设置失败:', e)
@@ -350,6 +346,16 @@ const logoSettings = reactive({
 })
 
 onMounted(() => {
+  // 恢复 logoConfig（须在 logoSettings 声明后执行，避免 TDZ）
+  const saved = watermarkSettings._savedLogoConfig
+  if (saved) {
+    logoSettings.position = saved.position || 'top-right'
+    logoSettings.size     = parseInt(saved.size)    || 36
+    logoSettings.padding  = parseInt(saved.padding) || 20
+    logoSettings.opacity  = parseFloat(saved.opacity) || 0.6
+  }
+  delete watermarkSettings._savedLogoConfig
+
   if (canvasRef.value) {
     updateWatermark()
   }
@@ -452,7 +458,7 @@ const updateWatermark = () => {
           ctx.translate(x + gridWidth/2, y + gridHeight/2)
           ctx.rotate((watermarkSettings.angle * Math.PI) / 180)
           const textWidth = ctx.measureText(watermarkSettings.text).width
-          ctx.fillText(watermarkSettings.text, -textWidth/2, watermarkSettings.fontSize/3)
+          ctx.fillText(watermarkSettings.text, -textWidth/2, actualParams.fontSize/3)
           ctx.restore()
         }
       }
@@ -465,7 +471,7 @@ const updateWatermark = () => {
       ctx.save()
       ctx.translate(watermarkOffset.x, watermarkOffset.y)
       ctx.rotate((watermarkSettings.angle * Math.PI) / 180)
-      ctx.fillText(watermarkSettings.text, -textWidth/2, watermarkSettings.fontSize/3)
+      ctx.fillText(watermarkSettings.text, -textWidth/2, actualParams.fontSize/3)
       ctx.restore()
     }
     ctx.restore()

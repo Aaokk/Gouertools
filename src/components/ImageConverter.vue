@@ -138,10 +138,9 @@ export default {
       aspectRatio: 1,
       cardOpen: true,
       formats: [
-        { label: 'JPG', value: 'image/jpeg' },
-        { label: 'PNG', value: 'image/png' },
-        { label: 'WEBP', value: 'image/webp' },
-        { label: 'GIF', value: 'image/gif' }
+        { label: 'JPG',  value: 'image/jpeg' },
+        { label: 'PNG',  value: 'image/png'  },
+        { label: 'WEBP', value: 'image/webp' }
       ]
     }
   },
@@ -228,9 +227,10 @@ export default {
           throw new Error(`转换后文件大小(${this.formatFileSize(fileSize)})超过限制(${this.maxSizeInMB}MB)`)
         const link = document.createElement('a')
         link.href = dataUrl
-        const extension = this.targetFormat.split('/')[1]
+        const extension = this.targetFormat.split('/')[1] || 'jpg'
         const originalName = this.selectedFile.name
-        const baseName = originalName.substring(0, originalName.lastIndexOf('.'))
+        const dotIdx = originalName.lastIndexOf('.')
+        const baseName = dotIdx > 0 ? originalName.substring(0, dotIdx) : originalName
         link.download = `${baseName}_${this.newWidth}x${this.newHeight}.${extension}`
         document.body.appendChild(link); link.click(); document.body.removeChild(link)
       } catch (error) {
