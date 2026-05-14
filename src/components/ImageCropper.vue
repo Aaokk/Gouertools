@@ -67,19 +67,19 @@
                 <div class="mask mask-left"   :style="maskLeft" />
                 <div class="mask mask-right"  :style="maskRight" />
 
-                <!-- 裁剪框本体 -->
-                <div
-                  class="crop-box"
-                  :style="cropBoxStyle"
-                  @mousedown.prevent="startDragBox"
-                >
-                  <!-- 九宫格辅助线 -->
-                  <div class="grid-line grid-v1" /><div class="grid-line grid-v2" />
-                  <div class="grid-line grid-h1" /><div class="grid-line grid-h2" />
-                  <!-- 8个控制点 -->
-                  <div v-for="h in handles" :key="h" :class="['handle', `handle-${h}`]"
-                    @mousedown.prevent.stop="startResize(h, $event)" />
-                </div>
+              <!-- 裁剪框本体 -->
+              <div
+                class="crop-box"
+                :style="cropBoxStyle"
+                @pointerdown.prevent="startDragBox"
+              >
+                <!-- 九宫格辅助线 -->
+                <div class="grid-line grid-v1" /><div class="grid-line grid-v2" />
+                <div class="grid-line grid-h1" /><div class="grid-line grid-h2" />
+                <!-- 8个控制点 -->
+                <div v-for="h in handles" :key="h" :class="['handle', `handle-${h}`]"
+                  @pointerdown.prevent.stop="startResize(h, $event)" />
+              </div>
               </div>
             </div>
           </template>
@@ -317,20 +317,21 @@ let dragState = null
 const startDragBox = (e) => {
   const cb = cropBox.value
   dragState = { type: 'move', startX: e.clientX, startY: e.clientY, origBox: { ...cb } }
-  window.addEventListener('mousemove', onMouseMove)
-  window.addEventListener('mouseup', stopDrag)
+  e.target.setPointerCapture?.(e.pointerId)
+  window.addEventListener('pointermove', onMouseMove)
+  window.addEventListener('pointerup', stopDrag)
 }
 
 const startResize = (handle, e) => {
   const cb = cropBox.value
   dragState = { type: 'resize', handle, startX: e.clientX, startY: e.clientY, origBox: { ...cb } }
-  window.addEventListener('mousemove', onMouseMove)
-  window.addEventListener('mouseup', stopDrag)
+  e.target.setPointerCapture?.(e.pointerId)
+  window.addEventListener('pointermove', onMouseMove)
+  window.addEventListener('pointerup', stopDrag)
 }
 
 const onMouseMove = (e) => {
   if (!dragState || !imgWrapRef.value) return
-  const img = imgRef.value
   const iw = imgWrapRef.value.offsetWidth
   const ih = imgWrapRef.value.offsetHeight
   const dx = e.clientX - dragState.startX
@@ -377,8 +378,8 @@ const onMouseMove = (e) => {
 
 const stopDrag = () => {
   dragState = null
-  window.removeEventListener('mousemove', onMouseMove)
-  window.removeEventListener('mouseup', stopDrag)
+  window.removeEventListener('pointermove', onMouseMove)
+  window.removeEventListener('pointerup', stopDrag)
 }
 
 /* ── 重置 ─────────────────────────────────────────────────── */
@@ -489,6 +490,7 @@ const doCrop = () => {
   cursor: move;
   box-sizing: border-box;
   pointer-events: all;
+  touch-action: none;
 }
 
 /* 九宫格辅助线 */
@@ -505,12 +507,20 @@ const doCrop = () => {
 /* 控制点 */
 .handle {
   position: absolute;
-  width: 10px; height: 10px;
+  width: 14px; height: 14px;
   background: var(--color-accent);
   border: 2px solid #fff;
-  border-radius: 2px;
+  border-radius: 3px;
   pointer-events: all;
   box-sizing: border-box;
+  /* 移动端扩大可触摸区域 */
+  touch-action: none;
+}
+/* 隐形扩大触摸热区 */
+.handle::after {
+  content: '';
+  position: absolute;
+  inset: -10px;
 }
 .handle-nw { top: -5px; left: -5px; cursor: nw-resize; }
 .handle-n  { top: -5px; left: calc(50% - 5px); cursor: n-resize; }

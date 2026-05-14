@@ -52,10 +52,13 @@
             v-show="imgLoaded"
             ref="canvasRef"
             class="mosaic-canvas"
-            @mousedown="onMouseDown"
-            @mousemove="onMouseMove"
-            @mouseup="onMouseUp"
-            @mouseleave="onMouseUp"
+            @mousedown="onStart"
+            @mousemove="onMove"
+            @mouseup="onEnd"
+            @mouseleave="onEnd"
+            @touchstart.prevent="onStart"
+            @touchmove.prevent="onMove"
+            @touchend.prevent="onEnd"
           ></canvas>
         </div>
       </div>
@@ -196,55 +199,58 @@ const loadFile = (f) => {
   img.src = url
 }
 
-/* ── 坐标转换 ─────────────────────────────────────────────── */
+/* ── 坐标提取（同时兼容 mouse 和 touch）──────────────────── */
 let dragging = false
 let startX = 0, startY = 0
 let selRect = null
-let brushPath = []       // 画笔路径点集
+let brushPath = []
 
-const getCanvasPos = (e) => {
+const getPos = (e) => {
   const rect = canvasRef.value.getBoundingClientRect()
   const scaleX = canvasRef.value.width  / rect.width
   const scaleY = canvasRef.value.height / rect.height
+  // touch 事件取 touches[0]，mouse 事件直接用 clientX/Y
+  const src = e.touches ? e.touches[0] : e
   return {
-    x: (e.clientX - rect.left) * scaleX,
-    y: (e.clientY - rect.top)  * scaleY,
+    x: (src.clientX - rect.left) * scaleX,
+    y: (src.clientY - rect.top)  * scaleY,
   }
 }
 
-/* ── 鼠标事件（矩形 & 画笔统一入口）─────────────────────── */
-const onMouseDown = (e) => {
+/* ── 统一 start / move / end ────────────────────────────── */
+const onStart = (e) => {
   if (!imgLoaded.value) return
   dragging = true
-  const pos = getCanvasPos(e)
+  const pos = getPos(e)
   if (drawMode.value === 'brush') {
-    history.value.push(baseImageData)  // 画笔：鼠标按下时保存快照
+    history.value.push(baseImageData)
     brushPath = [pos]
+    // 立刻在按下点打一个圆圈（让单点点击也生效）
+    const canvas = canvasRef.value
+    const ctx = canvas.getContext('2d')
+    applyBrushStroke(ctx, [pos])
+    baseImageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
   } else {
     startX = pos.x; startY = pos.y
     selRect = null
   }
 }
 
-const onMouseMove = (e) => {
+const onMove = (e) => {
   if (!dragging || !imgLoaded.value) return
-  const pos = getCanvasPos(e)
+  const pos = getPos(e)
   const canvas = canvasRef.value
   const ctx = canvas.getContext('2d')
 
   if (drawMode.value === 'brush') {
+    const lastPt = brushPath[brushPath.length - 1]
+    // 与上一个点距离 > 2px 才记录，避免重复过多点
+    const d = Math.sqrt((pos.x - lastPt.x) ** 2 + (pos.y - lastPt.y) ** 2)
+    if (d < 2) return
     brushPath.push(pos)
-    // 在 baseImageData 副本上实时预览画笔路径圆圈
-    ctx.putImageData(baseImageData, 0, 0)
-    applyBrushStroke(ctx, brushPath)
-    // 画笔光标预览圆
-    ctx.beginPath()
-    ctx.arc(pos.x, pos.y, brushSize.value / 2, 0, Math.PI * 2)
-    ctx.strokeStyle = 'rgba(0,255,170,0.7)'
-    ctx.lineWidth = 1.5
-    ctx.setLineDash([3, 2])
-    ctx.stroke()
-    ctx.setLineDash([])
+    // 只对新增的最后一点打码（增量，不重复处理整条路径）
+    applyBrushStroke(ctx, [pos])
+    baseImageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
   } else {
     selRect = {
       x: Math.min(startX, pos.x),
@@ -261,24 +267,10 @@ const onMouseMove = (e) => {
   }
 }
 
-const onMouseUp = () => {
+const onEnd = (e) => {
   if (!dragging) return
   dragging = false
-
   if (drawMode.value === 'brush') {
-    if (brushPath.length < 2) {
-      // 单点：用圆形区域打码
-      const p = brushPath[0]
-      const r = brushSize.value / 2
-      applyMosaic({ x: p.x - r, y: p.y - r, w: r * 2, h: r * 2 })
-    } else {
-      // 多点：把路径上每段圆形全部打码（提交最终结果）
-      const canvas = canvasRef.value
-      const ctx = canvas.getContext('2d')
-      ctx.putImageData(baseImageData, 0, 0)
-      applyBrushStroke(ctx, brushPath)
-      baseImageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
-    }
     brushPath = []
   } else {
     if (!selRect || selRect.w < 4 || selRect.h < 4) { selRect = null; return }

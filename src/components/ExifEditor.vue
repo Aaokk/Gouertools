@@ -139,12 +139,116 @@ const hasGps = computed(() => {
 
 const isGpsKey = (k) => /gps|latitude|longitude/i.test(k)
 
-const formatKey = (k) => k.replace(/([A-Z])/g, ' $1').trim()
+const EXIF_ZH = {
+  // ── 基本信息 ──
+  Make: '相机品牌', make: '相机品牌',
+  Model: '相机型号', model: '相机型号',
+  Software: '处理软件', software: '处理软件',
+  DateTime: '修改时间', dateTime: '修改时间',
+  DateTimeOriginal: '拍摄时间', dateTimeOriginal: '拍摄时间',
+  DateTimeDigitized: '数字化时间', dateTimeDigitized: '数字化时间',
+  OffsetTime: '时区偏移', offsetTime: '时区偏移',
+  OffsetTimeOriginal: '拍摄时区', offsetTimeOriginal: '拍摄时区',
+  ImageWidth: '图片宽度', imageWidth: '图片宽度',
+  ImageHeight: '图片高度', imageHeight: '图片高度',
+  ExifImageWidth: 'EXIF 宽度', exifImageWidth: 'EXIF 宽度',
+  ExifImageHeight: 'EXIF 高度', exifImageHeight: 'EXIF 高度',
+  PixelXDimension: '像素宽', pixelXDimension: '像素宽',
+  PixelYDimension: '像素高', pixelYDimension: '像素高',
+  Orientation: '方向', orientation: '方向',
+  XResolution: '水平分辨率', xResolution: '水平分辨率',
+  YResolution: '垂直分辨率', yResolution: '垂直分辨率',
+  ResolutionUnit: '分辨率单位', resolutionUnit: '分辨率单位',
+  ColorSpace: '色彩空间', colorSpace: '色彩空间',
+  BitsPerSample: '色深', bitsPerSample: '色深',
+  Compression: '压缩方式', compression: '压缩方式',
+  PhotometricInterpretation: '色彩模型', photometricInterpretation: '色彩模型',
+  SamplesPerPixel: '通道数', samplesPerPixel: '通道数',
+  // ── 拍摄参数 ──
+  ExposureTime: '曝光时间', exposureTime: '曝光时间',
+  FNumber: '光圈 F 值', fNumber: '光圈 F 值',
+  ApertureValue: '光圈', apertureValue: '光圈',
+  ExposureProgram: '曝光程序', exposureProgram: '曝光程序',
+  ExposureMode: '曝光模式', exposureMode: '曝光模式',
+  ISOSpeedRatings: 'ISO 感光度', isoSpeedRatings: 'ISO 感光度',
+  ISO: 'ISO', iso: 'ISO',
+  RecommendedExposureIndex: '推荐曝光指数',
+  SensitivityType: '感光度类型', sensitivityType: '感光度类型',
+  ShutterSpeedValue: '快门速度', shutterSpeedValue: '快门速度',
+  BrightnessValue: '亮度', brightnessValue: '亮度',
+  ExposureBiasValue: '曝光补偿', exposureBiasValue: '曝光补偿',
+  MaxApertureValue: '最大光圈', maxApertureValue: '最大光圈',
+  MeteringMode: '测光模式', meteringMode: '测光模式',
+  LightSource: '光源', lightSource: '光源',
+  Flash: '闪光灯', flash: '闪光灯',
+  FocalLength: '焦距', focalLength: '焦距',
+  FocalLengthIn35mmFilm: '等效 35mm 焦距', focalLengthIn35mmFilm: '等效 35mm 焦距',
+  SubjectDistance: '主体距离', subjectDistance: '主体距离',
+  SubjectDistanceRange: '主体距离范围', subjectDistanceRange: '主体距离范围',
+  WhiteBalance: '白平衡', whiteBalance: '白平衡',
+  DigitalZoomRatio: '数字变焦', digitalZoomRatio: '数字变焦',
+  SceneCaptureType: '场景类型', sceneCaptureType: '场景类型',
+  SceneType: '场景', sceneType: '场景',
+  Contrast: '对比度', contrast: '对比度',
+  Saturation: '饱和度', saturation: '饱和度',
+  Sharpness: '锐度', sharpness: '锐度',
+  GainControl: '增益控制', gainControl: '增益控制',
+  CustomRendered: '自定义渲染', customRendered: '自定义渲染',
+  // ── 镜头信息 ──
+  LensMake: '镜头品牌', lensMake: '镜头品牌',
+  LensModel: '镜头型号', lensModel: '镜头型号',
+  LensSerialNumber: '镜头序列号', lensSerialNumber: '镜头序列号',
+  LensSpecification: '镜头规格', lensSpecification: '镜头规格',
+  // ── 位置信息 ──
+  latitude: '纬度', longitude: '经度', altitude: '海拔',
+  GPSLatitude: 'GPS 纬度', gpsLatitude: 'GPS 纬度',
+  GPSLongitude: 'GPS 经度', gpsLongitude: 'GPS 经度',
+  GPSAltitude: 'GPS 海拔', gpsAltitude: 'GPS 海拔',
+  GPSAltitudeRef: 'GPS 海拔参考', gpsAltitudeRef: 'GPS 海拔参考',
+  GPSLatitudeRef: 'GPS 纬度参考', gpsLatitudeRef: 'GPS 纬度参考',
+  GPSLongitudeRef: 'GPS 经度参考', gpsLongitudeRef: 'GPS 经度参考',
+  GPSSpeed: 'GPS 速度', gpsSpeed: 'GPS 速度',
+  GPSSpeedRef: 'GPS 速度单位', gpsSpeedRef: 'GPS 速度单位',
+  GPSImgDirection: 'GPS 方向角', gpsImgDirection: 'GPS 方向角',
+  GPSImgDirectionRef: 'GPS 方向参考', gpsImgDirectionRef: 'GPS 方向参考',
+  GPSDateStamp: 'GPS 日期', gpsDateStamp: 'GPS 日期',
+  GPSTimeStamp: 'GPS 时间', gpsTimeStamp: 'GPS 时间',
+  GPSProcessingMethod: 'GPS 处理方式', gpsProcessingMethod: 'GPS 处理方式',
+  GPSMapDatum: 'GPS 地图基准', gpsMapDatum: 'GPS 地图基准',
+  GPSVersionID: 'GPS 版本', gpsVersionID: 'GPS 版本',
+  // ── 文件与版权 ──
+  Artist: '作者', artist: '作者',
+  Copyright: '版权', copyright: '版权',
+  ImageDescription: '图片描述', imageDescription: '图片描述',
+  UserComment: '用户备注', userComment: '用户备注',
+  // ── 设备与系统 ──
+  HostComputer: '主机设备', hostComputer: '主机设备',
+  DocumentName: '文档名称', documentName: '文档名称',
+  SerialNumber: '序列号', serialNumber: '序列号',
+  BodySerialNumber: '机身序列号', bodySerialNumber: '机身序列号',
+  UniqueCameraModel: '相机唯一型号', uniqueCameraModel: '相机唯一型号',
+  // ── 其他 ──
+  SubSecTime: '子秒时间', subSecTime: '子秒时间',
+  SubSecTimeOriginal: '子秒拍摄时间', subSecTimeOriginal: '子秒拍摄时间',
+  SubSecTimeDigitized: '子秒数字化时间', subSecTimeDigitized: '子秒数字化时间',
+  FlashpixVersion: 'Flashpix 版本', flashpixVersion: 'Flashpix 版本',
+  ExifVersion: 'EXIF 版本', exifVersion: 'EXIF 版本',
+  ComponentsConfiguration: '通道配置', componentsConfiguration: '通道配置',
+  CompressedBitsPerPixel: '压缩 BPP', compressedBitsPerPixel: '压缩 BPP',
+  InteropIndex: '互操作性', interopIndex: '互操作性',
+  InteropVersion: '互操作版本', interopVersion: '互操作版本',
+}
+
+const formatKey = (k) => EXIF_ZH[k] || EXIF_ZH[k.charAt(0).toLowerCase() + k.slice(1)] || k
 
 const formatVal = (v) => {
   if (v instanceof Date) return v.toLocaleString('zh-CN')
-  if (typeof v === 'number') return Number.isInteger(v) ? String(v) : v.toFixed(6)
-  if (Array.isArray(v)) return v.join(', ')
+  if (typeof v === 'number') {
+    // 经纬度保留 6 位，其他整数直接显示
+    if (v > -180 && v < 180 && !Number.isInteger(v)) return v.toFixed(6) + '°'
+    return Number.isInteger(v) ? String(v) : v.toFixed(4)
+  }
+  if (Array.isArray(v)) return v.map(x => typeof x === 'number' ? x.toFixed(2) : x).join(', ')
   return String(v)
 }
 
