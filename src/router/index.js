@@ -4,6 +4,9 @@ import WatermarkEditor from '../components/WatermarkEditor.vue'
 import ImageConverter from '../components/ImageConverter.vue'
 import ImageCompressor from '../components/ImageCompressor.vue'
 import ImageCropper from '../components/ImageCropper.vue'
+import QrCodeGen from '../components/QrCodeGen.vue'
+import ExifEditor from '../components/ExifEditor.vue'
+import MosaicEditor from '../components/MosaicEditor.vue'
 
 const BASE = 'Gouer工具包包'
 
@@ -56,6 +59,36 @@ const routes = [
       title: `格式转换 — ${BASE}`,
       description: '图片格式互转，支持 JPG、PNG、WebP 互相转换，可调整输出质量、分辨率，本地处理隐私安全。',
       keywords: '格式转换,图片转换,JPG转PNG,PNG转WebP,图片格式,转换工具',
+    }
+  },
+  {
+    path: '/qrcode',
+    name: 'qrcode',
+    component: QrCodeGen,
+    meta: {
+      title: `二维码生成 — ${BASE}`,
+      description: '在线生成二维码，支持网址、文字、电话、邮件、WiFi 等类型，可自定义颜色、尺寸，下载 PNG/SVG。',
+      keywords: '二维码生成,QR码,WiFi二维码,二维码制作,在线二维码',
+    }
+  },
+  {
+    path: '/exif',
+    name: 'exif',
+    component: ExifEditor,
+    meta: {
+      title: `EXIF 查看/清除 — ${BASE}`,
+      description: '查看图片 EXIF 元数据（拍摄设备、时间、GPS 位置等），一键清除 EXIF 保护隐私，本地处理不上传。',
+      keywords: 'EXIF查看,EXIF清除,图片隐私,GPS位置清除,图片元数据',
+    }
+  },
+  {
+    path: '/mosaic',
+    name: 'mosaic',
+    component: MosaicEditor,
+    meta: {
+      title: `局部打码 — ${BASE}`,
+      description: '图片局部马赛克/模糊处理，拖拽选区一键打码，支持马赛克、高斯模糊、黑色遮罩三种效果，可撤销。',
+      keywords: '图片打码,马赛克,局部模糊,隐私保护,截图打码',
     }
   }
 ]
