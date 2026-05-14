@@ -54,14 +54,6 @@
             </div>
             <span class="placeholder-text">点击或拖拽图片到此处</span>
             <span class="placeholder-hint">支持批量添加 JPG、PNG、WebP、GIF、AVIF、SVG 格式</span>
-            <div class="format-tags">
-              <span class="format-tag">JPG</span>
-              <span class="format-tag">PNG</span>
-              <span class="format-tag">WebP</span>
-              <span class="format-tag">GIF</span>
-              <span class="format-tag">AVIF</span>
-              <span class="format-tag">SVG</span>
-            </div>
           </div>
 
           <!-- 表格 -->

@@ -42,11 +42,6 @@
             </div>
             <span class="placeholder-text">点击或拖拽图片到此处</span>
             <span class="placeholder-hint">支持 JPG、PNG、WebP 格式</span>
-            <div class="format-tags">
-              <span class="format-tag">JPG</span>
-              <span class="format-tag">PNG</span>
-              <span class="format-tag">WebP</span>
-            </div>
           </template>
 
           <!-- 图片 + 裁剪框 -->

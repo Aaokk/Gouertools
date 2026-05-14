@@ -40,11 +40,6 @@
             </div>
             <span class="placeholder-text">点击或拖拽图片到此处</span>
             <span class="placeholder-hint">拖拽选区进行打码，支持马赛克和模糊两种效果</span>
-            <div class="format-tags">
-              <span class="format-tag">JPG</span>
-              <span class="format-tag">PNG</span>
-              <span class="format-tag">WebP</span>
-            </div>
           </template>
 
           <!-- 画布 -->

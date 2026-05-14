@@ -32,11 +32,6 @@
             </div>
             <span class="placeholder-text">点击或拖拽图片到此处</span>
             <span class="placeholder-hint">支持 JPG、PNG、WebP，读取 EXIF 信息</span>
-            <div class="format-tags">
-              <span class="format-tag">JPG</span>
-              <span class="format-tag">PNG</span>
-              <span class="format-tag">WebP</span>
-            </div>
           </template>
           <img v-else :src="previewUrl" class="exif-preview-img" alt="预览图" />
         </div>

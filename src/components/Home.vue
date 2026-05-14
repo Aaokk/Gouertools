@@ -98,12 +98,12 @@ export default { name: 'Home' }
 /* Hero */
 .home-hero {
   text-align: center;
-  padding: var(--spacing-2xl) var(--spacing-lg) var(--spacing-lg);
+  padding: var(--spacing-lg) var(--spacing-lg) var(--spacing-md);
 }
 
 /* 分区 */
 .home-section {
-  padding: 0 var(--spacing-xl) var(--spacing-xl);
+  padding: 0 var(--spacing-lg) var(--spacing-lg);
   max-width: 1100px;
   width: 100%;
   margin: 0 auto;
@@ -132,7 +132,7 @@ export default { name: 'Home' }
 .home-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: var(--spacing-md);
+  gap: var(--spacing-sm);
 }
 
 @media (max-width: 1000px) {

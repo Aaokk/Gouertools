@@ -205,13 +205,9 @@ const contentPlaceholder = computed(() => {
 })
 
 const qrWrapStyle = computed(() => ({
-  background: settings.bgColor,
-  padding:    '16px',
+  background:   settings.bgColor,
+  padding:      '6px',
   borderRadius: '8px',
-  display:    'inline-flex',
-  flexDirection: 'column',
-  alignItems: 'center',
-  gap:        '10px',
 }))
 
 const getContent = () => {
@@ -268,11 +264,35 @@ const downloadSvg = () => {
   display: flex; flex-direction: column; align-items: center;
   color: var(--color-text-muted); opacity: 0.5;
 }
-.qr-result { display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; }
-.qr-img { display: block; max-width: 100%; max-height: 480px; }
+.qr-result {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+/* qr-wrap 宽度由这里控制，图片自动填满 */
+:global(.qr-wrap) {
+  display: inline-flex !important;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  width: 280px;
+}
+.qr-img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
 .qr-label-text {
-  font-size: 13px; color: var(--color-foreground);
-  text-align: center; max-width: 300px; word-break: break-all;
+  width: 100%;
+  font-size: 12px;
+  text-align: center;
+  word-break: break-all;
+  color: var(--color-foreground);
+}
+@media (max-width: 900px) {
+  :global(.qr-wrap) { width: 240px; }
 }
 .qr-textarea { min-height: 72px; height: auto; resize: vertical; padding: 8px 10px; }
 
