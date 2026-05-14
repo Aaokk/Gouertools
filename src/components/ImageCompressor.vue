@@ -54,11 +54,6 @@
             </div>
             <span class="placeholder-text">点击或拖拽图片到此处</span>
             <span class="placeholder-hint">支持批量添加 JPG、PNG、WebP 格式</span>
-            <div class="format-tags">
-              <span class="format-tag">JPG</span>
-              <span class="format-tag">PNG</span>
-              <span class="format-tag">WebP</span>
-            </div>
           </div>
 
           <!-- 表格 -->
@@ -611,6 +606,7 @@ const guessMime = (name) => {
   backdrop-filter: blur(12px);
   border-radius: var(--radius-lg);
   border: 1px dashed var(--color-border);
+  box-shadow: var(--shadow-sm);
   overflow: hidden;
   min-height: 500px;
   position: relative;
@@ -650,7 +646,7 @@ const guessMime = (name) => {
   display: none;
 }
 
-/* 空状态 */
+/* 空状态 — 与全局 .preview-area 占位样式对齐 */
 .comp-empty {
   display: flex;
   flex-direction: column;
@@ -664,11 +660,11 @@ const guessMime = (name) => {
   z-index: 1;
 }
 .comp-empty .placeholder-icon svg {
-  width: 52px;
-  height: 52px;
+  width: 56px;
+  height: 56px;
   color: var(--color-text-muted);
+  margin-bottom: var(--spacing-md);
   opacity: 0.5;
-  margin-bottom: var(--spacing-sm);
 }
 .comp-empty .placeholder-text {
   font-size: 14px;
@@ -677,11 +673,12 @@ const guessMime = (name) => {
 .comp-empty .placeholder-hint {
   font-size: 12px;
   color: rgba(90,111,142,0.6);
+  margin-top: 4px;
 }
 .comp-empty .format-tags {
   display: flex;
   gap: 6px;
-  margin-top: 8px;
+  margin-top: 14px;
 }
 .comp-empty .format-tag {
   padding: 3px 10px;
