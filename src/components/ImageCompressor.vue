@@ -20,6 +20,10 @@
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
               批量添加
             </button>
+            <button class="btn btn-secondary btn-sm" @click="folderInput.click()">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
+              添加文件夹
+            </button>
           </div>
           <div style="display:flex;gap:8px;">
             <button class="btn btn-danger btn-sm" :disabled="!fileList.length" @click="clearList">
@@ -306,6 +310,7 @@
 
     <!-- 隐藏文件输入 -->
     <input ref="fileInput" type="file" multiple accept="image/jpeg,image/png,image/webp" style="display:none" @change="handleFilesSelected">
+    <input ref="folderInput" type="file" webkitdirectory accept="image/*" style="display:none" @change="handleFilesSelected">
   </div>
 </template>
 
@@ -315,7 +320,8 @@ import { compress, getBlobDimension, formatFileSize } from '../utils/compress.js
 import { showToast } from '../utils/toast.js'
 
 /* ── 文件输入 refs ────────────────────────────────────────── */
-const fileInput = ref(null)
+const fileInput   = ref(null)
+const folderInput = ref(null)
 
 /* ── 状态 ────────────────────────────────────────────────── */
 const fileList      = ref([])   // FileItem[]
