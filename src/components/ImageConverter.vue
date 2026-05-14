@@ -118,6 +118,7 @@
 
 <script>
 import { showToast } from '../utils/toast.js'
+import { downloadDataUrl } from '../utils/download.js'
 
 export default {
   name: 'ImageConverter',
@@ -225,14 +226,11 @@ export default {
         const fileSize = atob(base64str).length
         if (fileSize > this.maxSizeInMB * 1024 * 1024)
           throw new Error(`转换后文件大小(${this.formatFileSize(fileSize)})超过限制(${this.maxSizeInMB}MB)`)
-        const link = document.createElement('a')
-        link.href = dataUrl
         const extension = this.targetFormat.split('/')[1] || 'jpg'
         const originalName = this.selectedFile.name
         const dotIdx = originalName.lastIndexOf('.')
         const baseName = dotIdx > 0 ? originalName.substring(0, dotIdx) : originalName
-        link.download = `${baseName}_${this.newWidth}x${this.newHeight}.${extension}`
-        document.body.appendChild(link); link.click(); document.body.removeChild(link)
+        downloadDataUrl(dataUrl, `${baseName}_${this.newWidth}x${this.newHeight}.${extension}`)
       } catch (error) {
         console.error('转换失败:', error)
         showToast({ message: `图片转换失败：${error.message}`, type: 'error' })

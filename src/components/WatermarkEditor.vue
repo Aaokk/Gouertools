@@ -268,6 +268,7 @@
 import { Chrome } from '@ckpack/vue-color'
 import { ref, reactive, onMounted, watch, nextTick, onUnmounted } from 'vue'
 import { showToast } from '../utils/toast.js'
+import { downloadDataUrl } from '../utils/download.js'
 
 // Card toggle state
 const cardOpen = reactive({
@@ -575,10 +576,7 @@ const saveImage = async () => {
     const nameWithoutExt = currentImage.name.substring(0, lastDotIndex)
     const extension = currentImage.name.substring(lastDotIndex)
     const fileName = `${nameWithoutExt}_${timestamp}${extension}`
-    const link = document.createElement('a')
-    link.download = fileName
-    link.href = createOptimizedDataURL(canvasRef.value, originalType, 0.92)
-    link.click()
+    downloadDataUrl(createOptimizedDataURL(canvasRef.value, originalType, 0.92), fileName)
   }
 }
 
@@ -773,8 +771,7 @@ const saveAllImages = async () => {
           const originalType = currentImage.name.toLowerCase().endsWith('.png') ? 'image/png' : 'image/jpeg'
           const dataUrl = createOptimizedDataURL(canvasRef.value, originalType, 0.9)
           if (!dataUrl || dataUrl === 'data:,') throw new Error('无法生成图片数据')
-          const link = document.createElement('a')
-          link.download = fileName; link.href = dataUrl; link.click()
+          downloadDataUrl(dataUrl, fileName)
           successCount++
           await new Promise(resolve => setTimeout(resolve, 800))
         } catch (error) {

@@ -170,6 +170,7 @@
 <script setup>
 import { ref, reactive, computed, nextTick } from 'vue'
 import { showToast } from '../utils/toast.js'
+import { downloadBlob } from '../utils/download.js'
 
 /* ── 文件 ────────────────────────────────────────────────── */
 const fileInput    = ref(null)
@@ -408,12 +409,7 @@ const doCrop = () => {
     ctx.drawImage(img, sx, sy, sw, sh, 0, 0, sw, sh)
     const ext = outputFormat.value.split('/')[1] || 'jpg'
     canvas.toBlob((blob) => {
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = `${fileName.value}_cropped.${ext}`
-      a.click()
-      setTimeout(() => URL.revokeObjectURL(url), 1000)
+      downloadBlob(blob, `${fileName.value}_cropped.${ext}`)
       showToast({ message: `裁剪完成：${sw} × ${sh} px`, type: 'success' })
     }, outputFormat.value, outputQuality.value / 100)
   }

@@ -146,6 +146,7 @@
 <script setup>
 import { ref, reactive } from 'vue'
 import { showToast } from '../utils/toast.js'
+import { downloadDataUrl } from '../utils/download.js'
 
 const fileInput  = ref(null)
 const canvasRef  = ref(null)
@@ -403,8 +404,7 @@ const clearAll = () => {
 
 const downloadResult = () => {
   const url = canvasRef.value.toDataURL('image/png')
-  const a = document.createElement('a')
-  a.href = url; a.download = `${fileName.value}_mosaic.png`; a.click()
+  downloadDataUrl(url, `${fileName.value}_mosaic.png`)
   showToast({ message: '下载成功', type: 'success' })
 }
 </script>

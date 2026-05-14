@@ -174,6 +174,7 @@
 import { ref, computed, reactive } from 'vue'
 import QRCode from 'qrcode'
 import { showToast } from '../utils/toast.js'
+import { downloadDataUrl, downloadBlob } from '../utils/download.js'
 
 const s1 = ref(true)
 const s2 = ref(true)
@@ -245,20 +246,12 @@ const generate = async () => {
 }
 
 const downloadPng = () => {
-  const a = document.createElement('a')
-  a.href = qrDataUrl.value
-  a.download = 'qrcode.png'
-  a.click()
+  downloadDataUrl(qrDataUrl.value, 'qrcode.png')
 }
 
 const downloadSvg = () => {
   const blob = new Blob([qrSvgString.value], { type: 'image/svg+xml' })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = 'qrcode.svg'
-  a.click()
-  setTimeout(() => URL.revokeObjectURL(url), 1000)
+  downloadBlob(blob, 'qrcode.svg')
 }
 </script>
 

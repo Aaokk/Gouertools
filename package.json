@@ -4,7 +4,7 @@
   "version": "1.9.0",
   "type": "commonjs",
   "scripts": {
-    "browser:dev": "vite --open",
+    "browser:dev": "vite --open --host",
     "build": "vite build",
     "electron:build": "vite build --mode electron && electron-builder",
     "electron:macbuild": "vite build --mode electron && electron-builder",

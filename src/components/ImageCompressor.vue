@@ -365,6 +365,7 @@
 import { ref, reactive, computed } from 'vue'
 import { compress, getBlobDimension, formatFileSize } from '../utils/compress.js'
 import { showToast } from '../utils/toast.js'
+import { downloadBlob } from '../utils/download.js'
 
 /* ── 文件输入 refs ────────────────────────────────────────── */
 const fileInput   = ref(null)
@@ -602,13 +603,10 @@ const resetSettings = () => {
 
 /* ── 下载 ────────────────────────────────────────────────── */
 const downloadItem = (item) => {
-  if (!item.outSrc) return
+  if (!item.outSrc || !item.outBlob) return
   const ext = (item.outBlob.type.split('/')[1] || 'jpg').replace('jpeg', 'jpg')
   const base = item.name.replace(/\.[^.]+$/, '')
-  const link = document.createElement('a')
-  link.href = item.outSrc
-  link.download = `${base}_compressed.${ext}`
-  link.click()
+  downloadBlob(item.outSrc, `${base}_compressed.${ext}`, false)
 }
 
 const saveAll = async () => {

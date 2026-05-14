@@ -84,6 +84,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { showToast } from '../utils/toast.js'
+import { downloadBlob } from '../utils/download.js'
 
 const fileInput  = ref(null)
 const isDragging = ref(false)
@@ -159,10 +160,7 @@ const clearAndDownload = () => {
     const mime = currentFile.value?.type === 'image/png' ? 'image/png' : 'image/jpeg'
     const ext  = mime === 'image/png' ? 'png' : 'jpg'
     canvas.toBlob((blob) => {
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url; a.download = `${fileName.value}_noexif.${ext}`; a.click()
-      setTimeout(() => URL.revokeObjectURL(url), 1000)
+      downloadBlob(blob, `${fileName.value}_noexif.${ext}`)
       showToast({ message: 'EXIF 已清除，图片已下载', type: 'success' })
     }, mime, 0.95)
   }
