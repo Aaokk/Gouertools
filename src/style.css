@@ -826,7 +826,7 @@ body {
   .sidebar-nav a { justify-content: center; padding: 14px 0; }
   .main { margin-left: 60px; }
   .tool-body { grid-template-columns: 1fr; }
-  .home-cards { flex-direction: column; align-items: center; }
+  .home-cards { flex-direction: column; align-items: stretch; max-width: 480px; margin: 0 auto; }
 }
 
 /* ========================================
