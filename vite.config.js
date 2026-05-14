@@ -19,11 +19,6 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url))
     }
   },
-  optimizeDeps: {
-    include: [
-      'pako'
-    ]
-  },
   build: {
     outDir: 'dist',
     assetsDir: '.',
@@ -36,8 +31,8 @@ export default defineConfig({
       }
     },
     emptyOutDir: true,
-    sourcemap: true,
-    minify: false,
+    sourcemap: false,
+    minify: true,
     commonjsOptions: {
       include: [/node_modules/]
     }

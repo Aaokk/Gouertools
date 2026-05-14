@@ -172,10 +172,10 @@ body {
   display: flex; align-items: center; gap: 8px; margin-top: 6px;
 }
 .sidebar-brand .brand-logo {
-  width: 28px; height: 28px; border-radius: 7px;
+  width: 42px; height: 42px; border-radius: 10px;
   background: linear-gradient(135deg, var(--color-accent), var(--color-secondary));
   display: flex; align-items: center; justify-content: center;
-  font-family: var(--font-heading); font-weight: 900; font-size: 13px;
+  font-family: var(--font-heading); font-weight: 900; font-size: 20px;
   color: var(--color-primary);
   box-shadow: 0 0 12px var(--color-accent-glow);
   flex-shrink: 0;
