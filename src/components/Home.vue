@@ -2,7 +2,7 @@
   <div class="home-page">
     <!-- Hero 区 -->
     <div class="home-hero">
-      <h1>给老婆的工具包包</h1>
+      <h1>工具包包</h1>
       <p>一站式图片处理，简单好用，本地运行保护隐私</p>
     </div>
 

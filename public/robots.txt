@@ -1,8 +1,9 @@
+# ── 普通搜索引擎：完整允许 ──────────────────────
 User-agent: *
 Allow: /
 Sitemap: https://tools.gouer.vip/sitemap.xml
 
-# ── AI 训练爬虫：禁止抓取用于模型训练 ──
+# ── AI 训练爬虫：禁止抓取用于模型训练 ───────────
 User-agent: GPTBot
 Disallow: /
 
@@ -13,4 +14,22 @@ User-agent: Bytespider
 Disallow: /
 
 User-agent: ClaudeBot
+Disallow: /
+
+User-agent: CCBot
+Disallow: /
+
+User-agent: anthropic-ai
+Disallow: /
+
+User-agent: Omgilibot
+Disallow: /
+
+User-agent: FacebookBot
+Disallow: /
+
+User-agent: PerplexityBot
+Disallow: /
+
+User-agent: cohere-ai
 Disallow: /

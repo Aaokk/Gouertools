@@ -102,18 +102,40 @@ const router = createRouter({
   routes,
 })
 
-// 路由切换时动态更新 title 和 meta description
+const SITE_BASE = 'https://tools.gouer.vip'
+
+// 路由切换时动态更新 title / meta / canonical / JSON-LD
 router.afterEach((to) => {
   const { title, description, keywords } = to.meta || {}
+  const canonical = SITE_BASE + to.path
 
   if (title) document.title = title
 
-  setMeta('name', 'description', description || '')
-  setMeta('name', 'keywords', keywords || '')
-  setMeta('property', 'og:title', title || '')
+  setMeta('name', 'description',        description || '')
+  setMeta('name', 'keywords',           keywords    || '')
+  setMeta('property', 'og:title',       title       || '')
   setMeta('property', 'og:description', description || '')
-  setMeta('name', 'twitter:title', title || '')
+  setMeta('property', 'og:url',         canonical)
+  setMeta('property', 'og:type',        'website')
+  setMeta('name', 'twitter:title',       title       || '')
   setMeta('name', 'twitter:description', description || '')
+  setMeta('name', 'twitter:card',        'summary')
+
+  // canonical 链接
+  setLink('canonical', canonical)
+
+  // JSON-LD 结构化数据（WebApplication）
+  setJsonLd({
+    '@context': 'https://schema.org',
+    '@type': 'WebApplication',
+    name: title || BASE,
+    description: description || '',
+    url: canonical,
+    applicationCategory: 'MultimediaApplication',
+    operatingSystem: 'Web Browser',
+    offers: { '@type': 'Offer', price: '0', priceCurrency: 'CNY' },
+    inLanguage: 'zh-CN',
+  })
 })
 
 function setMeta(attrName, attrValue, content) {
@@ -124,6 +146,26 @@ function setMeta(attrName, attrValue, content) {
     document.head.appendChild(el)
   }
   el.setAttribute('content', content)
+}
+
+function setLink(rel, href) {
+  let el = document.querySelector(`link[rel="${rel}"]`)
+  if (!el) {
+    el = document.createElement('link')
+    el.setAttribute('rel', rel)
+    document.head.appendChild(el)
+  }
+  el.setAttribute('href', href)
+}
+
+function setJsonLd(data) {
+  let el = document.querySelector('script[type="application/ld+json"]')
+  if (!el) {
+    el = document.createElement('script')
+    el.setAttribute('type', 'application/ld+json')
+    document.head.appendChild(el)
+  }
+  el.textContent = JSON.stringify(data)
 }
 
 export default router
