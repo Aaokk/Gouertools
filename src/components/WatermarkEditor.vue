@@ -1001,7 +1001,7 @@ watch(logoSettings, () => {
 
 @media (max-width: 900px) {
   .preview-area {
-    height: 350px;
+    height: 450px;
   }
 }
 </style>

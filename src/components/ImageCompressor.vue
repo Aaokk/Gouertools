@@ -608,7 +608,7 @@ const guessMime = (name) => {
   border: 1px dashed var(--color-border);
   box-shadow: var(--shadow-sm);
   overflow: hidden;
-  height: 500px;
+  height: 600px;
   position: relative;
   transition: border-color var(--transition-normal), box-shadow var(--transition-normal), background var(--transition-normal);
 }
