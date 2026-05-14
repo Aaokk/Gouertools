@@ -3,6 +3,7 @@ import Home from '../components/Home.vue'
 import WatermarkEditor from '../components/WatermarkEditor.vue'
 import ImageConverter from '../components/ImageConverter.vue'
 import ImageCompressor from '../components/ImageCompressor.vue'
+import ImageCropper from '../components/ImageCropper.vue'
 
 const BASE = 'Gouer工具包包'
 
@@ -35,6 +36,16 @@ const routes = [
       title: `图片压缩 — ${BASE}`,
       description: '在线压缩 JPG、PNG、WebP、GIF、AVIF、SVG 图片，支持调整质量、颜色数量、分辨率，批量处理不上传服务器。',
       keywords: '图片压缩,PNG压缩,JPG压缩,WebP压缩,GIF压缩,AVIF压缩,SVG优化,批量压缩',
+    }
+  },
+  {
+    path: '/image-cropper',
+    name: 'image-cropper',
+    component: ImageCropper,
+    meta: {
+      title: `图片裁剪 — ${BASE}`,
+      description: '可视化图片裁剪工具，支持自由裁剪、固定比例裁剪，内置一寸照、二寸照、护照照片等证件照比例预设。',
+      keywords: '图片裁剪,可视化裁剪,证件照,一寸照,二寸照,护照照片,图片比例',
     }
   },
   {

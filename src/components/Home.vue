@@ -35,6 +35,16 @@
         </div>
         <span class="card-cta">开始使用 →</span>
       </router-link>
+      <router-link to="/image-cropper" class="tool-card">
+        <div class="card-icon">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 2v14a2 2 0 002 2h14M18 22V8a2 2 0 00-2-2H2"/></svg>
+        </div>
+        <h3>图片裁剪</h3>
+        <div class="card-desc">
+          可视化拖拽裁剪，内置证件照比例<br>一寸 / 二寸 / 护照 / 身份证
+        </div>
+        <span class="card-cta">开始使用 →</span>
+      </router-link>
     </div>
   </div>
 </template>

@@ -31,6 +31,10 @@
           <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
           <span>格式转换</span>
         </router-link>
+        <router-link to="/image-cropper" class="nav-item" active-class="active">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 2v14a2 2 0 002 2h14M18 22V8a2 2 0 00-2-2H2"/></svg>
+          <span>图片裁剪</span>
+        </router-link>
       </nav>
       <div class="sidebar-footer">
         Copyright © 2024
