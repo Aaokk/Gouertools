@@ -612,8 +612,12 @@ const guessMime = (name) => {
   border-radius: var(--radius-lg);
   border: 1px dashed var(--color-border);
   overflow: hidden;
-  min-height: 300px;
+  min-height: 500px;
   transition: border-color var(--transition-normal), box-shadow var(--transition-normal), background var(--transition-normal);
+}
+/* 有文件时不强制高度，让列表内容自然撑开 */
+.comp-table-wrap.has-files {
+  min-height: unset;
 }
 .comp-table-wrap.drag-over {
   border-color: var(--color-accent);
@@ -623,6 +627,7 @@ const guessMime = (name) => {
 /* 有文件时切回实线，让表格看起来更整洁 */
 .comp-table-wrap.has-files {
   border-style: solid;
+  min-height: unset;
 }
 
 /* 空状态 */
@@ -631,7 +636,7 @@ const guessMime = (name) => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 300px;
+  min-height: 500px;
   cursor: pointer;
   padding: var(--spacing-2xl);
   gap: var(--spacing-sm);
