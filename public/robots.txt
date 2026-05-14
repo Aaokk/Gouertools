@@ -1,6 +1,6 @@
 User-agent: *
 Allow: /
-Sitemap: https://gouer.vip/sitemap.xml
+Sitemap: https://tools.gouer.vip/sitemap.xml
 
 # ── AI 训练爬虫：禁止抓取用于模型训练 ──
 User-agent: GPTBot
