@@ -613,21 +613,41 @@ const guessMime = (name) => {
   border: 1px dashed var(--color-border);
   overflow: hidden;
   min-height: 500px;
+  position: relative;
   transition: border-color var(--transition-normal), box-shadow var(--transition-normal), background var(--transition-normal);
 }
-/* 有文件时不强制高度，让列表内容自然撑开 */
-.comp-table-wrap.has-files {
-  min-height: unset;
+/* hover 光晕层（与 .preview-area::before 一致） */
+.comp-table-wrap::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at center, var(--color-accent-dim), transparent 70%);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--transition-normal);
+  z-index: 0;
 }
+/* 空状态时 hover 效果 */
+.comp-table-wrap:not(.has-files):hover {
+  border-color: var(--color-accent);
+  box-shadow: var(--shadow-glow);
+}
+.comp-table-wrap:not(.has-files):hover::before {
+  opacity: 1;
+}
+/* 拖拽进入效果 */
 .comp-table-wrap.drag-over {
   border-color: var(--color-accent);
   background: rgba(74,155,142,0.03);
   box-shadow: 0 0 20px var(--color-accent-glow);
 }
-/* 有文件时切回实线，让表格看起来更整洁 */
+/* 有文件时切回实线，关闭 hover 特效 */
 .comp-table-wrap.has-files {
   border-style: solid;
   min-height: unset;
+}
+.comp-table-wrap.has-files::before {
+  display: none;
 }
 
 /* 空状态 */
@@ -640,6 +660,8 @@ const guessMime = (name) => {
   cursor: pointer;
   padding: var(--spacing-2xl);
   gap: var(--spacing-sm);
+  position: relative;
+  z-index: 1;
 }
 .comp-empty .placeholder-icon svg {
   width: 52px;
