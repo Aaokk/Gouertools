@@ -7,7 +7,7 @@
     <aside class="sidebar">
       <div class="sidebar-brand">
         <div class="brand-sub">
-          <div class="brand-logo">G</div>
+          <img class="brand-logo" src="/favicon.svg" alt="G" />
           <div>
             <h2>GOUER</h2>
             <span>工具包包 v1.9.0</span>
