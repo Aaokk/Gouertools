@@ -350,14 +350,15 @@ export default {
 .format-btns {
   display: flex;
   gap: 4px;
+  flex-wrap: wrap;
 }
 .format-btn {
-  padding: 4px 10px;
+  padding: 3px 8px;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
   background: var(--color-surface);
   cursor: pointer;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
   font-family: var(--font-body);
   transition: all var(--transition-fast);

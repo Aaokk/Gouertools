@@ -258,7 +258,7 @@
           </div>
         </div>
 
-        <button class="btn btn-ghost btn-sm" style="align-self:center;" @click="resetSettings">重置全部设置</button>
+        <button class="btn btn-ghost" style="align-self:center;" @click="resetSettings">重置全部设置</button>
       </div>
     </div>
   </div>

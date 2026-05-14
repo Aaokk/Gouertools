@@ -44,7 +44,7 @@
         <!-- 文件表格 / 空状态 -->
         <div
           class="comp-table-wrap"
-          :class="{ 'drag-over': globalDragOver && !fileList.length }"
+          :class="{ 'drag-over': globalDragOver && !fileList.length, 'has-files': fileList.length }"
           @click="!fileList.length && fileInput.click()"
         >
           <!-- 空状态 -->
@@ -300,7 +300,7 @@
         </div>
 
         <div style="display:flex;gap:8px;">
-          <button class="btn btn-ghost btn-sm" style="flex:1;" @click="resetSettings">重置选项</button>
+          <button class="btn btn-ghost" style="flex:1;" @click="resetSettings">重置选项</button>
           <button class="btn btn-primary" style="flex:2;" :disabled="!fileList.length || processing" @click="applySettings">
             应用选项
           </button>
@@ -610,14 +610,19 @@ const guessMime = (name) => {
   background: var(--color-surface);
   backdrop-filter: blur(12px);
   border-radius: var(--radius-lg);
-  border: 1px solid var(--color-border);
+  border: 1px dashed var(--color-border);
   overflow: hidden;
   min-height: 300px;
-  transition: border-color var(--transition-normal), box-shadow var(--transition-normal);
+  transition: border-color var(--transition-normal), box-shadow var(--transition-normal), background var(--transition-normal);
 }
 .comp-table-wrap.drag-over {
   border-color: var(--color-accent);
+  background: rgba(74,155,142,0.03);
   box-shadow: 0 0 20px var(--color-accent-glow);
+}
+/* 有文件时切回实线，让表格看起来更整洁 */
+.comp-table-wrap.has-files {
+  border-style: solid;
 }
 
 /* 空状态 */
