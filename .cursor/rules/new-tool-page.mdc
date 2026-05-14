@@ -1,0 +1,129 @@
+---
+description: 新增工具页面时必须遵守的结构与样式规范
+globs: src/components/*.vue
+alwaysApply: false
+---
+
+# 新工具页开发规范
+
+## 必须包含的结构
+
+每个工具页 Vue 组件必须包含以下结构：
+
+```vue
+<template>
+  <div class="tool-page">
+    <!-- 1. 页面标题 -->
+    <div class="tool-header">
+      <h2>Gouer.vip 工具名称</h2>
+      <div class="divider"></div>
+    </div>
+
+    <!-- 2. 主体：Grid 布局（左侧内容 + 右侧设置面板） -->
+    <div class="tool-body">
+      <!-- 左侧：操作栏 + 预览/功能区 -->
+      <div class="preview-stack">
+        <!-- 操作按钮栏（必须加 @click.stop 防冒泡） -->
+        <div class="xxx-actions" @click.stop>
+          <button class="btn btn-secondary btn-sm" ...>选择文件</button>
+          <!-- 其他按钮 -->
+        </div>
+
+        <!-- 预览/功能主区 -->
+        <div class="preview-area" ...>
+          <!-- 空状态占位 -->
+          <!-- 内容区域 -->
+        </div>
+      </div>
+
+      <!-- 右侧：设置面板 -->
+      <div class="control-panel">
+        <!-- 使用 setting-card 折叠卡片 -->
+      </div>
+    </div>
+  </div>
+</template>
+```
+
+## ⚠️ 必须覆盖的顶部间距
+
+**所有工具页的 scoped style 里都必须加这一段**，否则顶部间距会比其他页面多 8px：
+
+```css
+/* 与其他工具页顶部间距对齐（全局 .tool-body 是 24px，覆盖为 16px） */
+:deep(.tool-body) {
+  padding-top: var(--spacing-md);
+}
+```
+
+> 原因：全局 `.tool-body` 的 `padding-top` 是 `var(--spacing-lg)`（24px），
+> 而图片压缩页的 `.comp-body` 是 `var(--spacing-md)`（16px），
+> 为保持三个页面一致，其余工具页都用 `:deep` 覆盖为 16px。
+
+## preview-stack 规范
+
+```css
+.preview-stack {
+  min-width: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);  /* 8px，与其他页面一致 */
+}
+```
+
+## 操作栏按钮规范
+
+- 必须加 `@click.stop` 防止点击事件冒泡到 `preview-area`
+- 按钮用 `btn-sm` 尺寸
+- 颜色规范：
+  - 选择/添加文件：`btn-secondary`
+  - 主要操作（保存/下载/开始）：`btn-primary`
+  - 批量操作：`btn-purple`
+  - 危险操作（清空/删除）：`btn-danger`
+  - 重置/次要：`btn-ghost`
+
+## 路由注册
+
+新页面加入 `src/router/index.js` 时必须填写 `meta`：
+
+```js
+{
+  path: '/your-tool',
+  name: 'your-tool',
+  component: YourTool,
+  meta: {
+    title: `工具名称 — ${BASE}`,
+    description: '工具描述，用于 SEO meta description',
+    keywords: '关键词1,关键词2',
+  }
+}
+```
+
+## 侧栏导航
+
+`src/App.vue` 的 `<nav class="sidebar-nav">` 里加入对应的 `router-link`：
+
+```vue
+<router-link to="/your-tool" class="nav-item" active-class="active">
+  <svg ...><!-- 对应图标 --></svg>
+  <span>工具名称</span>
+</router-link>
+```
+
+## 首页卡片
+
+`src/components/Home.vue` 的 `.home-cards` 里加入工具卡片：
+
+```vue
+<router-link to="/your-tool" class="tool-card">
+  <div class="card-icon">
+    <svg ...><!-- 对应图标 --></svg>
+  </div>
+  <h3>工具名称</h3>
+  <div class="card-desc">
+    功能描述第一行<br>功能描述第二行
+  </div>
+  <span class="card-cta">开始使用 →</span>
+</router-link>
+```
