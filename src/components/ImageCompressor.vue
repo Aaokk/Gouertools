@@ -707,7 +707,7 @@ const guessMime = (name) => {
   display: none;
 }
 
-/* 空状态 — 与全局 .preview-area 占位样式对齐 */
+/* 空状态 — 与全局 .preview-area 占位样式完全对齐（去掉 gap，靠 margin 控制） */
 .comp-empty {
   display: flex;
   flex-direction: column;
@@ -716,7 +716,6 @@ const guessMime = (name) => {
   height: 100%;
   cursor: pointer;
   padding: var(--spacing-2xl);
-  gap: var(--spacing-sm);
   position: relative;
   z-index: 1;
 }

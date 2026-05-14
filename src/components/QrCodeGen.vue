@@ -25,8 +25,11 @@
         <!-- 预览框 -->
         <div class="preview-area qr-preview-area">
           <div v-if="!qrDataUrl" class="qr-placeholder">
-            <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h.01M14 17h.01M17 14h.01"/></svg>
-            <span class="placeholder-text" style="margin-top:16px;">输入内容后点击生成</span>
+            <div class="placeholder-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3M17 17h3v3M14 20h3"/></svg>
+            </div>
+            <span class="placeholder-text">输入内容后点击生成</span>
+            <span class="placeholder-hint">支持网址、文字、WiFi 等类型</span>
           </div>
           <div v-else class="qr-result">
             <div class="qr-wrap" :style="qrWrapStyle">
@@ -260,9 +263,11 @@ const downloadSvg = () => {
 .qr-preview-area {
   display: flex; align-items: center; justify-content: center;
 }
+/* placeholder 样式完全依赖全局 .preview-area .placeholder-* 规则，无需重复 */
 .qr-placeholder {
-  display: flex; flex-direction: column; align-items: center;
-  color: var(--color-text-muted); opacity: 0.5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 .qr-result {
   display: flex;
