@@ -1,0 +1,16 @@
+User-agent: *
+Allow: /
+Sitemap: https://gouer.vip/sitemap.xml
+
+# ── AI 训练爬虫：禁止抓取用于模型训练 ──
+User-agent: GPTBot
+Disallow: /
+
+User-agent: Google-Extended
+Disallow: /
+
+User-agent: Bytespider
+Disallow: /
+
+User-agent: ClaudeBot
+Disallow: /
