@@ -21,7 +21,8 @@ export function initBgCanvas(canvasEl) {
     this.vx = (Math.random() - 0.5) * 0.25
     this.vy = (Math.random() - 0.5) * 0.25
     this.r = Math.random() * 1.2 + 0.4
-    this.alpha = Math.random() * 0.35 + 0.05
+    this.alpha = Math.random() * 0.18 + 0.04
+    this.warm = Math.random() > 0.6   // 40% 珊瑚暖色，60% 青绿
   }
   Particle.prototype.update = function () {
     this.x += this.vx
@@ -31,7 +32,8 @@ export function initBgCanvas(canvasEl) {
   Particle.prototype.draw = function () {
     ctx.beginPath()
     ctx.arc(this.x, this.y, Math.max(0.1, this.r), 0, Math.PI * 2)
-    ctx.fillStyle = 'rgba(0,255,170,' + this.alpha + ')'
+    const col = this.warm ? '212,133,106' : '74,155,142'
+    ctx.fillStyle = 'rgba(' + col + ',' + this.alpha + ')'
     ctx.fill()
   }
 
@@ -55,7 +57,7 @@ export function initBgCanvas(canvasEl) {
           ctx.beginPath()
           ctx.moveTo(particles[i].x, particles[i].y)
           ctx.lineTo(particles[j].x, particles[j].y)
-          ctx.strokeStyle = 'rgba(0,255,170,' + 0.04 * (1 - dist / 100) + ')'
+          ctx.strokeStyle = 'rgba(74,155,142,' + 0.05 * (1 - dist / 100) + ')'
           ctx.lineWidth = 0.5
           ctx.stroke()
         }

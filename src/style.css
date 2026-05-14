@@ -1,29 +1,47 @@
 /* ========================================
    DESIGN SYSTEM — CSS Custom Properties
+   护眼暖色系（参考 preview.html）
    ======================================== */
 :root {
-  --color-primary:       #0c1222;
-  --color-primary-light: #111a2e;
-  --color-primary-dark:  #070b14;
-  --color-secondary:     #00d4ff;
-  --color-accent:        #00ffaa;
-  --color-accent-hover:  #00dd94;
-  --color-accent-dim:    rgba(0,255,170,0.1);
-  --color-accent-glow:   rgba(0,255,170,0.25);
-  --color-cyan-dim:      rgba(0,212,255,0.1);
-  --color-background:    #080c15;
-  --color-surface:       rgba(12,18,34,0.75);
-  --color-surface-solid: #0f1628;
-  --color-foreground:    #e4eaf6;
-  --color-text-muted:    #5a6f8e;
-  --color-muted:         rgba(255,255,255,0.04);
-  --color-border:        rgba(0,255,170,0.1);
-  --color-border-hover:  rgba(0,255,170,0.3);
-  --color-destructive:   #ff4466;
-  --color-destructive-hover: #ff2244;
-  --color-purple:        #7c3aed;
+  /* 背景层 */
+  --color-primary:       #EDE9E3;   /* 侧栏/深层背景 */
+  --color-primary-light: #F0EDE7;
+  --color-primary-dark:  #E5E0D8;
 
-  --font-heading: 'Orbitron', -apple-system, sans-serif;
+  /* 强调色 — 低饱和青绿 */
+  --color-accent:        #4A9B8E;
+  --color-accent-hover:  #3D8578;
+  --color-accent-dim:    rgba(74,155,142,0.10);
+  --color-accent-glow:   rgba(74,155,142,0.22);
+
+  /* 第二强调色 — 深青（替代原 cyan） */
+  --color-secondary:     #3D8578;
+  --color-cyan-dim:      rgba(74,155,142,0.08);
+
+  /* 暖点缀色 */
+  --color-warm:          #D4856A;
+  --color-warm-light:    #FDF0EB;
+
+  /* 页面色系 */
+  --color-background:    #F7F5F2;   /* 暖米白主背景 */
+  --color-surface:       rgba(255,255,255,0.90);
+  --color-surface-solid: #FFFFFF;
+  --color-foreground:    #2C3E3A;   /* 深炭灰文字 */
+  --color-text-muted:    #5A6E69;
+  --color-muted:         rgba(44,62,58,0.04);
+
+  /* 边框 */
+  --color-border:        #E8E4DE;
+  --color-border-hover:  rgba(74,155,142,0.40);
+
+  /* 危险/警告 */
+  --color-destructive:       #C95A4A;
+  --color-destructive-hover: #B04A3C;
+
+  /* 紫色点缀 */
+  --color-purple:        #7C6FB8;
+
+  --font-heading: 'Noto Sans SC', -apple-system, sans-serif;
   --font-body:    'Noto Sans SC', -apple-system, sans-serif;
 
   --radius-sm:  6px;
@@ -31,11 +49,11 @@
   --radius-lg:  14px;
   --radius-full: 9999px;
 
-  --shadow-sm:  0 1px 3px rgba(0,0,0,0.3);
-  --shadow-md:  0 2px 8px rgba(0,0,0,0.4), 0 0 1px rgba(0,255,170,0.1);
-  --shadow-lg:  0 8px 24px rgba(0,0,0,0.5), 0 0 1px rgba(0,255,170,0.1);
-  --shadow-xl:  0 16px 48px rgba(0,0,0,0.6), 0 0 2px rgba(0,255,170,0.15);
-  --shadow-glow: 0 0 20px rgba(0,255,170,0.15), 0 0 40px rgba(0,255,170,0.05);
+  --shadow-sm:  0 2px 8px  rgba(44,62,58,0.06);
+  --shadow-md:  0 8px 30px rgba(44,62,58,0.08);
+  --shadow-lg:  0 20px 60px rgba(44,62,58,0.10);
+  --shadow-xl:  0 24px 64px rgba(44,62,58,0.12);
+  --shadow-glow: 0 0 20px rgba(74,155,142,0.18), 0 0 40px rgba(74,155,142,0.06);
 
   --spacing-xs:  4px;
   --spacing-sm:  8px;
@@ -73,8 +91,8 @@ body {
 .bg-grid-overlay {
   position: fixed; inset: 0; z-index: 0; pointer-events: none;
   background-image:
-    linear-gradient(rgba(0,255,170,0.02) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0,255,170,0.02) 1px, transparent 1px);
+    linear-gradient(rgba(74,155,142,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(74,155,142,0.04) 1px, transparent 1px);
   background-size: 50px 50px;
   animation: gridDrift 30s linear infinite;
 }
@@ -86,7 +104,7 @@ body {
   position: fixed; inset: 0; z-index: 0; pointer-events: none;
   background: repeating-linear-gradient(
     0deg, transparent, transparent 2px,
-    rgba(0,255,170,0.006) 2px, rgba(0,255,170,0.006) 4px
+    rgba(74,155,142,0.012) 2px, rgba(74,155,142,0.012) 4px
   );
 }
 
@@ -96,7 +114,7 @@ body {
 .sidebar {
   width: var(--sidebar-width);
   min-height: 100vh;
-  background: linear-gradient(180deg, #0c1222 0%, #080e1c 100%);
+  background: linear-gradient(180deg, #EDE9E3 0%, #E5E0D8 100%);
   display: flex;
   flex-direction: column;
   position: fixed;
@@ -164,7 +182,7 @@ body {
   align-items: center;
   gap: 12px;
   padding: 12px var(--spacing-md);
-  color: rgba(255,255,255,0.45);
+  color: var(--color-text-muted);
   text-decoration: none;
   font-size: 13px;
   font-weight: 500;
@@ -174,14 +192,14 @@ body {
   cursor: pointer;
 }
 .sidebar-nav a:hover {
-  color: rgba(255,255,255,0.8);
-  background: rgba(0,255,170,0.04);
+  color: var(--color-foreground);
+  background: var(--color-accent-dim);
 }
 .sidebar-nav a.active {
   color: var(--color-accent);
   background: var(--color-accent-dim);
   border-left-color: var(--color-accent);
-  text-shadow: 0 0 20px var(--color-accent-glow);
+  text-shadow: none;
 }
 .sidebar-nav a svg { width: 18px; height: 18px; flex-shrink: 0; opacity: 0.6; transition: opacity var(--transition-fast); }
 .sidebar-nav a.active svg { opacity: 1; }
@@ -203,7 +221,7 @@ body {
   padding: var(--spacing-md);
   border-top: 1px solid var(--color-border);
   font-size: 10px;
-  color: rgba(255,255,255,0.2);
+  color: var(--color-text-muted);
   text-align: center;
   letter-spacing: 0.3px;
 }
@@ -244,7 +262,7 @@ body {
   position: absolute;
   top: 0; left: 50%; transform: translateX(-50%);
   width: 400px; height: 400px;
-  background: radial-gradient(circle, rgba(0,255,170,0.08), transparent 70%);
+  background: radial-gradient(circle, rgba(74,155,142,0.10), transparent 70%);
   pointer-events: none;
 }
 .home-hero h1 {
@@ -420,8 +438,8 @@ body {
 .preview-area.dragover,
 .preview-area.dragging {
   border-color: var(--color-accent);
-  background: rgba(0,255,170,0.03);
-  box-shadow: 0 0 30px var(--color-accent-glow);
+  background: rgba(74,155,142,0.04);
+  box-shadow: 0 0 20px var(--color-accent-glow);
 }
 .preview-area .placeholder-icon svg {
   width: 56px; height: 56px;
@@ -468,7 +486,7 @@ body {
   flex: 1; display: flex; align-items: center; justify-content: center;
   padding: 16px; overflow: auto;
   background:
-    repeating-conic-gradient(rgba(255,255,255,0.02) 0% 25%, transparent 0% 50%)
+    repeating-conic-gradient(rgba(44,62,58,0.04) 0% 25%, transparent 0% 50%)
     50% / 16px 16px;
 }
 .preview-canvas-container canvas {
@@ -574,7 +592,7 @@ body {
 }
 .input:focus {
   border-color: var(--color-accent);
-  box-shadow: 0 0 0 3px var(--color-accent-dim), 0 0 12px rgba(0,255,170,0.06);
+  box-shadow: 0 0 0 3px var(--color-accent-dim), 0 0 12px rgba(74,155,142,0.10);
 }
 .input::placeholder { color: rgba(90,111,142,0.5); }
 
@@ -609,7 +627,7 @@ body {
   flex: 1;
   height: 4px;
   border-radius: var(--radius-full);
-  background: rgba(255,255,255,0.08);
+  background: var(--color-border);
   outline: none;
   cursor: pointer;
 }
@@ -646,7 +664,7 @@ body {
 .toggle input { position: absolute; opacity: 0; width: 0; height: 0; }
 .toggle-track {
   width: 40px; height: 22px;
-  background: rgba(255,255,255,0.08);
+  background: var(--color-border);
   border-radius: var(--radius-full);
   position: relative;
   transition: background var(--transition-fast), box-shadow var(--transition-fast);
@@ -728,32 +746,32 @@ body {
 .btn-secondary {
   background: transparent;
   color: var(--color-secondary);
-  border: 1px solid rgba(0,212,255,0.3);
+  border: 1px solid rgba(74,155,142,0.40);
 }
 .btn-secondary:hover {
   background: var(--color-cyan-dim);
   border-color: var(--color-secondary);
 }
 .btn-danger {
-  background: rgba(255,68,102,0.1);
+  background: rgba(201,90,74,0.08);
   color: var(--color-destructive);
-  border: 1px solid rgba(255,68,102,0.25);
+  border: 1px solid rgba(201,90,74,0.25);
 }
 .btn-danger:hover {
-  background: rgba(255,68,102,0.2);
+  background: rgba(201,90,74,0.18);
   border-color: var(--color-destructive);
 }
 .btn-ghost { background: transparent; color: var(--color-text-muted); }
 .btn-ghost:hover { background: var(--color-muted); color: var(--color-foreground); }
 .btn-sm { height: 30px; padding: 0 10px; font-size: 11px; }
 .btn-purple {
-  background: rgba(124,58,237,0.15);
+  background: rgba(124,111,184,0.12);
   color: #a78bfa;
-  border: 1px solid rgba(124,58,237,0.3);
+  border: 1px solid rgba(124,111,184,0.35);
 }
 .btn-purple:hover {
-  background: rgba(124,58,237,0.25);
-  border-color: rgba(124,58,237,0.5);
+  background: rgba(124,111,184,0.22);
+  border-color: rgba(124,111,184,0.55);
 }
 
 .btn-group { display: flex; gap: var(--spacing-sm); flex-wrap: wrap; }
@@ -822,9 +840,9 @@ body {
   animation: toastIn 0.3s cubic-bezier(0.16,1,0.3,1);
   box-shadow: var(--shadow-lg);
 }
-.toast.success { background: rgba(0,255,170,0.1); border-color: var(--color-accent); color: var(--color-accent); }
-.toast.error { background: rgba(255,68,102,0.1); border-color: var(--color-destructive); color: var(--color-destructive); }
-.toast.info { background: rgba(0,212,255,0.1); border-color: var(--color-secondary); color: var(--color-secondary); }
+.toast.success { background: rgba(74,155,142,0.12); border-color: var(--color-accent); color: var(--color-accent); }
+.toast.error { background: rgba(201,90,74,0.10); border-color: var(--color-destructive); color: var(--color-destructive); }
+.toast.info { background: rgba(74,155,142,0.10); border-color: var(--color-secondary); color: var(--color-secondary); }
 .toast-exit { animation: toastOut 0.25s ease-in forwards; }
 @keyframes toastIn { from { opacity: 0; transform: translateX(30px); } to { opacity: 1; transform: translateX(0); } }
 @keyframes toastOut { to { opacity: 0; transform: translateX(30px); } }
