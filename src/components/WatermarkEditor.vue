@@ -8,6 +8,27 @@
     <div class="tool-body">
       <!-- 预览列：虚线框 + 其下文件缩略列表 -->
       <div class="preview-stack">
+
+        <!-- 操作栏（与图片压缩风格一致） -->
+        <div class="wm-actions" @click.stop>
+          <button class="btn btn-secondary btn-sm" @click="handleFileSelect">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+            选择文件
+          </button>
+          <button v-if="imageList.length" class="btn btn-primary btn-sm" @click="saveImage">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2zM17 21v-8H7v8M7 3v5h8"/></svg>
+            保存当前
+          </button>
+          <button v-if="imageList.length > 1" class="btn btn-purple btn-sm" @click="saveAllImages">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+            批量保存
+          </button>
+          <button v-if="imageList.length" class="btn btn-danger btn-sm" @click="clearImageList">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>
+            清理列表
+          </button>
+        </div>
+
         <div
           class="preview-area"
           @dragover.prevent
@@ -54,12 +75,6 @@
 
       <!-- 右侧控制面板 -->
       <div class="control-panel">
-        <div class="btn-group">
-          <button class="btn btn-secondary btn-sm" @click="handleFileSelect">选择文件</button>
-          <button class="btn btn-primary btn-sm" v-if="imageList.length" @click="saveImage">保存当前</button>
-          <button class="btn btn-sm" v-if="imageList.length > 1" @click="saveAllImages" style="background:#7C3AED;color:#FFF;">批量保存</button>
-          <button class="btn btn-danger btn-sm" v-if="imageList.length" @click="clearImageList">清理列表</button>
-        </div>
 
         <!-- 基础设置 -->
         <div class="setting-card">
@@ -884,6 +899,20 @@ watch(logoSettings, () => {
 
 <style scoped>
 /* 工具页结构与首页一致，视觉由全局 style.css（对齐 preview.html）承担 */
+
+/* 与图片压缩页顶部间距对齐 */
+:deep(.tool-body) {
+  padding-top: var(--spacing-md);
+}
+
+/* 预览框上方操作栏 */
+.wm-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
 .tool-page {
   flex: 1;
   display: flex;
@@ -897,7 +926,7 @@ watch(logoSettings, () => {
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-md);
+  gap: var(--spacing-sm);
 }
 
 .preview-canvas {

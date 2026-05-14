@@ -265,10 +265,8 @@
             <svg class="arrow" :class="{ rotated: !s3 }" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
           </div>
           <div class="setting-card-body" v-show="s3">
-            <div class="setting-row">
-              <label>输出质量</label>
-            </div>
-            <div class="range-group" style="padding:0 0 4px;">
+            <p class="param-label">设置输出图片质量（0-1）</p>
+            <div class="range-group">
               <input type="range" min="10" max="100" step="1" :value="Math.round(settings.jpeg.quality * 100)"
                 @input="e => { settings.jpeg.quality = Number(e.target.value) / 100 }">
               <span class="range-value">{{ Math.round(settings.jpeg.quality * 100) }}%</span>
@@ -283,13 +281,13 @@
             <svg class="arrow" :class="{ rotated: !s4 }" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
           </div>
           <div class="setting-card-body" v-show="s4">
-            <div class="setting-row"><label>输出颜色数（2-256）</label></div>
-            <div class="range-group" style="padding:0 0 4px;">
+            <p class="param-label">设置输出颜色数量（2-256）</p>
+            <div class="range-group">
               <input type="range" min="2" max="256" step="1" v-model.number="settings.png.colors">
               <span class="range-value">{{ settings.png.colors }}</span>
             </div>
-            <div class="setting-row" style="margin-top:4px;"><label>抖色系数（0-1）</label></div>
-            <div class="range-group" style="padding:0 0 4px;">
+            <p class="param-label" style="margin-top:6px;">设置抖色系数（0-1）</p>
+            <div class="range-group">
               <input type="range" min="0" max="100" step="1" :value="Math.round(settings.png.dithering * 100)"
                 @input="e => { settings.png.dithering = Number(e.target.value) / 100 }">
               <span class="range-value">{{ settings.png.dithering.toFixed(2) }}</span>
@@ -810,6 +808,15 @@ const guessMime = (name) => {
   flex-shrink: 0;
 }
 .arrow.rotated { transform: rotate(-90deg); }
+
+/* 设置卡片内的描述性标签（无 control 兄弟，不受全局 label 宽度限制）*/
+.param-label {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  font-weight: 500;
+  margin: 0 0 6px;
+  white-space: nowrap;
+}
 
 /* ── 响应式 ──────────────────────────────────────────────── */
 @media (max-width: 900px) {

@@ -6,33 +6,47 @@
     </div>
 
     <div class="tool-body">
-      <!-- 预览区 -->
-      <div
-        class="preview-area"
-        @click="!selectedFile && triggerFileInput()"
-        @drop.prevent="handleDrop"
-        @dragover.prevent
-        @dragenter.prevent
-      >
-        <input type="file" @change="handleFileChange" accept="image/*" ref="fileInput" style="display:none">
-        <template v-if="!selectedFile">
-          <div class="placeholder-icon">
-            <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-          </div>
-          <span class="placeholder-text">点击或拖拽图片文件到此处</span>
-          <span class="placeholder-hint">支持 JPG、PNG、WebP、BMP 格式</span>
-        </template>
-        <img v-else :src="previewUrl" :alt="selectedFile.name" class="preview-image">
+      <!-- 预览列 -->
+      <div class="preview-stack">
+
+        <!-- 操作栏 -->
+        <div class="conv-actions" @click.stop>
+          <button class="btn btn-secondary btn-sm" @click="triggerFileInput">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+            选择文件
+          </button>
+          <button class="btn btn-primary btn-sm" @click="convertImage" :disabled="converting || !selectedFile">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+            {{ converting ? '转换中…' : '开始转换' }}
+          </button>
+          <button v-if="selectedFile" class="btn btn-ghost btn-sm" @click="resetAll">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4v5h5M20 20v-5h-5M3.51 9a9 9 0 0114.85-3.36L20 7M4 17l1.64 1.36A9 9 0 0020.49 15"/></svg>
+            重置
+          </button>
+        </div>
+
+        <!-- 预览区 -->
+        <div
+          class="preview-area"
+          @click="!selectedFile && triggerFileInput()"
+          @drop.prevent="handleDrop"
+          @dragover.prevent
+          @dragenter.prevent
+        >
+          <input type="file" @change="handleFileChange" accept="image/*" ref="fileInput" style="display:none">
+          <template v-if="!selectedFile">
+            <div class="placeholder-icon">
+              <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+            </div>
+            <span class="placeholder-text">点击或拖拽图片文件到此处</span>
+            <span class="placeholder-hint">支持 JPG、PNG、WebP、BMP 格式</span>
+          </template>
+          <img v-else :src="previewUrl" :alt="selectedFile.name" class="preview-image">
+        </div>
       </div>
 
       <!-- 右侧控制面板 -->
       <div class="control-panel">
-        <div class="btn-group">
-          <button class="btn btn-secondary btn-sm" @click="triggerFileInput">选择文件</button>
-          <button class="btn btn-primary btn-sm" @click="convertImage" :disabled="converting || !selectedFile">
-            {{ converting ? '转换中...' : '开始转换' }}
-          </button>
-        </div>
 
         <div v-if="selectedFile" class="file-info-card">
           <span class="file-name">{{ selectedFile.name }}</span>
@@ -238,6 +252,16 @@ export default {
       const sizes = ['B', 'KB', 'MB', 'GB']
       const i = Math.floor(Math.log(bytes) / Math.log(k))
       return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
+    },
+    resetAll() {
+      if (this.previewUrl) URL.revokeObjectURL(this.previewUrl)
+      this.selectedFile   = null
+      this.previewUrl     = ''
+      this.newWidth       = 0
+      this.newHeight      = 0
+      this.originalWidth  = 0
+      this.originalHeight = 0
+      this.estimatedSize  = 0
     }
   },
   beforeUnmount() {
@@ -253,6 +277,27 @@ export default {
   flex-direction: column;
   width: 100%;
   min-width: 0;
+}
+
+/* 与图片压缩页顶部间距对齐 */
+:deep(.tool-body) {
+  padding-top: var(--spacing-md);
+}
+
+/* 预览框上方操作栏 */
+.preview-stack {
+  min-width: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.conv-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .preview-image {
