@@ -38,6 +38,10 @@
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
               保存全部
             </button>
+            <button class="btn btn-purple btn-sm" :disabled="doneCount < 2 || zipBusy" title="将已完成压缩的图片打包为一个 ZIP" @click="downloadZipAll">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><path d="M3.27 6.96L12 12.01l8.73-5.05M12 22.08V12"/></svg>
+              ZIP 打包下载
+            </button>
           </div>
         </div>
 
@@ -355,6 +359,7 @@
 
 <script setup>
 import { ref, reactive, computed } from 'vue'
+import JSZip from 'jszip'
 import { compress, getBlobDimension, formatFileSize } from '../utils/compress.js'
 import { showToast } from '../utils/toast.js'
 import { downloadBlob } from '../utils/download.js'
@@ -367,6 +372,7 @@ const folderInput = ref(null)
 const fileList      = ref([])   // FileItem[]
 const processing    = ref(false)
 const globalDragOver = ref(false)
+const zipBusy       = ref(false)
 
 /* ── 折叠状态 ────────────────────────────────────────────── */
 const s1 = ref(true)
@@ -609,6 +615,64 @@ const saveAll = async () => {
     await new Promise(r => setTimeout(r, 150))
   }
   showToast({ message: `已下载 ${done.length} 个文件`, type: 'success' })
+}
+
+function extFromMime(blob) {
+  const sub = (blob.type.split('/')[1] || 'jpg').replace('jpeg', 'jpg')
+  return sub === 'svg+xml' ? 'svg' : sub
+}
+
+function sanitizeZipBase(name) {
+  let base = name.replace(/\.[^.]+$/, '')
+  if (!base.trim()) base = 'image'
+  return base.replace(/[/\\:*?"<>|]/g, '_').slice(0, 120)
+}
+
+/** 至少 2 张已完成时可打包 ZIP（与单文件逐个下载并存） */
+const downloadZipAll = async () => {
+  const done = fileList.value.filter(f => f.status === 'done' && f.outBlob)
+  if (done.length < 2) {
+    showToast({ message: '请至少完成 2 张图片后再 ZIP 打包下载', type: 'info' })
+    return
+  }
+  zipBusy.value = true
+  try {
+    const zip = new JSZip()
+    const usedNames = new Set()
+    for (const item of done) {
+      const ext = extFromMime(item.outBlob)
+      const base = sanitizeZipBase(item.name)
+      let entryName = `${base}_compressed.${ext}`
+      let n = 1
+      while (usedNames.has(entryName.toLowerCase())) {
+        entryName = `${base}_compressed (${n}).${ext}`
+        n++
+      }
+      usedNames.add(entryName.toLowerCase())
+      zip.file(entryName, item.outBlob)
+    }
+    const blob = await zip.generateAsync({
+      type: 'blob',
+      compression: 'DEFLATE',
+      compressionOptions: { level: 6 },
+    })
+    const now = new Date()
+    const ts =
+      now.getFullYear() +
+      String(now.getMonth() + 1).padStart(2, '0') +
+      String(now.getDate()).padStart(2, '0') +
+      '_' +
+      String(now.getHours()).padStart(2, '0') +
+      String(now.getMinutes()).padStart(2, '0') +
+      String(now.getSeconds()).padStart(2, '0')
+    downloadBlob(blob, `compressed_${ts}.zip`)
+    showToast({ message: `已打包下载 ${done.length} 个文件`, type: 'success' })
+  } catch (e) {
+    console.error(e)
+    showToast({ message: `ZIP 打包失败：${e?.message || '未知错误'}`, type: 'error' })
+  } finally {
+    zipBusy.value = false
+  }
 }
 
 /* ── 工具 ────────────────────────────────────────────────── */
