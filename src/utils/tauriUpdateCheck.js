@@ -1,11 +1,12 @@
 /**
- * 桌面端启动后调用上架接口查询版本；有新版本则弹窗，确认后用系统浏览器打开下载页。
- * （HTTP GET 经 Rust invoke，绕过 CORS；下载链接仍只允许固定域名。）
+ * 桌面端启动后调用上架接口查询版本；有新版本则询问：自动下载打开 / 浏览器 / 稍后。
+ * （HTTP GET 经 Rust invoke，绕过 CORS；直链下载仅允许固定域名。）
  */
 import { invoke, isTauri } from '@tauri-apps/api/core'
-import { ask } from '@tauri-apps/plugin-dialog'
+import { ask, message } from '@tauri-apps/plugin-dialog'
 import { openUrl } from '@tauri-apps/plugin-opener'
 import { arch, platform as osPlatform } from '@tauri-apps/plugin-os'
+import { downloadUpdateAssetThenOpen } from './tauriUpdateDownload.js'
 
 const UPDATE_API_URL =
   'https://tapi.ge0.cc/app/appup/getAppUpdate?appname=tools'
@@ -37,6 +38,22 @@ function isAllowedPublicUrl (url) {
   }
 }
 
+/** 仅当 URL 指向常见安装包后缀时，提供应用内自动下载 */
+function canAutoDownloadUrl (url) {
+  try {
+    const path = new URL(String(url).trim()).pathname.toLowerCase()
+    return /\.(dmg|pkg|zip|exe|msi)(\?.*)?$/.test(path)
+  } catch {
+    return false
+  }
+}
+
+function markDismissed (version, forceUpdate) {
+  if (!forceUpdate) {
+    localStorage.setItem(DISMISS_PREFIX + version, '1')
+  }
+}
+
 /**
  * @param {string} platformOs plugin-os：`macos` | `windows` | ...
  * @param {string} rustArch plugin-os：`aarch64` | `x86_64` | …
@@ -64,12 +81,30 @@ function pickVariantKey (platformOs, rustArch, variantUrls) {
   return null
 }
 
+/** package_url 是否已是安装包的完整 HTTPS 路径（避免因 variant_urls 占位符再拼接） */
+function packageUrlLooksLikeArtifact (urlStr) {
+  try {
+    const u = String(urlStr).trim()
+    if (!u.startsWith('https://')) return false
+    const path = new URL(u).pathname.toLowerCase()
+    return /\.(dmg|pkg|zip|exe|msi)(\?|$)/i.test(path)
+  } catch {
+    return false
+  }
+}
+
 /**
  * @param {{ package_url?: string, variant_urls?: Record<string, string> }} block platforms.xxx
  * @param {string | null} variantKey `arm64` / `x64` / …
  */
 function resolveDownloadUrl (block, variantKey) {
   if (!block) return null
+  const pkg = typeof block.package_url === 'string' ? block.package_url.trim() : ''
+  // 典型：package_url 已是 https://.../xxx_aarch64.dmg，variant_urls 仍为 { arm64: "arm64" } 占位 — 不可再拼接
+  if (pkg && packageUrlLooksLikeArtifact(pkg)) {
+    return pkg.startsWith('https://') && isAllowedPublicUrl(pkg) ? pkg : null
+  }
+
   const vu = typeof block.variant_urls === 'object' && block.variant_urls ? block.variant_urls : {}
   const seg =
     variantKey && typeof vu[variantKey] === 'string'
@@ -80,13 +115,13 @@ function resolveDownloadUrl (block, variantKey) {
 
   if (seg.startsWith('https://')) {
     candidate = seg
-  } else if (seg && typeof block.package_url === 'string' && block.package_url.trim()) {
-    const base = block.package_url.trim().replace(/\/?$/, '/')
+  } else if (seg && pkg) {
+    const base = pkg.replace(/\/?$/, '/')
     candidate = base + seg.replace(/^\//, '')
   }
 
-  if (!candidate && typeof block.package_url === 'string') {
-    candidate = block.package_url.trim()
+  if (!candidate && pkg) {
+    candidate = pkg
   }
 
   return candidate.startsWith('https://') && isAllowedPublicUrl(candidate) ? candidate : null
@@ -166,7 +201,7 @@ export async function runTauriUpdateCheckOnce () {
 
     const title =
       manifest.displayName != null ? String(manifest.displayName) : 'Gouer工具包包'
-    let body = `发现新版本 ${manifest.version}（当前为 ${current}），是否前往下载页面？`
+    let body = `发现新版本 ${manifest.version}（当前为 ${current}）。`
     if (manifest.updateContent) {
       const note =
         manifest.updateContent.length > 200
@@ -175,19 +210,56 @@ export async function runTauriUpdateCheckOnce () {
       body += `\n\n${note}`
     }
 
-    const go = await ask(body, {
+    if (canAutoDownloadUrl(manifest.downloadUrl)) {
+      body +=
+        '\n\n「自动下载并打开」将把安装包保存到临时目录，完成后唤起系统打开（如 macOS 的 .dmg），请拖拽到「应用程序」完成替换。\n也可选择「用浏览器打开」手动下载。'
+
+      const choice = await message(body, {
+        title,
+        kind: 'info',
+        buttons: {
+          yes: '自动下载并打开',
+          no: '用浏览器打开',
+          cancel: '稍后',
+        },
+      })
+      const c = String(choice)
+
+      if (c === 'Cancel') {
+        markDismissed(manifest.version, manifest.forceUpdate)
+        return
+      }
+      if (c === 'Yes' || c.includes('下载并打开')) {
+        try {
+          await downloadUpdateAssetThenOpen(manifest.downloadUrl)
+        } catch {
+          const fallback = await ask('自动下载未完成，是否在浏览器打开下载链接？', {
+            title,
+            okLabel: '打开',
+            cancelLabel: '关闭',
+          })
+          if (fallback) await openUrl(manifest.downloadUrl)
+        }
+        return
+      }
+      if (c === 'No' || c.includes('浏览器')) {
+        await openUrl(manifest.downloadUrl)
+        return
+      }
+      await openUrl(manifest.downloadUrl)
+      return
+    }
+
+    body += '\n\n当前链接可能为下载页面，将在浏览器中打开。'
+    const goBrowser = await ask(body, {
       title,
       okLabel: '前往下载',
       cancelLabel: '稍后',
     })
-
-    if (!go) {
-      if (!manifest.forceUpdate) {
-        localStorage.setItem(DISMISS_PREFIX + manifest.version, '1')
-      }
+    if (!goBrowser) {
+      markDismissed(manifest.version, manifest.forceUpdate)
       return
     }
-
     await openUrl(manifest.downloadUrl)
   } catch (e) {
     console.warn('[tauri-update-check]', e)

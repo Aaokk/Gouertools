@@ -61,17 +61,19 @@
   </div>
   <ThemeSwitcher />
   <AppToast />
+  <UpdateDownloadOverlay />
 </template>
 
 <script>
 import { ref, onMounted, onUnmounted } from 'vue'
 import AppToast from './components/AppToast.vue'
 import ThemeSwitcher from './components/ThemeSwitcher.vue'
+import UpdateDownloadOverlay from './components/UpdateDownloadOverlay.vue'
 import { initBgCanvas } from './utils/bgCanvas.js'
 
 export default {
   name: 'App',
-  components: { AppToast, ThemeSwitcher },
+  components: { AppToast, ThemeSwitcher, UpdateDownloadOverlay },
   computed: {
     brandLogoHref () {
       return `${import.meta.env.BASE_URL || './'}favicon.svg`
