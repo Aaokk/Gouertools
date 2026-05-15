@@ -1237,7 +1237,7 @@ watch(logoSettings, () => {
 .wm-sv-plane {
   position: relative;
   height: 140px;
-  border-radius: var(--radius-md);
+  border-radius: 0;
   overflow: hidden;
   cursor: crosshair;
   touch-action: none;

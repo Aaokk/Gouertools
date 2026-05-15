@@ -26,22 +26,30 @@
             </button>
           </div>
           <div style="display:flex;gap:8px;">
-            <button class="btn btn-danger btn-sm" :disabled="!fileList.length" @click="clearList">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>
-              清空列表
-            </button>
-            <button class="btn btn-secondary btn-sm" :disabled="!fileList.length || processing" @click="reCompress">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4v5h5M20 20v-5h-5M3.51 9a9 9 0 0114.85-3.36L20 7M4 17l1.64 1.36A9 9 0 0020.49 15"/></svg>
-              重新压缩
-            </button>
-            <button class="btn btn-primary btn-sm" :disabled="!doneCount" @click="saveAll">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
-              保存全部
-            </button>
-            <button class="btn btn-purple btn-sm" :disabled="doneCount < 2 || zipBusy" title="将已完成压缩的图片打包为一个 ZIP" @click="downloadZipAll">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><path d="M3.27 6.96L12 12.01l8.73-5.05M12 22.08V12"/></svg>
-              ZIP 打包下载
-            </button>
+            <AnchoredBubbleTip :visible="tipClearList.visible" :text="tipClearList.text">
+              <button type="button" class="btn btn-danger btn-sm" @click="handleClearListClick">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>
+                清空列表
+              </button>
+            </AnchoredBubbleTip>
+            <AnchoredBubbleTip :visible="tipReCompress.visible" :text="tipReCompress.text">
+              <button type="button" class="btn btn-secondary btn-sm" @click="handleReCompressClick">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4v5h5M20 20v-5h-5M3.51 9a9 9 0 0114.85-3.36L20 7M4 17l1.64 1.36A9 9 0 0020.49 15"/></svg>
+                重新压缩
+              </button>
+            </AnchoredBubbleTip>
+            <AnchoredBubbleTip :visible="tipSaveAll.visible" :text="tipSaveAll.text">
+              <button type="button" class="btn btn-primary btn-sm" @click="handleSaveAllClick">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+                保存全部
+              </button>
+            </AnchoredBubbleTip>
+            <AnchoredBubbleTip :visible="tipZip.visible" :text="tipZip.text">
+              <button type="button" class="btn btn-purple btn-sm" title="将已完成压缩的图片打包为一个 ZIP" @click="handleZipClick">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><path d="M3.27 6.96L12 12.01l8.73-5.05M12 22.08V12"/></svg>
+                ZIP 打包下载
+              </button>
+            </AnchoredBubbleTip>
           </div>
         </div>
 
@@ -136,9 +144,20 @@
 
                 <!-- 操作 -->
                 <td class="col-act" @click.stop>
-                  <button class="icon-btn" :disabled="!item.outBlob" title="下载" @click.stop="downloadItem(item)">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
-                  </button>
+                  <AnchoredBubbleTip
+                    :visible="rowDlBubble.id === item.id"
+                    :text="rowDlBubble.text"
+                  >
+                    <button
+                      type="button"
+                      class="icon-btn"
+                      :class="{ 'icon-btn-idle': !item.outBlob }"
+                      title="下载"
+                      @click.stop="onRowDownloadClick(item)"
+                    >
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+                    </button>
+                  </AnchoredBubbleTip>
                   <button class="icon-btn danger" title="移除" @click.stop="removeItem(item)">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>
                   </button>
@@ -343,10 +362,14 @@
         </div>
 
         <div style="display:flex;gap:8px;">
-          <button class="btn btn-ghost" style="flex:1;" @click="resetSettings">重置选项</button>
-          <button class="btn btn-primary" style="flex:2;" :disabled="!fileList.length || processing" @click="applySettings">
-            应用选项
-          </button>
+          <button type="button" class="btn btn-ghost" style="flex:1;" @click="resetSettings">重置选项</button>
+          <div style="flex:2;min-width:0;">
+            <AnchoredBubbleTip stretch :visible="tipApply.visible" :text="tipApply.text">
+              <button type="button" class="btn btn-primary" style="width:100%;" @click="handleApplySettingsClick">
+                应用选项
+              </button>
+            </AnchoredBubbleTip>
+          </div>
         </div>
       </div>
     </div>
@@ -358,8 +381,11 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed } from 'vue'
+import { ref, reactive, computed, watch, onUnmounted } from 'vue'
 import JSZip from 'jszip'
+import AnchoredBubbleTip from './AnchoredBubbleTip.vue'
+import { useAnchoredBubbleTip } from '../composables/useAnchoredBubbleTip.js'
+import { anchoredBubbleExclusiveGen } from '../utils/anchoredBubbleCoordinator.js'
 import { compress, getBlobDimension, formatFileSize } from '../utils/compress.js'
 import { showToast } from '../utils/toast.js'
 import { downloadBlob } from '../utils/download.js'
@@ -373,6 +399,41 @@ const fileList      = ref([])   // FileItem[]
 const processing    = ref(false)
 const globalDragOver = ref(false)
 const zipBusy       = ref(false)
+
+const tipClearList = useAnchoredBubbleTip({ initialText: '请先添加图片' })
+const tipReCompress = useAnchoredBubbleTip({ initialText: '请先添加图片' })
+const tipSaveAll = useAnchoredBubbleTip({ initialText: '请先添加并完成压缩后再保存' })
+const tipZip = useAnchoredBubbleTip({
+  initialText: '至少需要 2 张已完成压缩的图片后再 ZIP 打包下载',
+})
+const tipApply = useAnchoredBubbleTip({ initialText: '请先添加图片' })
+
+const rowDlBubble = reactive({ id: null, text: '' })
+const rowDlLastGen = ref(-1)
+let rowDlBubbleTimer = null
+
+watch(anchoredBubbleExclusiveGen, (g) => {
+  if (rowDlBubble.id == null) return
+  if (rowDlLastGen.value !== g) hideRowDlBubble()
+})
+
+function hideRowDlBubble() {
+  rowDlBubble.id = null
+  rowDlBubble.text = ''
+  clearTimeout(rowDlBubbleTimer)
+  rowDlBubbleTimer = null
+}
+function flashRowDlBubble(item, msg) {
+  const g = anchoredBubbleExclusiveGen.value + 1
+  rowDlLastGen.value = g
+  anchoredBubbleExclusiveGen.value = g
+  rowDlBubble.id = item.id
+  rowDlBubble.text = msg
+  clearTimeout(rowDlBubbleTimer)
+  rowDlBubbleTimer = setTimeout(() => hideRowDlBubble(), 2800)
+}
+
+onUnmounted(() => clearTimeout(rowDlBubbleTimer))
 
 /* ── 折叠状态 ────────────────────────────────────────────── */
 const s1 = ref(true)
@@ -578,6 +639,68 @@ const reCompress = () => {
 
 const applySettings = () => reCompress()
 
+function handleClearListClick() {
+  if (!fileList.value.length) {
+    tipClearList.flash()
+    return
+  }
+  clearList()
+}
+
+function handleReCompressClick() {
+  if (!fileList.value.length) {
+    tipReCompress.flash()
+    return
+  }
+  if (processing.value) {
+    tipReCompress.flash('压缩进行中，请稍候')
+    return
+  }
+  reCompress()
+}
+
+function handleSaveAllClick() {
+  if (!doneCount.value) {
+    tipSaveAll.flash()
+    return
+  }
+  saveAll()
+}
+
+function handleZipClick() {
+  if (zipBusy.value) {
+    tipZip.flash('打包进行中，请稍候')
+    return
+  }
+  const done = fileList.value.filter(f => f.status === 'done' && f.outBlob)
+  if (done.length < 2) {
+    tipZip.flash()
+    return
+  }
+  downloadZipAll()
+}
+
+function handleApplySettingsClick() {
+  if (!fileList.value.length) {
+    tipApply.flash()
+    return
+  }
+  if (processing.value) {
+    tipApply.flash('压缩进行中，请稍候')
+    return
+  }
+  applySettings()
+}
+
+function onRowDownloadClick(item) {
+  if (item.outBlob) {
+    hideRowDlBubble()
+    downloadItem(item)
+    return
+  }
+  flashRowDlBubble(item, '请等待该行压缩完成后再下载')
+}
+
 const resetSettings = () => {
   settings.jpeg.quality    = 0.8
   settings.png.colors      = 128
@@ -628,13 +751,10 @@ function sanitizeZipBase(name) {
   return base.replace(/[/\\:*?"<>|]/g, '_').slice(0, 120)
 }
 
-/** 至少 2 张已完成时可打包 ZIP（与单文件逐个下载并存） */
+/** 至少 2 张已完成时可打包 ZIP（入口已由 handleZipClick 校验） */
 const downloadZipAll = async () => {
   const done = fileList.value.filter(f => f.status === 'done' && f.outBlob)
-  if (done.length < 2) {
-    showToast({ message: '请至少完成 2 张图片后再 ZIP 打包下载', type: 'info' })
-    return
-  }
+  if (done.length < 2) return
   zipBusy.value = true
   try {
     const zip = new JSZip()
@@ -924,17 +1044,21 @@ const guessMime = (name) => {
   transition: all var(--transition-fast);
   margin-right: 4px;
 }
-.icon-btn:hover:not(:disabled) {
+.icon-btn:hover:not(:disabled):not(.icon-btn-idle) {
   background: var(--color-accent-dim);
   border-color: var(--color-accent);
   color: var(--color-accent);
 }
-.icon-btn.danger:hover:not(:disabled) {
+.icon-btn.danger:hover:not(:disabled):not(.icon-btn-idle) {
   background: rgba(255,68,102,0.1);
   border-color: var(--color-destructive);
   color: var(--color-destructive);
 }
 .icon-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+.icon-btn-idle {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
 
 /* ── 汇总栏 ──────────────────────────────────────────────── */
 .comp-summary {

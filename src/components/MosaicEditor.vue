@@ -13,10 +13,16 @@
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
             选择图片
           </button>
-          <button v-if="imgLoaded" class="btn btn-danger btn-sm" @click="undoLast" :disabled="!history.length">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 14L4 9l5-5M4 9h11a5 5 0 010 10h-1"/></svg>
-            撤销
-          </button>
+          <AnchoredBubbleTip
+            v-if="imgLoaded"
+            :visible="undoTip.visible"
+            :text="undoTip.text"
+          >
+            <button type="button" class="btn btn-danger btn-sm" @click="handleUndoClick">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 14L4 9l5-5M4 9h11a5 5 0 010 10h-1"/></svg>
+              撤销
+            </button>
+          </AnchoredBubbleTip>
           <button v-if="imgLoaded" class="btn btn-ghost btn-sm" @click="clearAll">
             全部清除
           </button>
@@ -145,6 +151,8 @@
 import { ref, reactive } from 'vue'
 import { showToast } from '../utils/toast.js'
 import { downloadDataUrl } from '../utils/download.js'
+import AnchoredBubbleTip from './AnchoredBubbleTip.vue'
+import { useAnchoredBubbleTip } from '../composables/useAnchoredBubbleTip.js'
 
 const fileInput  = ref(null)
 const canvasRef  = ref(null)
@@ -162,6 +170,8 @@ const brushSize  = ref(40)
 let origImage = null
 let baseImageData = null
 const history = ref([])
+
+const undoTip = useAnchoredBubbleTip({ initialText: '暂无打码步骤可撤销' })
 
 /* ── 加载文件 ─────────────────────────────────────────────── */
 const onFileChange = (e) => {
@@ -379,6 +389,15 @@ const undoLast = () => {
   if (!history.value.length) return
   baseImageData = history.value.pop()
   canvasRef.value.getContext('2d').putImageData(baseImageData, 0, 0)
+}
+
+function handleUndoClick() {
+  if (!history.value.length) {
+    undoTip.flash()
+    return
+  }
+  undoTip.hide()
+  undoLast()
 }
 
 const clearAll = () => {

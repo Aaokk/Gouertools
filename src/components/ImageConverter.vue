@@ -15,10 +15,12 @@
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
             选择文件
           </button>
-          <button class="btn btn-primary btn-sm" @click="convertImage" :disabled="converting || !selectedFile">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
-            {{ converting ? '转换中…' : '开始转换' }}
-          </button>
+          <AnchoredBubbleTip :visible="convertTipVisible" :text="convertTipText">
+            <button type="button" class="btn btn-primary btn-sm" @click="handleConvertClick">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+              {{ converting ? '转换中…' : '开始转换' }}
+            </button>
+          </AnchoredBubbleTip>
           <button v-if="selectedFile" class="btn btn-ghost btn-sm" @click="resetAll">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4v5h5M20 20v-5h-5M3.51 9a9 9 0 0114.85-3.36L20 7M4 17l1.64 1.36A9 9 0 0020.49 15"/></svg>
             重置
@@ -136,11 +138,15 @@
 </template>
 
 <script>
+import { watch } from 'vue'
+import AnchoredBubbleTip from './AnchoredBubbleTip.vue'
 import { showToast } from '../utils/toast.js'
 import { downloadBlob } from '../utils/download.js'
+import { anchoredBubbleExclusiveGen } from '../utils/anchoredBubbleCoordinator.js'
 
 export default {
   name: 'ImageConverter',
+  components: { AnchoredBubbleTip },
   data() {
     return {
       selectedFile: null,
@@ -160,6 +166,11 @@ export default {
       aspectRatio: 1,
       _previewSeq: 0,
       cardOpen: true,
+      convertTipVisible: false,
+      convertTipText: '请先选择图片后再转换',
+      convertTipLastGen: -1,
+      _convertTipTimer: null,
+      _stopBubbleGenWatch: null,
       formats: [
         { label: 'JPG',  value: 'image/jpeg' },
         { label: 'PNG',  value: 'image/png'  },
@@ -178,8 +189,51 @@ export default {
     targetFormat() { this.updatePreview() },
     maxSizeInMB() { this.updatePreview() },
   },
+  mounted() {
+    this._stopBubbleGenWatch = watch(
+      anchoredBubbleExclusiveGen,
+      (g) => {
+        if (!this.convertTipVisible) return
+        if (this.convertTipLastGen !== g) {
+          clearTimeout(this._convertTipTimer)
+          this.convertTipVisible = false
+          this._convertTipTimer = null
+        }
+      }
+    )
+  },
+  beforeUnmount() {
+    clearTimeout(this._convertTipTimer)
+    this._stopBubbleGenWatch?.()
+    if (this.previewUrl) URL.revokeObjectURL(this.previewUrl)
+  },
   methods: {
     triggerFileInput() { this.$refs.fileInput.click() },
+    flashConvertTip(msg) {
+      const g = anchoredBubbleExclusiveGen.value + 1
+      this.convertTipLastGen = g
+      anchoredBubbleExclusiveGen.value = g
+      if (typeof msg === 'string') this.convertTipText = msg
+      this.convertTipVisible = true
+      clearTimeout(this._convertTipTimer)
+      this._convertTipTimer = setTimeout(() => {
+        this.convertTipVisible = false
+        this._convertTipTimer = null
+      }, 2800)
+    },
+    handleConvertClick() {
+      if (!this.selectedFile) {
+        this.flashConvertTip()
+        return
+      }
+      if (this.converting) {
+        this.flashConvertTip('转换进行中，请稍候')
+        return
+      }
+      clearTimeout(this._convertTipTimer)
+      this.convertTipVisible = false
+      this.convertImage()
+    },
     handleFileChange(event) {
       const file = event.target.files[0]
       if (file && file.type.startsWith('image/')) this.handleImageFile(file)
@@ -191,6 +245,8 @@ export default {
       else showToast({ message: '请选择图片文件', type: 'info' })
     },
     async handleImageFile(file) {
+      clearTimeout(this._convertTipTimer)
+      this.convertTipVisible = false
       this.selectedFile = file
       if (this.previewUrl) URL.revokeObjectURL(this.previewUrl)
       this.previewUrl = URL.createObjectURL(file)
@@ -306,6 +362,8 @@ export default {
       return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
     },
     resetAll() {
+      clearTimeout(this._convertTipTimer)
+      this.convertTipVisible = false
       if (this.previewUrl) URL.revokeObjectURL(this.previewUrl)
       this.selectedFile   = null
       this.previewUrl     = ''
@@ -318,9 +376,6 @@ export default {
       this.enableSizeLimit = false
     }
   },
-  beforeUnmount() {
-    if (this.previewUrl) URL.revokeObjectURL(this.previewUrl)
-  }
 }
 </script>
 

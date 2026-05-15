@@ -20,15 +20,6 @@
           <button v-if="posterSrc" type="button" class="btn btn-ghost btn-sm" @click="clearPoster">
             清除背景
           </button>
-          <button
-            v-if="qrDataUrl"
-            class="btn btn-secondary btn-sm"
-            :title="downloadRasterTitle"
-            @click="downloadPng"
-          >
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
-            {{ downloadRasterLabel }}
-          </button>
           <button v-if="qrDataUrl" class="btn btn-ghost btn-sm" @click="downloadSvg">
             下载 SVG
           </button>
@@ -201,6 +192,31 @@
             <div v-if="settings.showLabel" class="setting-row">
               <label>标签文字</label>
               <div class="control"><input class="input" v-model="settings.label" placeholder="默认显示内容"></div>
+            </div>
+
+            <div class="setting-row qr-logo-setting-row">
+              <label style="padding-top:6px;">中心 Logo</label>
+              <div class="control qr-logo-stack">
+                <div class="qr-logo-actions">
+                  <button type="button" class="btn btn-secondary btn-sm" @click="qrLogoInput.click()">
+                    上传 Logo
+                  </button>
+                  <button v-if="qrLogoDataUrl" type="button" class="btn btn-ghost btn-sm" @click="clearQrLogo">
+                    清除
+                  </button>
+                </div>
+                <input
+                  ref="qrLogoInput"
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp,image/gif"
+                  class="qr-logo-file-input"
+                  @change="onQrLogoFileChange"
+                />
+                <div v-if="qrLogoDataUrl" class="qr-logo-preview-row">
+                  <img :src="qrLogoDataUrl" alt="" class="qr-logo-thumb" draggable="false" />
+                  <span class="qr-logo-tip">正方形居中嵌入；非正方形将居中裁剪；建议容错选「高 H」</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -420,9 +436,27 @@
           </div>
         </div>
 
-        <button class="btn btn-primary" style="width:100%;" @click="generate">
-          生成二维码
-        </button>
+        <div class="qr-panel-footer-btns">
+          <button type="button" class="btn btn-primary qr-panel-footer-btn" @click="generate">
+            生成二维码
+          </button>
+          <AnchoredBubbleTip
+            stretch
+            :visible="downloadTip.visible"
+            :text="downloadTip.text"
+          >
+            <button
+              type="button"
+              class="btn btn-secondary qr-panel-footer-btn"
+              :class="{ 'qr-download-btn-idle': !qrDataUrl }"
+              :title="qrDataUrl ? downloadRasterTitle : ''"
+              @click.stop="handleFooterDownloadClick"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+              {{ downloadRasterLabel }}
+            </button>
+          </AnchoredBubbleTip>
+        </div>
       </div>
     </div>
   </div>
@@ -435,11 +469,14 @@ import {
   styledQrToSvgString,
   QR_DOT_STYLES,
   QR_EYE_STYLES,
+  QR_LOGO_DEFAULT_RELATIVE_SIZE,
   qrDotThumbFragmentMarkup,
   qrEyeThumbMarkup,
 } from '../utils/qrStyled.js'
 import { showToast } from '../utils/toast.js'
 import { downloadDataUrl, downloadBlob } from '../utils/download.js'
+import AnchoredBubbleTip from './AnchoredBubbleTip.vue'
+import { useAnchoredBubbleTip } from '../composables/useAnchoredBubbleTip.js'
 
 const s1 = ref(true)
 const s2 = ref(true)
@@ -452,6 +489,14 @@ const eyeDropdownEl = ref(null)
 const qrDataUrl   = ref('')
 const qrSvgString = ref('')
 const contentType = ref('url')
+
+const qrLogoInput = ref(null)
+const qrLogoDataUrl = ref('')
+const qrLogoImage = ref(null)
+
+const downloadTip = useAnchoredBubbleTip({
+  initialText: '请先点击「生成二维码」，生成成功后再下载',
+})
 
 /** 海报背景 + 正方形二维码选区（坐标相对 posterFit 内接矩形） */
 const posterFileInput = ref(null)
@@ -595,25 +640,12 @@ const placementSideNaturalPx = computed(() => {
   return Math.round(b.w / s)
 })
 
-/** 光栅下载按钮文案：无海报时为 JPEG；有海报时与导出格式一致 */
-const downloadRasterLabel = computed(() => {
-  if (!posterSrc.value) {
-    return settings.bgTransparent ? '下载 PNG' : '下载 JPEG'
-  }
-  const ext = posterExportExt.value
-  if (ext === 'jpg') return '下载 JPEG'
-  if (ext === 'webp') return '下载 WebP'
-  return '下载 PNG'
-})
+/** 光栅下载按钮：固定文案「下载」（格式由后台文件名与 MIME 决定） */
+const downloadRasterLabel = computed(() => '下载')
 
-const downloadRasterTitle = computed(() => {
-  if (!posterSrc.value) {
-    return settings.bgTransparent
-      ? '透明背景以 PNG 下载（JPEG 不支持透明）'
-      : '下载二维码 JPEG'
-  }
-  return `导出合成图，格式与上传海报一致（.${posterExportExt.value}）`
-})
+const downloadRasterTitle = computed(() =>
+  posterSrc.value ? '下载海报合成图' : '下载二维码图片',
+)
 
 const dotStyleLabel = computed(() => {
   const f = QR_DOT_STYLES.find((s) => s.id === settings.dotStyle)
@@ -1035,6 +1067,39 @@ const getContent = () => {
   return settings.content.trim()
 }
 
+function onQrLogoFileChange(e) {
+  const f = e.target.files?.[0]
+  e.target.value = ''
+  if (!f?.type?.startsWith('image/')) {
+    showToast({ message: '请选择图片文件', type: 'info' })
+    return
+  }
+  const reader = new FileReader()
+  reader.onload = () => {
+    const dataUrl = reader.result
+    if (typeof dataUrl !== 'string') return
+    qrLogoDataUrl.value = dataUrl
+    const img = new Image()
+    img.onload = () => {
+      qrLogoImage.value = img
+      if (getContent()) generate()
+    }
+    img.onerror = () => {
+      qrLogoImage.value = null
+      qrLogoDataUrl.value = ''
+      showToast({ message: 'Logo 加载失败', type: 'error' })
+    }
+    img.src = dataUrl
+  }
+  reader.readAsDataURL(f)
+}
+
+function clearQrLogo() {
+  qrLogoDataUrl.value = ''
+  qrLogoImage.value = null
+  if (qrDataUrl.value && getContent()) generate()
+}
+
 const generate = () => {
   const content = getContent()
   if (!content) {
@@ -1051,6 +1116,9 @@ const generate = () => {
       margin,
       dotStyle: settings.dotStyle,
       eyeStyle: settings.eyeStyle,
+      logoImage: qrLogoImage.value || null,
+      logoDataUrl: qrLogoDataUrl.value || '',
+      logoRelativeSize: QR_LOGO_DEFAULT_RELATIVE_SIZE,
     }
     qrDataUrl.value = styledQrToDataUrl(content, opts)
     qrSvgString.value = styledQrToSvgString(content, opts)
@@ -1071,6 +1139,7 @@ watch(
     settings.marginModules,
     settings.dotStyle,
     settings.eyeStyle,
+    qrLogoDataUrl.value,
   ],
   () => {
     if (!qrDataUrl.value) return
@@ -1082,6 +1151,10 @@ watch(
   }
 )
 
+watch(qrDataUrl, (v) => {
+  if (v) downloadTip.hide()
+})
+
 onUnmounted(() => {
   clearTimeout(regenTimer)
   detachPosterResizeObserver()
@@ -1091,6 +1164,15 @@ onUnmounted(() => {
   document.removeEventListener('mousedown', onQrStyleMenuPointerDown)
 })
 
+function handleFooterDownloadClick() {
+  if (!qrDataUrl.value) {
+    downloadTip.flash()
+    return
+  }
+  downloadTip.hide()
+  downloadPng()
+}
+
 const downloadPng = async () => {
   if (!qrDataUrl.value) return
   if (posterSrc.value && placementBox.value) {
@@ -1098,15 +1180,7 @@ const downloadPng = async () => {
     if (blob) {
       const ext = posterExportExt.value || 'png'
       downloadBlob(blob, `${posterFilenameBase.value}_qrcode.${ext}`)
-      showToast({
-        message:
-          ext === 'jpg'
-            ? '已导出合成 JPEG'
-            : ext === 'webp'
-              ? '已导出合成 WebP'
-              : '已导出合成 PNG',
-        type: 'success',
-      })
+      showToast({ message: '导出成功', type: 'success' })
       return
     }
     showToast({ message: '合成导出失败', type: 'error' })
@@ -1233,6 +1307,32 @@ const downloadSvg = () => {
 .qr-textarea { min-height: 72px; height: auto; resize: vertical; padding: 8px 10px; }
 
 .control-panel { box-sizing: border-box; width: 100%; min-width: 0; overflow: visible; display: flex; flex-direction: column; gap: var(--spacing-md); }
+
+.qr-panel-footer-btns {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+  align-items: stretch;
+}
+
+.qr-panel-footer-btn {
+  flex: 1;
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+:deep(.anchored-bubble-anchor--stretch) .qr-panel-footer-btn {
+  flex: 1;
+}
+
+.qr-download-btn-idle {
+  opacity: 0.72;
+  cursor: not-allowed;
+}
+
 .arrow { transition: transform var(--transition-fast); color: var(--color-text-muted); flex-shrink: 0; }
 .arrow.rotated { transform: rotate(-90deg); }
 
@@ -1635,5 +1735,56 @@ const downloadSvg = () => {
 
 .qr-p-meta-sep {
   opacity: 0.35;
+}
+
+.qr-logo-setting-row {
+  align-items: flex-start;
+}
+
+.qr-logo-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.qr-logo-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.qr-logo-file-input {
+  display: none;
+}
+
+.qr-logo-preview-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.qr-logo-thumb {
+  width: 48px;
+  height: 48px;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  flex-shrink: 0;
+  background: repeating-conic-gradient(#e8ecf0 0% 25%, #f8fafc 0% 50%) 50% / 10px 10px;
+}
+
+.qr-logo-tip {
+  font-size: 11px;
+  line-height: 1.45;
+  color: var(--color-text-muted);
+}
+
+.qr-logo-tip-muted {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.45;
+  color: var(--color-text-muted);
 }
 </style>

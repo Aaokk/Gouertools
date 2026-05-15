@@ -896,6 +896,54 @@ export function qrEyeThumbMarkup(styleId) {
   return `<rect x="0" y="0" width="${vb}" height="${vb}" fill="#ffffff"/>` + svgQrEyeCompositePlain(styleId, metrics, '#1a1f1d', '#ffffff')
 }
 
+/** 中心 Logo 边长占画布宽度比例（正方形） */
+export const QR_LOGO_DEFAULT_RELATIVE_SIZE = 0.22
+
+/**
+ * 在已完成矩阵与码眼的画布正中绘制正方形 Logo（底层留白边框，图源居中裁剪为正方形）。
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {number} width 画布边长
+ * @param {CanvasImageSource} logoImage 已解码的图片
+ * @param {{ bgColor?: string, logoRelativeSize?: number }} opts
+ */
+export function drawQrCenterLogo(ctx, width, logoImage, opts = {}) {
+  if (!logoImage) return
+  const iw = logoImage.naturalWidth ?? logoImage.width
+  const ih = logoImage.naturalHeight ?? logoImage.height
+  if (!iw || !ih) return
+
+  const bgColor = opts.bgColor ?? '#ffffff'
+  const rel = opts.logoRelativeSize ?? QR_LOGO_DEFAULT_RELATIVE_SIZE
+  const logoSide = Math.max(8, Math.round(width * rel))
+  const pad = Math.max(2, Math.round(width * 0.012))
+  const shell = logoSide + pad * 2
+  const x0 = (width - shell) / 2
+  const y0 = (width - shell) / 2
+  const rx = Math.min(pad * 1.25, shell * 0.11)
+
+  ctx.save()
+
+  const back = isQrTransparentBackground(bgColor) ? 'rgba(255,255,255,0.94)' : bgColor
+  ctx.fillStyle = back
+  roundRectPath(ctx, x0, y0, shell, shell, rx)
+  ctx.fill()
+
+  ctx.strokeStyle = 'rgba(0,0,0,0.07)'
+  ctx.lineWidth = Math.max(1, width / 256)
+  roundRectPath(ctx, x0, y0, shell, shell, rx)
+  ctx.stroke()
+
+  const lx = x0 + pad
+  const ly = y0 + pad
+
+  const srcSide = Math.min(iw, ih)
+  const sx = (iw - srcSide) / 2
+  const sy = (ih - srcSide) / 2
+  ctx.drawImage(logoImage, sx, sy, srcSide, srcSide, lx, ly, logoSide, logoSide)
+
+  ctx.restore()
+}
+
 export function renderStyledQrCanvas(content, options) {
   const {
     width,
@@ -905,6 +953,8 @@ export function renderStyledQrCanvas(content, options) {
     margin = 1,
     dotStyle = 'normal',
     eyeStyle = 'square',
+    logoImage = null,
+    logoRelativeSize = QR_LOGO_DEFAULT_RELATIVE_SIZE,
   } = options
 
   const qrData = QRCode.create(content, { errorCorrectionLevel })
@@ -995,6 +1045,10 @@ export function renderStyledQrCanvas(content, options) {
     drawQrEyeComposite(ctx, eyeStyle, metrics, fg, bg)
   }
 
+  if (logoImage) {
+    drawQrCenterLogo(ctx, width, logoImage, { bgColor, logoRelativeSize })
+  }
+
   return canvas
 }
 
@@ -1019,6 +1073,8 @@ export function styledQrToSvgString(content, options) {
     margin = 1,
     dotStyle = 'normal',
     eyeStyle = 'square',
+    logoDataUrl = '',
+    logoRelativeSize = QR_LOGO_DEFAULT_RELATIVE_SIZE,
   } = options
 
   const qrData = QRCode.create(content, { errorCorrectionLevel })
@@ -1107,6 +1163,26 @@ export function styledQrToSvgString(content, options) {
   for (const [fr, fc] of finderCorners(modCount)) {
     const metrics = finderPaintMetrics(fr, fc, modCount, marginModules, width, totalCells)
     parts.push(svgQrEyeCompositePlain(eyeStyle, metrics, fgE, bgE))
+  }
+
+  const logoHref = typeof logoDataUrl === 'string' ? logoDataUrl.trim() : ''
+  if (logoHref.startsWith('data:')) {
+    const rel = logoRelativeSize ?? QR_LOGO_DEFAULT_RELATIVE_SIZE
+    const logoSide = Math.max(8, Math.round(width * rel))
+    const pad = Math.max(2, Math.round(width * 0.012))
+    const shell = logoSide + pad * 2
+    const x0 = (width - shell) / 2
+    const y0 = (width - shell) / 2
+    const rx = Math.min(pad * 1.25, shell * 0.11)
+    const backFill = isQrTransparentBackground(bgColor) ? 'rgba(255,255,255,0.94)' : bgColor
+    const strokeW = Math.max(1, width / 256)
+    const hrefEsc = esc(logoHref)
+    parts.push(
+      `<g>` +
+        `<rect x="${svgSanNum(x0)}" y="${svgSanNum(y0)}" width="${svgSanNum(shell)}" height="${svgSanNum(shell)}" rx="${svgSanNum(rx)}" ry="${svgSanNum(rx)}" fill="${esc(backFill)}" stroke="rgba(0,0,0,0.07)" stroke-width="${svgSanNum(strokeW)}"/>` +
+        `<image href="${hrefEsc}" x="${svgSanNum(x0 + pad)}" y="${svgSanNum(y0 + pad)}" width="${svgSanNum(logoSide)}" height="${svgSanNum(logoSide)}" preserveAspectRatio="xMidYMid slice"/>` +
+      `</g>`,
+    )
   }
 
   parts.push('</svg>')

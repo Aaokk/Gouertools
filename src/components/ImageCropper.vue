@@ -152,9 +152,11 @@
           </div>
         </div>
 
-        <button class="btn btn-primary" style="width:100%;" :disabled="!imgSrc" @click="doCrop">
-          裁剪并下载
-        </button>
+        <AnchoredBubbleTip stretch :visible="footerCropTip.visible" :text="footerCropTip.text">
+          <button type="button" class="btn btn-primary" style="width:100%;" @click="handleFooterCropClick">
+            裁剪并下载
+          </button>
+        </AnchoredBubbleTip>
       </div>
     </div>
 
@@ -163,9 +165,11 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, nextTick } from 'vue'
+import { ref, reactive, computed, nextTick, watch } from 'vue'
 import { showToast } from '../utils/toast.js'
 import { downloadBlob } from '../utils/download.js'
+import AnchoredBubbleTip from './AnchoredBubbleTip.vue'
+import { useAnchoredBubbleTip } from '../composables/useAnchoredBubbleTip.js'
 
 /* ── 文件 ────────────────────────────────────────────────── */
 const fileInput    = ref(null)
@@ -177,6 +181,12 @@ const origWidth    = ref(0)
 const origHeight   = ref(0)
 const fileName     = ref('image')
 const isDragging   = ref(false)
+
+const footerCropTip = useAnchoredBubbleTip({ initialText: '请先选择图片后再裁剪下载' })
+
+watch(imgSrc, (v) => {
+  if (v) footerCropTip.hide()
+})
 
 /* ── 折叠 ────────────────────────────────────────────────── */
 const s1 = ref(true)
@@ -385,6 +395,15 @@ const resetCrop = () => {
 }
 
 /* ── 裁剪并下载 ───────────────────────────────────────────── */
+function handleFooterCropClick() {
+  if (!imgSrc.value) {
+    footerCropTip.flash()
+    return
+  }
+  footerCropTip.hide()
+  doCrop()
+}
+
 const doCrop = () => {
   if (!imgRef.value || !cropBox.value) return
   const { x, y, w, h } = cropBox.value
