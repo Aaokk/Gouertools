@@ -948,6 +948,11 @@ const guessMime = (name) => {
   font-size: 12px;
   color: var(--color-text-muted);
   flex-wrap: wrap;
+  width: 80%;
+  max-width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  box-sizing: border-box;
 }
 .sum-sep  { opacity: 0.3; }
 .sum-item { display: inline-flex; align-items: center; gap: 4px; }

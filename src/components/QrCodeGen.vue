@@ -1626,8 +1626,10 @@ const downloadSvg = () => {
   border-radius: var(--radius-md);
   font-size: 12px;
   color: var(--color-text-muted);
-  width: 100%;
+  width: 80%;
   max-width: 100%;
+  margin-left: auto;
+  margin-right: auto;
   box-sizing: border-box;
 }
 
