@@ -8,6 +8,8 @@
  *   AVIF         → WASM avif encoder（quality 1-100，speed 1-10）
  *   SVG          → svgo（移除冗余标签/属性）
  *
+ * 若处理后体积大于用户上传的原始文件，则退回原始 Blob（避免 JPEG 二次编码等导致变大）。
+ *
  * 缩放模式（resizeMethod）：
  *   null         — 不缩放
  *   fitWidth     — 按宽度等比缩放（option.width）
@@ -183,13 +185,22 @@ export async function compressSvg(blob) {
 /* ── 统一入口 ─────────────────────────────────────────────── */
 
 export async function compress(blob, info, option) {
+  const originalBlob = blob
   let workBlob = blob
   let workMime = blob.type.toLowerCase()
+
+  /** 输出不大于原文件时才采用压缩结果，否则保留上传文件（尺寸一并还原为原图） */
+  const preferSmallerOrOriginal = (outBlob, width, height) => {
+    if (outBlob.size > originalBlob.size) {
+      return { blob: originalBlob, width: info.width, height: info.height }
+    }
+    return { blob: outBlob, width, height }
+  }
 
   // SVG 单独处理，不走格式转换逻辑
   if (workMime === 'image/svg+xml') {
     const outBlob = await compressSvg(workBlob)
-    return { blob: outBlob, width: info.width, height: info.height }
+    return preferSmallerOrOriginal(outBlob, info.width, info.height)
   }
 
   // 格式转换预处理
@@ -235,7 +246,7 @@ export async function compress(blob, info, option) {
     outBlob = await compressJpegWebp(workBlob, info, option.jpeg, resizeOption)
   }
 
-  return { blob: outBlob, width: dim.width, height: dim.height }
+  return preferSmallerOrOriginal(outBlob, dim.width, dim.height)
 }
 
 /* ── 工具 ─────────────────────────────────────────────────── */
