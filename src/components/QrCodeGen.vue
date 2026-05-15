@@ -13,17 +13,98 @@
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h.01M14 17h.01M17 14h.01M17 17h.01M20 14h.01M20 17h.01M17 20h.01M20 20h.01"/></svg>
             生成二维码
           </button>
-          <button v-if="qrDataUrl" class="btn btn-secondary btn-sm" @click="downloadPng">
+          <button type="button" class="btn btn-secondary btn-sm" @click="posterFileInput.click()">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+            上传海报背景
+          </button>
+          <button v-if="posterSrc" type="button" class="btn btn-ghost btn-sm" @click="clearPoster">
+            清除背景
+          </button>
+          <button
+            v-if="qrDataUrl"
+            class="btn btn-secondary btn-sm"
+            :title="downloadRasterTitle"
+            @click="downloadPng"
+          >
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
-            下载 PNG
+            {{ downloadRasterLabel }}
           </button>
           <button v-if="qrDataUrl" class="btn btn-ghost btn-sm" @click="downloadSvg">
             下载 SVG
           </button>
+          <input
+            ref="posterFileInput"
+            type="file"
+            accept="image/jpeg,image/png,image/webp,image/gif"
+            class="qr-poster-file-input"
+            @change="onPosterFileChange"
+          />
         </div>
 
-        <!-- 预览框：生成后铺淡灰底，便于与白底码区分；拖拽时略加深 -->
+        <!-- 海报模式：contain 可视区域内的正方形选框（交互对齐图片裁剪页） -->
         <div
+          v-if="posterSrc"
+          class="preview-area qr-preview-area qr-preview-area--filled qr-poster-shell"
+          @dragover.prevent="posterDragOver = true"
+          @dragleave.self="posterDragOver = false"
+          @drop.prevent="onPosterDrop"
+          :class="{ dragging: posterDragOver }"
+        >
+          <div class="qr-poster-fit-inner">
+            <img
+              ref="posterImgRef"
+              :src="posterSrc"
+              class="qr-poster-img"
+              alt=""
+              draggable="false"
+              @load="onPosterImageLoad"
+            />
+            <div
+              v-if="posterFit.dw && placementBox"
+              class="qr-poster-overlay-wrap"
+              :style="posterOverlayWrapStyle"
+            >
+              <div class="qr-p-mask qr-p-mask-top" :style="placeMaskTop" />
+              <div class="qr-p-mask qr-p-mask-bottom" :style="placeMaskBottom" />
+              <div class="qr-p-mask qr-p-mask-left" :style="placeMaskLeft" />
+              <div class="qr-p-mask qr-p-mask-right" :style="placeMaskRight" />
+              <div
+                class="qr-p-box"
+                :style="placementBoxStyle"
+                @pointerdown.prevent.stop="startPlacementMove"
+              >
+                <div class="qr-p-grid qr-p-grid-v1" />
+                <div class="qr-p-grid qr-p-grid-v2" />
+                <div class="qr-p-grid qr-p-grid-h1" />
+                <div class="qr-p-grid qr-p-grid-h2" />
+                <div
+                  v-for="h in placementHandles"
+                  :key="h"
+                  :class="['qr-p-handle', `qr-p-handle-${h}`]"
+                  @pointerdown.prevent.stop="startPlacementResize(h, $event)"
+                />
+                <img v-if="qrDataUrl" :src="qrDataUrl" class="qr-p-box-qr" alt="" draggable="false" />
+                <span v-else class="qr-p-box-hint">生成二维码后将嵌入此处</span>
+              </div>
+              <div
+                v-if="settings.showLabel && qrDataUrl"
+                class="qr-p-label-below"
+                :style="placementLabelStyle"
+              >
+                {{ settings.label || settings.content }}
+              </div>
+            </div>
+          </div>
+          <div v-if="placementBox && posterNaturalW" class="qr-poster-meta">
+            <span>二维码边长（按原图像素）：≈ {{ placementSideNaturalPx }} px</span>
+            <span class="qr-p-meta-sep">|</span>
+            <span>海报 {{ posterNaturalW }} × {{ posterNaturalH }}</span>
+          </div>
+        </div>
+
+        <!-- 无海报：纯二维码预览 -->
+        <div
+          v-else
           class="preview-area qr-preview-area"
           :class="{ 'qr-preview-area--filled': !!qrDataUrl }"
         >
@@ -35,7 +116,11 @@
             <span class="placeholder-hint">支持网址、文字、WiFi 等类型</span>
           </div>
           <div v-else class="qr-result">
-            <div class="qr-wrap" :style="qrWrapStyle">
+            <div
+              class="qr-wrap"
+              :class="{ 'qr-wrap-transparent-bg': settings.bgTransparent }"
+              :style="qrWrapStyle"
+            >
               <img :src="qrDataUrl" alt="二维码" class="qr-img" />
               <p v-if="settings.showLabel" class="qr-label-text">{{ settings.label || settings.content }}</p>
             </div>
@@ -308,13 +393,28 @@
                 <input class="input" v-model="settings.fgColor" maxlength="7" style="width:86px;">
               </div>
             </div>
-            <div class="setting-row">
+            <div class="setting-row qr-bg-setting-row">
               <label>背景色</label>
-              <div class="control" style="display:flex;align-items:center;gap:8px;">
-                <div class="color-dot" :style="{ background: settings.bgColor }">
-                  <input type="color" v-model="settings.bgColor">
+              <div class="control qr-bg-control">
+                <div class="qr-bg-picker" :class="{ 'is-disabled': settings.bgTransparent }">
+                  <div
+                    class="color-dot qr-bg-color-dot"
+                    :style="qrBgColorDotStyle"
+                  >
+                    <input type="color" v-model="settings.bgColor" :disabled="settings.bgTransparent">
+                  </div>
+                  <input
+                    class="input"
+                    v-model="settings.bgColor"
+                    maxlength="7"
+                    style="width:86px;"
+                    :disabled="settings.bgTransparent"
+                  />
                 </div>
-                <input class="input" v-model="settings.bgColor" maxlength="7" style="width:86px;">
+                <label class="qr-bg-transparent-option">
+                  <input type="checkbox" v-model="settings.bgTransparent">
+                  <span>透明</span>
+                </label>
               </div>
             </div>
           </div>
@@ -329,7 +429,7 @@
 </template>
 
 <script setup>
-import { ref, computed, reactive, watch, onUnmounted } from 'vue'
+import { ref, computed, reactive, watch, onUnmounted, nextTick } from 'vue'
 import {
   styledQrToDataUrl,
   styledQrToSvgString,
@@ -353,6 +453,27 @@ const qrDataUrl   = ref('')
 const qrSvgString = ref('')
 const contentType = ref('url')
 
+/** 海报背景 + 正方形二维码选区（坐标相对 posterFit 内接矩形） */
+const posterFileInput = ref(null)
+const posterSrc = ref('')
+const posterFilenameBase = ref('poster')
+/** 合成导出：与上传海报一致的 MIME / 扩展名（画布无法输出的格式回退 PNG） */
+const posterExportMime = ref('image/png')
+const posterExportExt = ref('png')
+const posterExportQuality = ref(null)
+const posterImgRef = ref(null)
+const posterNaturalW = ref(0)
+const posterNaturalH = ref(0)
+const posterFit = reactive({ ox: 0, oy: 0, dw: 0, dh: 0, scale: 1 })
+const placementBox = ref(null)
+const posterDragOver = ref(false)
+const placementHandles = ['nw', 'n', 'ne', 'e', 'se', 's', 'sw', 'w']
+
+let posterResizeObs = null
+let placementDragState = null
+
+const QR_PLACEMENT_MIN = 24
+
 const settings = reactive({
   content:    'https://gouer.vip',
   size:       400,
@@ -363,6 +484,8 @@ const settings = reactive({
   eyeStyle:   'square',
   fgColor:    '#000000',
   bgColor:    '#ffffff',
+  /** 透明背景（传给 qrStyled 为 transparent；栅格需 PNG） */
+  bgTransparent: false,
   showLabel:  false,
   label:      '',
 })
@@ -379,11 +502,118 @@ const contentPlaceholder = computed(() => {
   return map[contentType.value] || ''
 })
 
-const qrWrapStyle = computed(() => ({
-  background:   settings.bgColor,
-  padding:      '6px',
-  borderRadius: '8px',
+const qrWrapStyle = computed(() => {
+  const base = {
+    padding: '6px',
+    borderRadius: '8px',
+  }
+  if (settings.bgTransparent) return { ...base, background: 'transparent' }
+  return { ...base, background: settings.bgColor }
+})
+
+const qrBgColorDotStyle = computed(() => {
+  if (settings.bgTransparent) {
+    return {
+      background:
+        'repeating-conic-gradient(#cfd6da 0% 25%, #f0f3f5 0% 50%) 50% / 10px 10px',
+    }
+  }
+  return { background: settings.bgColor }
+})
+
+const posterOverlayWrapStyle = computed(() => ({
+  left: `${posterFit.ox}px`,
+  top: `${posterFit.oy}px`,
+  width: `${posterFit.dw}px`,
+  height: `${posterFit.dh}px`,
 }))
+
+const placementBoxStyle = computed(() => {
+  const b = placementBox.value
+  if (!b) return {}
+  return { left: `${b.x}px`, top: `${b.y}px`, width: `${b.w}px`, height: `${b.h}px` }
+})
+
+const placeMaskTop = computed(() => {
+  const b = placementBox.value
+  if (!b || !posterFit.dh) return {}
+  const { x, y, w } = b
+  return { top: '0', left: `${x}px`, width: `${w}px`, height: `${y}px` }
+})
+
+const placeMaskBottom = computed(() => {
+  const b = placementBox.value
+  if (!b || !posterFit.dh) return {}
+  const { x, y, w, h } = b
+  const ih = posterFit.dh
+  return {
+    top: `${y + h}px`,
+    left: `${x}px`,
+    width: `${w}px`,
+    height: `${ih - y - h}px`,
+  }
+})
+
+const placeMaskLeft = computed(() => {
+  const b = placementBox.value
+  if (!b || !posterFit.dh) return {}
+  const ih = posterFit.dh
+  return { top: '0', left: '0', width: `${b.x}px`, height: `${ih}px` }
+})
+
+const placeMaskRight = computed(() => {
+  const b = placementBox.value
+  if (!b || !posterFit.dw || !posterFit.dh) return {}
+  const { x, y, w, h } = b
+  const iw = posterFit.dw
+  const ih = posterFit.dh
+  return {
+    top: '0',
+    left: `${x + w}px`,
+    width: `${iw - x - w}px`,
+    height: `${ih}px`,
+  }
+})
+
+const placementLabelStyle = computed(() => {
+  const b = placementBox.value
+  if (!b || !posterFit.dw) return {}
+  const fs = Math.max(10, Math.min(18, b.w * 0.065))
+  const gap = Math.max(6, posterFit.dw * 0.012)
+  return {
+    left: `${b.x}px`,
+    top: `${b.y + b.h + gap}px`,
+    width: `${b.w}px`,
+    fontSize: `${fs}px`,
+  }
+})
+
+const placementSideNaturalPx = computed(() => {
+  const b = placementBox.value
+  const s = posterFit.scale
+  if (!b || !s) return 0
+  return Math.round(b.w / s)
+})
+
+/** 光栅下载按钮文案：无海报时为 JPEG；有海报时与导出格式一致 */
+const downloadRasterLabel = computed(() => {
+  if (!posterSrc.value) {
+    return settings.bgTransparent ? '下载 PNG' : '下载 JPEG'
+  }
+  const ext = posterExportExt.value
+  if (ext === 'jpg') return '下载 JPEG'
+  if (ext === 'webp') return '下载 WebP'
+  return '下载 PNG'
+})
+
+const downloadRasterTitle = computed(() => {
+  if (!posterSrc.value) {
+    return settings.bgTransparent
+      ? '透明背景以 PNG 下载（JPEG 不支持透明）'
+      : '下载二维码 JPEG'
+  }
+  return `导出合成图，格式与上传海报一致（.${posterExportExt.value}）`
+})
 
 const dotStyleLabel = computed(() => {
   const f = QR_DOT_STYLES.find((s) => s.id === settings.dotStyle)
@@ -443,6 +673,361 @@ watch([dotStyleDropdownOpen, eyeStyleDropdownOpen], ([dotOpen, eyeOpen]) => {
   }
 })
 
+function updatePosterFitMetrics() {
+  const img = posterImgRef.value
+  if (!img?.naturalWidth) return
+  posterNaturalW.value = img.naturalWidth
+  posterNaturalH.value = img.naturalHeight
+  const nw = img.naturalWidth
+  const nh = img.naturalHeight
+  const cw = img.clientWidth
+  const ch = img.clientHeight
+  if (!cw || !ch) return
+  const scaleFit = Math.min(cw / nw, ch / nh)
+  posterFit.ox = (cw - nw * scaleFit) / 2
+  posterFit.oy = (ch - nh * scaleFit) / 2
+  posterFit.dw = nw * scaleFit
+  posterFit.dh = nh * scaleFit
+  posterFit.scale = scaleFit
+}
+
+function initPlacementBox() {
+  const fm = posterFit
+  if (!fm.dw || !fm.dh) return
+  const side = Math.max(QR_PLACEMENT_MIN, Math.min(fm.dw, fm.dh) * 0.36)
+  placementBox.value = {
+    x: (fm.dw - side) / 2,
+    y: (fm.dh - side) / 2,
+    w: side,
+    h: side,
+  }
+}
+
+function rescalePlacementAfterFitChange(oldDw, oldDh) {
+  const b = placementBox.value
+  if (!b || oldDw <= 0 || oldDh <= 0 || !posterFit.dw) {
+    initPlacementBox()
+    return
+  }
+  const nx = b.x / oldDw
+  const ny = b.y / oldDh
+  let side = (b.w / oldDw) * posterFit.dw
+  side = Math.max(QR_PLACEMENT_MIN, Math.min(side, posterFit.dw, posterFit.dh))
+  let x = nx * posterFit.dw
+  let y = ny * posterFit.dh
+  x = Math.max(0, Math.min(x, posterFit.dw - side))
+  y = Math.max(0, Math.min(y, posterFit.dh - side))
+  placementBox.value = { x, y, w: side, h: side }
+}
+
+function detachPosterResizeObserver() {
+  posterResizeObs?.disconnect()
+  posterResizeObs = null
+}
+
+function attachPosterResizeObserver() {
+  detachPosterResizeObserver()
+  const el = posterImgRef.value
+  if (!el) return
+  posterResizeObs = new ResizeObserver(() => {
+    requestAnimationFrame(() => {
+      const odw = posterFit.dw
+      const odh = posterFit.dh
+      updatePosterFitMetrics()
+      if (placementBox.value && odw > 0 && odh > 0) rescalePlacementAfterFitChange(odw, odh)
+      else initPlacementBox()
+    })
+  })
+  posterResizeObs.observe(el)
+}
+
+async function onPosterImageLoad() {
+  await nextTick()
+  updatePosterFitMetrics()
+  initPlacementBox()
+  attachPosterResizeObserver()
+}
+
+function applyPosterExportSpecFromFile(file) {
+  const type = (file.type || '').toLowerCase().trim()
+  const name = (file.name || '').toLowerCase()
+
+  const setPngFallback = (msg) => {
+    if (msg) showToast({ message: msg, type: 'info' })
+    posterExportMime.value = 'image/png'
+    posterExportExt.value = 'png'
+    posterExportQuality.value = null
+  }
+
+  if (type === 'image/jpeg' || type === 'image/jpg') {
+    posterExportMime.value = 'image/jpeg'
+    posterExportExt.value = 'jpg'
+    posterExportQuality.value = 0.92
+    return
+  }
+  if (type === 'image/png') {
+    posterExportMime.value = 'image/png'
+    posterExportExt.value = 'png'
+    posterExportQuality.value = null
+    return
+  }
+  if (type === 'image/webp') {
+    posterExportMime.value = 'image/webp'
+    posterExportExt.value = 'webp'
+    posterExportQuality.value = 0.92
+    return
+  }
+
+  if (type === 'image/gif' || name.endsWith('.gif')) {
+    setPngFallback('GIF 无法在画布中原样导出，已改为 PNG')
+    return
+  }
+
+  if (name.endsWith('.jpg') || name.endsWith('.jpeg')) {
+    posterExportMime.value = 'image/jpeg'
+    posterExportExt.value = 'jpg'
+    posterExportQuality.value = 0.92
+    return
+  }
+  if (name.endsWith('.png')) {
+    posterExportMime.value = 'image/png'
+    posterExportExt.value = 'png'
+    posterExportQuality.value = null
+    return
+  }
+  if (name.endsWith('.webp')) {
+    posterExportMime.value = 'image/webp'
+    posterExportExt.value = 'webp'
+    posterExportQuality.value = 0.92
+    return
+  }
+
+  if (type.startsWith('image/')) {
+    setPngFallback(
+      `无法在浏览器中导出为 ${type.replace(/^image\//, '').toUpperCase()}，已改为 PNG`,
+    )
+    return
+  }
+
+  setPngFallback(null)
+}
+
+function loadPosterFile(file) {
+  if (!file) return
+  const type = (file.type || '').toLowerCase()
+  const name = (file.name || '').toLowerCase()
+  const looksImage =
+    type.startsWith('image/') ||
+    /\.(jpe?g|png|gif|webp|bmp|avif|heic|heif)$/i.test(name)
+  if (!looksImage) {
+    showToast({ message: '请选择图片文件', type: 'info' })
+    return
+  }
+  applyPosterExportSpecFromFile(file)
+  posterFilenameBase.value = file.name.replace(/\.[^.]+$/, '') || 'poster'
+  const url = URL.createObjectURL(file)
+  if (posterSrc.value) URL.revokeObjectURL(posterSrc.value)
+  posterSrc.value = url
+  placementBox.value = null
+}
+
+function onPosterFileChange(e) {
+  const f = e.target.files?.[0]
+  e.target.value = ''
+  if (f) loadPosterFile(f)
+}
+
+function onPosterDrop(e) {
+  posterDragOver.value = false
+  const f = e.dataTransfer?.files?.[0]
+  if (!f) return
+  const type = (f.type || '').toLowerCase()
+  const name = (f.name || '').toLowerCase()
+  const looksImage =
+    type.startsWith('image/') ||
+    /\.(jpe?g|png|gif|webp|bmp|avif|heic|heif)$/i.test(name)
+  if (looksImage) loadPosterFile(f)
+}
+
+function clearPoster() {
+  detachPosterResizeObserver()
+  stopPlacementDrag()
+  if (posterSrc.value) URL.revokeObjectURL(posterSrc.value)
+  posterSrc.value = ''
+  placementBox.value = null
+  posterNaturalW.value = 0
+  posterNaturalH.value = 0
+  posterFit.ox = 0
+  posterFit.oy = 0
+  posterFit.dw = 0
+  posterFit.dh = 0
+  posterFit.scale = 1
+  posterExportMime.value = 'image/png'
+  posterExportExt.value = 'png'
+  posterExportQuality.value = null
+}
+
+function startPlacementMove(e) {
+  const b = placementBox.value
+  if (!b) return
+  placementDragState = { type: 'move', startX: e.clientX, startY: e.clientY, origBox: { ...b } }
+  e.currentTarget.setPointerCapture?.(e.pointerId)
+  window.addEventListener('pointermove', onPlacementPointerMove)
+  window.addEventListener('pointerup', stopPlacementDrag)
+}
+
+function startPlacementResize(handle, e) {
+  const b = placementBox.value
+  if (!b) return
+  placementDragState = {
+    type: 'resize',
+    handle,
+    startX: e.clientX,
+    startY: e.clientY,
+    origBox: { ...b },
+  }
+  e.target.setPointerCapture?.(e.pointerId)
+  window.addEventListener('pointermove', onPlacementPointerMove)
+  window.addEventListener('pointerup', stopPlacementDrag)
+}
+
+function onPlacementPointerMove(e) {
+  if (!placementDragState || !posterFit.dw) return
+  const iw = posterFit.dw
+  const ih = posterFit.dh
+  const dx = e.clientX - placementDragState.startX
+  const dy = e.clientY - placementDragState.startY
+  const ob = placementDragState.origBox
+  const r = 1
+
+  if (placementDragState.type === 'move') {
+    let nx = ob.x + dx
+    let ny = ob.y + dy
+    nx = Math.max(0, Math.min(iw - ob.w, nx))
+    ny = Math.max(0, Math.min(ih - ob.h, ny))
+    placementBox.value = { ...ob, x: nx, y: ny }
+    return
+  }
+
+  let { x, y, w, h } = ob
+  const h2 = placementDragState.handle
+
+  if (h2.includes('e')) w = Math.max(QR_PLACEMENT_MIN, ob.w + dx)
+  if (h2.includes('s')) h = Math.max(QR_PLACEMENT_MIN, ob.h + dy)
+  if (h2.includes('w')) {
+    x = ob.x + dx
+    w = Math.max(QR_PLACEMENT_MIN, ob.w - dx)
+  }
+  if (h2.includes('n')) {
+    y = ob.y + dy
+    h = Math.max(QR_PLACEMENT_MIN, ob.h - dy)
+  }
+
+  if (h2.includes('e') || h2.includes('w')) {
+    h = w / r
+  } else {
+    w = h * r
+  }
+  if (h2.includes('n')) y = ob.y + ob.h - h
+  if (h2.includes('w')) x = ob.x + ob.w - w
+
+  x = Math.max(0, x)
+  y = Math.max(0, y)
+  w = Math.min(iw - x, w)
+  h = Math.min(ih - y, h)
+  if (w < QR_PLACEMENT_MIN) w = QR_PLACEMENT_MIN
+  if (h < QR_PLACEMENT_MIN) h = QR_PLACEMENT_MIN
+
+  placementBox.value = { x, y, w, h }
+}
+
+function stopPlacementDrag() {
+  placementDragState = null
+  window.removeEventListener('pointermove', onPlacementPointerMove)
+  window.removeEventListener('pointerup', stopPlacementDrag)
+}
+
+function truncateCanvasLabel(ctx, text, maxWidth) {
+  const ellipsis = '…'
+  if (ctx.measureText(text).width <= maxWidth) return text
+  let lo = 0
+  let hi = text.length
+  while (lo < hi) {
+    const mid = Math.ceil((lo + hi) / 2)
+    const t = text.slice(0, mid) + ellipsis
+    if (ctx.measureText(t).width <= maxWidth) lo = mid
+    else hi = mid - 1
+  }
+  return text.slice(0, lo) + ellipsis
+}
+
+function composePosterRasterBlob() {
+  return new Promise((resolve) => {
+    const fm = posterFit
+    const box = placementBox.value
+    const src = posterSrc.value
+    const qr = qrDataUrl.value
+    if (!fm.scale || !box || !src || !qr) {
+      resolve(null)
+      return
+    }
+    const nw = posterNaturalW.value
+    const nh = posterNaturalH.value
+    const sFit = fm.scale
+
+    const sx = Math.round(box.x / sFit)
+    const sy = Math.round(box.y / sFit)
+    const sw = Math.round(box.w / sFit)
+    const sh = Math.round(box.h / sFit)
+
+    const mime = posterExportMime.value
+    const quality = posterExportQuality.value
+
+    const posterImg = new Image()
+    posterImg.onload = () => {
+      const canvas = document.createElement('canvas')
+      canvas.width = nw
+      canvas.height = nh
+      const ctx = canvas.getContext('2d')
+      ctx.drawImage(posterImg, 0, 0)
+
+      const qrImg = new Image()
+      qrImg.onload = () => {
+        ctx.drawImage(qrImg, sx, sy, sw, sh)
+        if (settings.showLabel) {
+          const raw = (settings.label || settings.content || '').trim()
+          if (raw) {
+            const ly = sy + sh + Math.max(4, Math.round(sw * 0.02))
+            const fontPx = Math.max(14, Math.round(sw * 0.065))
+            ctx.font = `${fontPx}px system-ui, -apple-system, "Segoe UI", sans-serif`
+            ctx.fillStyle = settings.fgColor
+            ctx.textAlign = 'center'
+            ctx.textBaseline = 'top'
+            const cx = sx + sw / 2
+            const maxW = Math.min(sw * 1.35, nw - sx - 8)
+            ctx.fillText(truncateCanvasLabel(ctx, raw, maxW), cx, ly)
+          }
+        }
+        const qArg =
+          mime === 'image/jpeg' || mime === 'image/webp'
+            ? typeof quality === 'number'
+              ? quality
+              : 0.92
+            : undefined
+        canvas.toBlob(
+          (blob) => resolve(blob),
+          mime,
+          qArg,
+        )
+      }
+      qrImg.onerror = () => resolve(null)
+      qrImg.src = qr
+    }
+    posterImg.onerror = () => resolve(null)
+    posterImg.src = src
+  })
+}
+
 const getContent = () => {
   if (contentType.value === 'wifi') {
     return `WIFI:T:${wifi.encryption};S:${wifi.ssid};P:${wifi.password};;`
@@ -462,7 +1047,7 @@ const generate = () => {
       width: settings.size,
       errorCorrectionLevel: settings.errorLevel,
       fgColor: settings.fgColor,
-      bgColor: settings.bgColor,
+      bgColor: settings.bgTransparent ? 'transparent' : settings.bgColor,
       margin,
       dotStyle: settings.dotStyle,
       eyeStyle: settings.eyeStyle,
@@ -480,6 +1065,7 @@ watch(
   () => [
     settings.fgColor,
     settings.bgColor,
+    settings.bgTransparent,
     settings.size,
     settings.errorLevel,
     settings.marginModules,
@@ -498,12 +1084,35 @@ watch(
 
 onUnmounted(() => {
   clearTimeout(regenTimer)
+  detachPosterResizeObserver()
+  stopPlacementDrag()
+  if (posterSrc.value) URL.revokeObjectURL(posterSrc.value)
   document.removeEventListener('keydown', closeQrStyleMenusOnEscape)
   document.removeEventListener('mousedown', onQrStyleMenuPointerDown)
 })
 
-const downloadPng = () => {
-  downloadDataUrl(qrDataUrl.value, 'qrcode.png')
+const downloadPng = async () => {
+  if (!qrDataUrl.value) return
+  if (posterSrc.value && placementBox.value) {
+    const blob = await composePosterRasterBlob()
+    if (blob) {
+      const ext = posterExportExt.value || 'png'
+      downloadBlob(blob, `${posterFilenameBase.value}_qrcode.${ext}`)
+      showToast({
+        message:
+          ext === 'jpg'
+            ? '已导出合成 JPEG'
+            : ext === 'webp'
+              ? '已导出合成 WebP'
+              : '已导出合成 PNG',
+        type: 'success',
+      })
+      return
+    }
+    showToast({ message: '合成导出失败', type: 'error' })
+    return
+  }
+  downloadDataUrl(qrDataUrl.value, settings.bgTransparent ? 'qrcode.png' : 'qrcode.jpg')
 }
 
 const downloadSvg = () => {
@@ -554,6 +1163,57 @@ const downloadSvg = () => {
   align-items: center;
   gap: 8px;
   width: 280px;
+}
+
+.qr-result .qr-wrap-transparent-bg {
+  background-color: transparent !important;
+  background-image: repeating-conic-gradient(
+    rgba(130, 145, 155, 0.22) 0% 25%,
+    rgba(130, 145, 155, 0.07) 0% 50%
+  ) !important;
+  background-size: 14px 14px !important;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.06);
+}
+
+.qr-bg-control {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.qr-bg-picker {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.qr-bg-picker.is-disabled {
+  opacity: 0.48;
+  pointer-events: none;
+}
+
+.qr-bg-transparent-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-foreground);
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.qr-bg-transparent-option input {
+  margin: 0;
+  cursor: pointer;
+  accent-color: var(--color-accent);
+}
+
+.qr-bg-color-dot input[type='color']:disabled {
+  cursor: not-allowed;
 }
 .qr-img {
   display: block;
@@ -757,5 +1417,221 @@ const downloadSvg = () => {
 .dot-style-cell.active .dot-style-cell-label {
   color: var(--color-accent);
   font-weight: 600;
+}
+
+/* ── 海报背景 + 裁剪同款选框 ─────────────────────────────── */
+.qr-poster-file-input {
+  display: none;
+}
+
+.qr-poster-shell {
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-sm);
+  user-select: none;
+  overflow: visible;
+  height: auto;
+  min-height: 480px;
+  cursor: default;
+  padding-bottom: var(--spacing-sm);
+}
+
+.qr-poster-fit-inner {
+  position: relative;
+  display: inline-flex;
+  line-height: 0;
+  max-width: 100%;
+}
+
+.qr-poster-img {
+  display: block;
+  max-width: 100%;
+  max-height: 640px;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+.qr-poster-overlay-wrap {
+  position: absolute;
+  pointer-events: none;
+  overflow: visible;
+  box-sizing: border-box;
+}
+
+.qr-p-mask {
+  position: absolute;
+  background: rgba(0, 0, 0, 0.45);
+  pointer-events: none;
+}
+
+.qr-p-box {
+  position: absolute;
+  border: 2px solid var(--color-accent);
+  cursor: move;
+  box-sizing: border-box;
+  pointer-events: auto;
+  touch-action: none;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.qr-p-grid {
+  position: absolute;
+  background: rgba(255, 255, 255, 0.28);
+  pointer-events: none;
+}
+
+.qr-p-grid-v1 {
+  left: 33.33%;
+  top: 0;
+  width: 1px;
+  height: 100%;
+}
+
+.qr-p-grid-v2 {
+  left: 66.66%;
+  top: 0;
+  width: 1px;
+  height: 100%;
+}
+
+.qr-p-grid-h1 {
+  top: 33.33%;
+  left: 0;
+  height: 1px;
+  width: 100%;
+}
+
+.qr-p-grid-h2 {
+  top: 66.66%;
+  left: 0;
+  height: 1px;
+  width: 100%;
+}
+
+.qr-p-handle {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  background: var(--color-accent);
+  border: 2px solid #fff;
+  border-radius: 3px;
+  pointer-events: auto;
+  box-sizing: border-box;
+  touch-action: none;
+}
+
+.qr-p-handle::after {
+  content: '';
+  position: absolute;
+  inset: -10px;
+}
+
+.qr-p-handle-nw {
+  top: -5px;
+  left: -5px;
+  cursor: nw-resize;
+}
+
+.qr-p-handle-n {
+  top: -5px;
+  left: calc(50% - 5px);
+  cursor: n-resize;
+}
+
+.qr-p-handle-ne {
+  top: -5px;
+  right: -5px;
+  cursor: ne-resize;
+}
+
+.qr-p-handle-e {
+  top: calc(50% - 5px);
+  right: -5px;
+  cursor: e-resize;
+}
+
+.qr-p-handle-se {
+  bottom: -5px;
+  right: -5px;
+  cursor: se-resize;
+}
+
+.qr-p-handle-s {
+  bottom: -5px;
+  left: calc(50% - 5px);
+  cursor: s-resize;
+}
+
+.qr-p-handle-sw {
+  bottom: -5px;
+  left: -5px;
+  cursor: sw-resize;
+}
+
+.qr-p-handle-w {
+  top: calc(50% - 5px);
+  left: -5px;
+  cursor: w-resize;
+}
+
+.qr-p-box-qr {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  pointer-events: none;
+}
+
+.qr-p-box-hint {
+  position: relative;
+  z-index: 1;
+  font-size: 11px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.92);
+  text-align: center;
+  padding: 6px;
+  line-height: 1.35;
+  pointer-events: none;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.75);
+}
+
+.qr-p-label-below {
+  position: absolute;
+  pointer-events: none;
+  color: var(--color-foreground);
+  text-align: center;
+  word-break: break-all;
+  line-height: 1.25;
+  font-weight: 500;
+  text-shadow:
+    0 0 8px rgba(255, 255, 255, 0.95),
+    0 1px 2px rgba(255, 255, 255, 0.85);
+}
+
+.qr-poster-meta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+  padding: 8px var(--spacing-md);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: 12px;
+  color: var(--color-text-muted);
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.qr-p-meta-sep {
+  opacity: 0.35;
 }
 </style>

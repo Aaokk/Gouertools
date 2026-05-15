@@ -455,14 +455,41 @@ function finderPaintMetrics(fr, fc, modCount, marginModules, canvasSize, totalCe
   }
 }
 
+/** 透明背景（JPEG 无法编码；Canvas 码眼中层不可用半透明填充「镂空」） */
+export function isQrTransparentBackground(bgColor) {
+  if (bgColor == null || typeof bgColor !== 'string') return false
+  const s = bgColor.trim().toLowerCase()
+  if (s === 'transparent' || s === 'none') return true
+  const compact = s.replace(/\s/g, '')
+  return /^rgba\([\d.]+,[\d.]+,[\d.]+,0\)$/.test(compact)
+}
+
+/**
+ * 绘制定位图案中层洞：不透明背景用底色填充；透明背景用 destination-out 从前景环上抠洞。
+ * @param {() => void} holeDrawFn 内须完成 path + fill（或 fillRect）
+ */
+function punchQrEyeHole(ctx, bg, holeDrawFn) {
+  if (isQrTransparentBackground(bg)) {
+    ctx.save()
+    ctx.globalCompositeOperation = 'destination-out'
+    ctx.fillStyle = '#000000'
+    holeDrawFn()
+    ctx.restore()
+  } else {
+    ctx.fillStyle = bg
+    holeDrawFn()
+  }
+}
+
 function drawEyeLayersRound(ctx, outer, hole, center, fg, bg, outerRF, innerRF, centerRF) {
   const { x, y, w, h } = outer
   ctx.fillStyle = fg
   roundRectPath(ctx, x, y, w, h, Math.min(w, h) * outerRF)
   ctx.fill()
-  ctx.fillStyle = bg
-  roundRectPath(ctx, hole.x, hole.y, hole.w, hole.h, Math.min(hole.w, hole.h) * innerRF)
-  ctx.fill()
+  punchQrEyeHole(ctx, bg, () => {
+    roundRectPath(ctx, hole.x, hole.y, hole.w, hole.h, Math.min(hole.w, hole.h) * innerRF)
+    ctx.fill()
+  })
   ctx.fillStyle = fg
   roundRectPath(ctx, center.x, center.y, center.w, center.h, Math.min(center.w, center.h) * centerRF)
   ctx.fill()
@@ -478,10 +505,11 @@ function drawEyeCircleLayers(ctx, outer, fg, bg, ringFrac) {
   ctx.beginPath()
   ctx.arc(cx, cy, rOut, 0, Math.PI * 2)
   ctx.fill()
-  ctx.fillStyle = bg
-  ctx.beginPath()
-  ctx.arc(cx, cy, rIn, 0, Math.PI * 2)
-  ctx.fill()
+  punchQrEyeHole(ctx, bg, () => {
+    ctx.beginPath()
+    ctx.arc(cx, cy, rIn, 0, Math.PI * 2)
+    ctx.fill()
+  })
   ctx.fillStyle = fg
   ctx.beginPath()
   ctx.arc(cx, cy, rIn * 0.45, 0, Math.PI * 2)
@@ -512,10 +540,11 @@ function drawEyeCircleAstroidLayers(ctx, outer, fg, bg, ringFrac, astroidInHoleF
   ctx.beginPath()
   ctx.arc(cx, cy, rOut, 0, Math.PI * 2)
   ctx.fill()
-  ctx.fillStyle = bg
-  ctx.beginPath()
-  ctx.arc(cx, cy, rIn, 0, Math.PI * 2)
-  ctx.fill()
+  punchQrEyeHole(ctx, bg, () => {
+    ctx.beginPath()
+    ctx.arc(cx, cy, rIn, 0, Math.PI * 2)
+    ctx.fill()
+  })
   ctx.fillStyle = fg
   astroidStarPath(ctx, cx, cy, rIn * astroidInHoleFrac)
   ctx.fill()
@@ -535,10 +564,11 @@ function drawEyeCircleRoundDiamondLayers(ctx, outer, fg, bg, ringFrac, tipInHole
   ctx.beginPath()
   ctx.arc(cx, cy, rOut, 0, Math.PI * 2)
   ctx.fill()
-  ctx.fillStyle = bg
-  ctx.beginPath()
-  ctx.arc(cx, cy, rIn, 0, Math.PI * 2)
-  ctx.fill()
+  punchQrEyeHole(ctx, bg, () => {
+    ctx.beginPath()
+    ctx.arc(cx, cy, rIn, 0, Math.PI * 2)
+    ctx.fill()
+  })
   ctx.fillStyle = fg
   ctx.save()
   ctx.translate(cx, cy)
@@ -572,9 +602,10 @@ function drawDirectedEyeLeafLayers(ctx, outer, hole, center, fg, bg, eyeCorner, 
   ctx.fillStyle = fg
   roundRectOneCornerPath(ctx, x, y, w, h, brOuter, eyeCorner)
   ctx.fill()
-  ctx.fillStyle = bg
-  roundRectOneCornerPath(ctx, hole.x, hole.y, hole.w, hole.h, brHole, eyeCorner)
-  ctx.fill()
+  punchQrEyeHole(ctx, bg, () => {
+    roundRectOneCornerPath(ctx, hole.x, hole.y, hole.w, hole.h, brHole, eyeCorner)
+    ctx.fill()
+  })
   ctx.fillStyle = fg
   roundRectOneCornerPath(ctx, center.x, center.y, center.w, center.h, brCenter, eyeCorner)
   ctx.fill()
@@ -608,10 +639,11 @@ function drawEyeDiagonalPairLayers(ctx, outer, hole, center, fg, bg, radiusFrac,
   if (variant === 'tl-br') roundRectTLBRRoundedPath(ctx, x, y, w, h, brOuter)
   else roundRectTRBLRoundedPath(ctx, x, y, w, h, brOuter)
   ctx.fill()
-  ctx.fillStyle = bg
-  if (variant === 'tl-br') roundRectTLBRRoundedPath(ctx, hole.x, hole.y, hole.w, hole.h, brHole)
-  else roundRectTRBLRoundedPath(ctx, hole.x, hole.y, hole.w, hole.h, brHole)
-  ctx.fill()
+  punchQrEyeHole(ctx, bg, () => {
+    if (variant === 'tl-br') roundRectTLBRRoundedPath(ctx, hole.x, hole.y, hole.w, hole.h, brHole)
+    else roundRectTRBLRoundedPath(ctx, hole.x, hole.y, hole.w, hole.h, brHole)
+    ctx.fill()
+  })
   ctx.fillStyle = fg
   if (variant === 'tl-br') roundRectTLBRRoundedPath(ctx, center.x, center.y, center.w, center.h, brCenter)
   else roundRectTRBLRoundedPath(ctx, center.x, center.y, center.w, center.h, brCenter)
@@ -638,8 +670,9 @@ export function drawQrEyeComposite(ctx, styleId, metrics, fg, bg) {
     case 'square': {
       ctx.fillStyle = fg
       ctx.fillRect(outer.x, outer.y, outer.w, outer.h)
-      ctx.fillStyle = bg
-      ctx.fillRect(hole.x, hole.y, hole.w, hole.h)
+      punchQrEyeHole(ctx, bg, () => {
+        ctx.fillRect(hole.x, hole.y, hole.w, hole.h)
+      })
       ctx.fillStyle = fg
       ctx.fillRect(center.x, center.y, center.w, center.h)
       break
@@ -883,8 +916,12 @@ export function renderStyledQrCanvas(content, options) {
   canvas.width = width
   canvas.height = width
   const ctx = canvas.getContext('2d')
-  ctx.fillStyle = bgColor
-  ctx.fillRect(0, 0, width, width)
+  if (isQrTransparentBackground(bgColor)) {
+    ctx.clearRect(0, 0, width, width)
+  } else {
+    ctx.fillStyle = bgColor
+    ctx.fillRect(0, 0, width, width)
+  }
   ctx.fillStyle = fgColor
 
   const matrixDark = (mr, mc) => {
@@ -961,9 +998,16 @@ export function renderStyledQrCanvas(content, options) {
   return canvas
 }
 
+/** JPEG 质量（仅影响栅格预览 / Data URL；SVG 不受影响） */
+const QR_RASTER_JPEG_QUALITY = 0.92
+
 export function styledQrToDataUrl(content, options) {
   const canvas = renderStyledQrCanvas(content, options)
-  return canvas.toDataURL('image/png')
+  const bg = options?.bgColor ?? '#ffffff'
+  if (isQrTransparentBackground(bg)) {
+    return canvas.toDataURL('image/png')
+  }
+  return canvas.toDataURL('image/jpeg', QR_RASTER_JPEG_QUALITY)
 }
 
 export function styledQrToSvgString(content, options) {
@@ -990,9 +1034,11 @@ export function styledQrToSvgString(content, options) {
 
   const parts = [
     `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${width}" viewBox="0 0 ${width} ${width}">`,
-    `<rect width="100%" height="100%" fill="${esc(bgColor)}"/>`,
-    `<g fill="${esc(fgColor)}">`,
   ]
+  if (!isQrTransparentBackground(bgColor)) {
+    parts.push(`<rect width="100%" height="100%" fill="${esc(bgColor)}"/>`)
+  }
+  parts.push(`<g fill="${esc(fgColor)}">`)
 
   const matrixDarkSvg = (mr, mc) => {
     if (mr < 0 || mr >= modCount || mc < 0 || mc >= modCount) return false
