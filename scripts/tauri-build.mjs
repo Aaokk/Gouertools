@@ -3,7 +3,7 @@
  * 2) 将 DMG / NSIS 安装包复制到 release/tauri/，成品路径简短好找
  */
 import { spawnSync } from 'node:child_process'
-import { mkdirSync, readdirSync, copyFileSync, statSync } from 'node:fs'
+import { mkdirSync, readdirSync, copyFileSync, statSync, rmSync, existsSync } from 'node:fs'
 import { resolve, dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -29,6 +29,10 @@ if (run.error) throw run.error
 
 const bundleRoot = join(outTarget, 'release', 'bundle')
 const flatOut = resolve(root, 'release', 'tauri')
+// 每次打版版本号会变，产物文件名也会变；不清空会留下旧 DMG/EXE，容易误以为「没更新」
+if (existsSync(flatOut)) {
+  rmSync(flatOut, { recursive: true, force: true })
+}
 mkdirSync(flatOut, { recursive: true })
 
 /** @type {string[]} */
