@@ -2,7 +2,7 @@
   "name": "shuiyinimg",
   "private": true,
   "_version_sync_note": "【版本号修改】仅需改下一行 version；执行 tauri:dev / tauri:build（或 npm run sync-version）时会自动写入 Cargo.toml 与 tauri.conf.json。",
-  "version": "2.0.0",
+  "version": "2.1.1",
   "type": "commonjs",
   "scripts": {
     "sync-version": "node scripts/sync-version-from-package.mjs",

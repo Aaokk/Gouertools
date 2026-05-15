@@ -1,0 +1,5 @@
+# 拉取上架接口 JSON（Rust GET，绕过 CORS）
+[[permission]]
+identifier = "allow-fetch-update-manifest"
+description = "允许调用 fetch_update_manifest 查询远端更新信息。"
+commands.allow = ["fetch_update_manifest"]

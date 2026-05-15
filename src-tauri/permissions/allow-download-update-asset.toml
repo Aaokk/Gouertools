@@ -1,0 +1,5 @@
+# 桌面端更新包下载
+[[permission]]
+identifier = "allow-download-update-asset"
+description = "允许调用 download_update_asset 下载安装包并推送进度事件。"
+commands.allow = ["download_update_asset"]

@@ -50,7 +50,9 @@ export async function downloadUpdateAssetThenOpen (downloadUrl) {
     overlay.phase = '下载完成，正在打开安装包…'
     overlay.total = overlay.received
     await openPath(path)
-    await sleep(500)
+    overlay.phase = '安装界面打开后将自动退出当前应用…'
+    await sleep(900)
+    await invoke('quit_app')
   } catch (e) {
     overlay.error = e instanceof Error ? e.message : String(e)
     overlay.phase = '下载失败'

@@ -1,0 +1,5 @@
+# 保存图片到磁盘（水印等导出）
+[[permission]]
+identifier = "allow-desktop-save-image"
+description = "允许调用 desktop_save_image 将图片写入用户选择的路径。"
+commands.allow = ["desktop_save_image"]

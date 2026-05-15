@@ -13,6 +13,10 @@
       "identifier": "opener:allow-open-path",
       "allow": [{ "path": "$TEMP/**" }]
     },
-    "os:default"
+    "os:default",
+    "allow-fetch-update-manifest",
+    "allow-download-update-asset",
+    "allow-desktop-save-image",
+    "allow-quit-app"
   ]
 }

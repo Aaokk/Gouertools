@@ -179,23 +179,43 @@ function parseAppUpdatePayload (parsed) {
   }
 }
 
+function dbgUpdate (msg, detail) {
+  if (typeof import.meta !== 'undefined' && import.meta.env?.DEV) {
+    console.debug('[tauri-update-check]', msg, detail ?? '')
+  }
+}
+
 export async function runTauriUpdateCheckOnce () {
-  if (!isTauri()) return
+  if (!isTauri()) {
+    dbgUpdate('skip: 非 Tauri 环境（如仅浏览器）')
+    return
+  }
 
   try {
     const raw = await invoke('fetch_update_manifest', { url: UPDATE_API_URL })
     const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw
     const manifest = parseAppUpdatePayload(parsed)
-    if (!manifest) return
+    if (!manifest) {
+      dbgUpdate('skip: 接口无有效平台数据或 package_url 不可用', {
+        code: parsed?.code,
+        plat: osPlatform(),
+      })
+      return
+    }
 
     const current =
       typeof __APP_VERSION__ === 'undefined' ? '0.0.0' : String(__APP_VERSION__)
-    if (compareSemver(manifest.version, current) <= 0) return
+    const cmp = compareSemver(manifest.version, current)
+    if (cmp <= 0) {
+      dbgUpdate('skip: 已是最新或更高', { remote: manifest.version, local: current })
+      return
+    }
 
     if (
       !manifest.forceUpdate &&
       localStorage.getItem(DISMISS_PREFIX + manifest.version)
     ) {
+      dbgUpdate('skip: 本版本曾点过稍后', { version: manifest.version })
       return
     }
 

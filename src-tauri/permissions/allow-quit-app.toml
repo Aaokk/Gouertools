@@ -1,0 +1,5 @@
+# 应用自定义：供前端 invoke('quit_app') 在安装包打开后退出进程
+[[permission]]
+identifier = "allow-quit-app"
+description = "允许在自动更新流程中关闭当前应用，避免安装时占用旧版本。"
+commands.allow = ["quit_app"]
