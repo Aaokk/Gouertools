@@ -41,7 +41,7 @@
   --color-purple:        #7C6FB8;
 
   /* 主题专属 — 可由主题覆盖 */
-  --sidebar-bg:          linear-gradient(180deg, #EDE9E3 0%, #E5E0D8 100%);
+  --sidebar-bg:          #EDE9E3;
   --sidebar-border:      #E8E4DE;
   --nav-text:            #5A6E69;
   --nav-text-hover:      #2C3E3A;
@@ -132,25 +132,6 @@ body {
   top: 0; left: 0; bottom: 0;
   z-index: 100;
   border-right: 1px solid var(--color-border);
-}
-/* 侧边栏右侧发光线 */
-.sidebar::after {
-  content: '';
-  position: absolute;
-  top: 0; right: -1px; bottom: 0; width: 1px;
-  background: linear-gradient(
-    180deg,
-    transparent 0%,
-    var(--color-accent) 30%,
-    var(--color-secondary) 70%,
-    transparent 100%
-  );
-  opacity: 0.3;
-  animation: sideGlow 4s ease-in-out infinite alternate;
-}
-@keyframes sideGlow {
-  0% { opacity: 0.15; }
-  100% { opacity: 0.4; }
 }
 
 .sidebar-brand {
@@ -745,13 +726,14 @@ body {
 }
 .btn:active { transform: scale(0.97); }
 .btn-primary {
-  background: linear-gradient(135deg, var(--color-accent), #00ddaa);
-  color: var(--color-primary);
+  background: var(--color-accent);
+  color: #ffffff;
   border: none;
   box-shadow: 0 0 14px var(--color-accent-glow);
   font-weight: 700;
 }
 .btn-primary:hover {
+  background: var(--color-accent-hover);
   box-shadow: 0 0 24px var(--color-accent-glow);
 }
 .btn-secondary {

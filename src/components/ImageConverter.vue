@@ -479,8 +479,8 @@ export default {
   background: var(--color-cyan-dim);
 }
 .format-btn.active {
-  background: linear-gradient(135deg, var(--color-accent), #00ddaa);
-  color: var(--color-primary);
+  background: var(--color-accent);
+  color: #ffffff;
   border-color: transparent;
   box-shadow: 0 0 10px var(--color-accent-glow);
 }
@@ -501,5 +501,12 @@ export default {
   color: var(--color-destructive);
   margin-left: 6px;
   font-weight: 500;
+}
+</style>
+
+<style>
+/* 避免与 scoped 冲突：桃杏主题下选中格式用深字（与 .btn-primary 一致） */
+html[data-theme='rose'] .format-btn.active {
+  color: #3d332f;
 }
 </style>

@@ -40,12 +40,12 @@ const STORAGE_KEY = 'gouer-theme'
 const themes = [
   { id: 'warm', label: '护眼绿', preview: '#4A9B8E',
     swatch: 'linear-gradient(135deg, #F7F5F2 50%, #4A9B8E 50%)' },
-  { id: 'dark', label: '暗黑科技', preview: '#00ffaa',
-    swatch: 'linear-gradient(135deg, #080c15 50%, #00ffaa 50%)' },
+  { id: 'dark', label: '暗黑科技', preview: '#2db896',
+    swatch: 'linear-gradient(135deg, #080c15 50%, #2db896 50%)' },
   { id: 'blue', label: '午夜蓝', preview: '#60a5fa',
     swatch: 'linear-gradient(135deg, #0f172a 50%, #60a5fa 50%)' },
-  { id: 'rose', label: '玫瑰粉', preview: '#e11d48',
-    swatch: 'linear-gradient(135deg, #fff1f5 50%, #e11d48 50%)' },
+  { id: 'rose', label: '桃杏奶油', preview: '#E098AE',
+    swatch: 'linear-gradient(135deg, #FCE9DA 0%, #FFCEC7 33%, #FFD0A6 66%, #E098AE 100%)' },
   { id: 'ink',  label: '极简墨', preview: '#111827',
     swatch: 'linear-gradient(135deg, #ffffff 50%, #111827 50%)' },
 ]

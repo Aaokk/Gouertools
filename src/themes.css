@@ -9,12 +9,13 @@
   --color-primary:       #0c1222;
   --color-primary-light: #111a2e;
   --color-primary-dark:  #070b14;
-  --color-accent:        #00ffaa;
-  --color-accent-hover:  #00dd94;
-  --color-accent-dim:    rgba(0,255,170,0.10);
-  --color-accent-glow:   rgba(0,255,170,0.25);
-  --color-secondary:     #00d4ff;
-  --color-cyan-dim:      rgba(0,212,255,0.10);
+  /* 主色：深色底上的柔和科技绿（取代高亮霓虹 #00ffaa） */
+  --color-accent:        #2db896;
+  --color-accent-hover:  #249878;
+  --color-accent-dim:    rgba(45,184,150,0.12);
+  --color-accent-glow:   rgba(45,184,150,0.16);
+  --color-secondary:     #42afc9;
+  --color-cyan-dim:      rgba(66,175,201,0.10);
   --color-warm:          #ff6b9d;
   --color-warm-light:    rgba(255,107,157,0.10);
   --color-background:    #080c15;
@@ -23,27 +24,27 @@
   --color-foreground:    #e4eaf6;
   --color-text-muted:    #5a6f8e;
   --color-muted:         rgba(255,255,255,0.04);
-  --color-border:        rgba(0,255,170,0.12);
-  --color-border-hover:  rgba(0,255,170,0.35);
+  --color-border:        rgba(45,184,150,0.14);
+  --color-border-hover:  rgba(45,184,150,0.32);
   --color-destructive:       #ff4466;
   --color-destructive-hover: #ff2244;
   --color-purple:        #a78bfa;
   --shadow-sm:  0 1px 3px rgba(0,0,0,0.35);
-  --shadow-md:  0 2px 8px rgba(0,0,0,0.45), 0 0 1px rgba(0,255,170,0.08);
-  --shadow-lg:  0 8px 24px rgba(0,0,0,0.55), 0 0 1px rgba(0,255,170,0.08);
+  --shadow-md:  0 2px 8px rgba(0,0,0,0.45), 0 0 1px rgba(45,184,150,0.06);
+  --shadow-lg:  0 8px 24px rgba(0,0,0,0.55), 0 0 1px rgba(45,184,150,0.06);
   --shadow-xl:  0 16px 48px rgba(0,0,0,0.65);
-  --shadow-glow: 0 0 20px rgba(0,255,170,0.18), 0 0 40px rgba(0,255,170,0.06);
+  --shadow-glow: 0 0 18px rgba(45,184,150,0.12), 0 0 36px rgba(45,184,150,0.05);
 
-  --sidebar-bg:    linear-gradient(180deg, #0c1222 0%, #080e1c 100%);
-  --sidebar-border: rgba(0,255,170,0.12);
+  --sidebar-bg:    #0c1222;
+  --sidebar-border: rgba(45,184,150,0.14);
   --nav-text:      rgba(255,255,255,0.45);
   --nav-text-hover: rgba(255,255,255,0.85);
-  --nav-hover-bg:  rgba(0,255,170,0.05);
+  --nav-hover-bg:  rgba(45,184,150,0.06);
   --footer-text:   rgba(255,255,255,0.25);
   --input-bg:      rgba(0,0,0,0.25);
   --input-bg-focus: rgba(0,0,0,0.35);
-  --grid-line:     rgba(0,255,170,0.025);
-  --scanline:      rgba(0,255,170,0.008);
+  --grid-line:     rgba(45,184,150,0.028);
+  --scanline:      rgba(45,184,150,0.009);
 }
 [data-theme="dark"] body { background: var(--color-background); }
 [data-theme="dark"] .sidebar { border-right-color: var(--sidebar-border); }
@@ -82,7 +83,7 @@
   --shadow-xl:  0 16px 48px rgba(0,0,0,0.65);
   --shadow-glow: 0 0 20px rgba(96,165,250,0.20), 0 0 40px rgba(96,165,250,0.08);
 
-  --sidebar-bg:    linear-gradient(180deg, #1e293b 0%, #162032 100%);
+  --sidebar-bg:    #1e293b;
   --sidebar-border: rgba(96,165,250,0.14);
   --nav-text:      rgba(255,255,255,0.45);
   --nav-text-hover: rgba(255,255,255,0.85);
@@ -97,48 +98,58 @@
 [data-theme="blue"] .sidebar { border-right-color: var(--sidebar-border); }
 [data-theme="blue"] .select option { background: #1e293b; }
 
-/* ── 4. 玫瑰 ──────────────────────────────────────────────── */
+/* ── 4. 桃杏奶油（奶油 #FCE9DA · 桃粉 #FFCEC7 · 杏橙 #FFD0A6 · 灰玫 #E098AE）── */
 [data-theme="rose"] {
-  --color-primary:       #fce7f3;
-  --color-primary-light: #fdf2f8;
-  --color-primary-dark:  #f9d0e7;
-  --color-accent:        #e11d48;
-  --color-accent-hover:  #be123c;
-  --color-accent-dim:    rgba(225,29,72,0.10);
-  --color-accent-glow:   rgba(225,29,72,0.22);
-  --color-secondary:     #f43f5e;
-  --color-cyan-dim:      rgba(244,63,94,0.08);
-  --color-warm:          #fb923c;
-  --color-warm-light:    rgba(251,146,60,0.10);
-  --color-background:    #fff1f5;
-  --color-surface:       rgba(255,255,255,0.92);
-  --color-surface-solid: #FFFFFF;
-  --color-foreground:    #1f1020;
-  --color-text-muted:    #9d6076;
-  --color-muted:         rgba(225,29,72,0.04);
-  --color-border:        #fbc4d4;
-  --color-border-hover:  rgba(225,29,72,0.35);
-  --color-destructive:       #dc2626;
-  --color-destructive-hover: #b91c1c;
-  --color-purple:        #c026d3;
-  --shadow-sm:  0 2px 8px rgba(225,29,72,0.06);
-  --shadow-md:  0 8px 30px rgba(225,29,72,0.08);
-  --shadow-lg:  0 20px 60px rgba(225,29,72,0.10);
-  --shadow-xl:  0 24px 64px rgba(225,29,72,0.12);
-  --shadow-glow: 0 0 20px rgba(225,29,72,0.16), 0 0 40px rgba(225,29,72,0.06);
+  --color-primary:       #FFCEC7;
+  --color-primary-light: #FDF6EF;
+  --color-primary-dark:  #f5d5ce;
 
-  --sidebar-bg:    linear-gradient(180deg, #fce7f3 0%, #f9d0e7 100%);
-  --sidebar-border: #fbc4d4;
-  --nav-text:      #9d6076;
-  --nav-text-hover: #1f1020;
-  --nav-hover-bg:  rgba(225,29,72,0.06);
-  --footer-text:   #9d6076;
-  --input-bg:      #fff8fa;
+  /* 主强调：盘中最深的灰玫，按钮/高亮更易读 */
+  --color-accent:        #E098AE;
+  --color-accent-hover:  #c77d92;
+  --color-accent-dim:    rgba(224,152,174,0.14);
+  --color-accent-glow:   rgba(224,152,174,0.24);
+
+  --color-secondary:     #FFD0A6;
+  --color-cyan-dim:      rgba(255,208,166,0.18);
+
+  --color-warm:          #FFD0A6;
+  --color-warm-light:    rgba(255,208,166,0.28);
+
+  --color-background:    #FCE9DA;
+  --color-surface:       rgba(255,255,255,0.94);
+  --color-surface-solid: #FFFFFF;
+  --color-foreground:    #3d332f;
+  --color-text-muted:    #8a7369;
+  --color-muted:         rgba(224,152,174,0.06);
+  --color-border:        #e8c8c0;
+  --color-border-hover:  rgba(224,152,174,0.42);
+  --color-destructive:       #c45050;
+  --color-destructive-hover: #a33f3f;
+  --color-purple:        #9d7a8a;
+  --shadow-sm:  0 2px 8px rgba(61,51,47,0.05);
+  --shadow-md:  0 8px 28px rgba(61,51,47,0.07);
+  --shadow-lg:  0 18px 52px rgba(61,51,47,0.09);
+  --shadow-xl:  0 22px 60px rgba(61,51,47,0.10);
+  --shadow-glow: 0 0 20px rgba(224,152,174,0.18), 0 0 40px rgba(255,208,166,0.08);
+
+  --sidebar-bg:    #FFCEC7;
+  --sidebar-border: #e8c4b8;
+  --nav-text:      #8a7369;
+  --nav-text-hover: #3d332f;
+  --nav-hover-bg:  rgba(224,152,174,0.10);
+  --footer-text:   #927a70;
+  --input-bg:      #FFF8F4;
   --input-bg-focus: #FFFFFF;
-  --grid-line:     rgba(225,29,72,0.04);
-  --scanline:      rgba(225,29,72,0.008);
+  --grid-line:     rgba(224,152,174,0.08);
+  --scanline:      rgba(224,152,174,0.012);
 }
-[data-theme="rose"] .select option { background: #fdf2f8; }
+[data-theme="rose"] body { background: var(--color-background); }
+[data-theme="rose"] .select option { background: #FDF6EF; }
+/* 桃杏主题主按钮：纯色底上用深字更易读 */
+[data-theme="rose"] .btn-primary {
+  color: #3d332f;
+}
 
 /* ── 5. 极简墨 ────────────────────────────────────────────── */
 [data-theme="ink"] {
@@ -170,7 +181,7 @@
   --shadow-xl:  0 20px 48px rgba(0,0,0,0.12);
   --shadow-glow: 0 0 16px rgba(17,24,39,0.10);
 
-  --sidebar-bg:    linear-gradient(180deg, #f3f4f6 0%, #e5e7eb 100%);
+  --sidebar-bg:    #f3f4f6;
   --sidebar-border: #e5e7eb;
   --nav-text:      #6b7280;
   --nav-text-hover: #111827;
