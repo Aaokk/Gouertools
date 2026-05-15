@@ -1,5 +1,5 @@
 /**
- * 与 preview.html 一致的粒子连线背景 (#bgCanvas)
+ * 粒子连线背景 (#bgCanvas)，与首页/工具页布局一致
  */
 export function initBgCanvas(canvasEl) {
   if (!canvasEl || typeof canvasEl.getContext !== 'function') return () => {}

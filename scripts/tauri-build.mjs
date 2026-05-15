@@ -65,7 +65,7 @@ if (
   process.platform !== 'win32'
 ) {
   console.info(
-    '\n[tauri-build] Windows 安装包（NSIS .exe）：请在 Windows 上执行一次 `npm run tauri:build`，' +
-      '或使用仓库内 `.github/workflows/tauri-windows.yml`（GitHub Actions windows-latest）。'
+    '\n[tauri-build] Windows 安装包（NSIS .exe）：在 Windows 环境执行 `npm run tauri:build`，' +
+      '或使用 `.github/workflows/tauri-windows.yml`（GitHub Actions）。'
   )
 }

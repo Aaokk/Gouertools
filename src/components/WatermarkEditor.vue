@@ -1111,7 +1111,7 @@ watch(logoSettings, () => {
 </script>
 
 <style scoped>
-/* 工具页结构与首页一致，视觉由全局 style.css（对齐 preview.html）承担 */
+/* 工具页结构与首页一致，视觉由全局 style.css 承担 */
 
 /* 与图片压缩页顶部间距对齐 */
 :deep(.tool-body) {
