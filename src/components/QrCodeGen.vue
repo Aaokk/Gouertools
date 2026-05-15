@@ -174,7 +174,7 @@
 </template>
 
 <script setup>
-import { ref, computed, reactive } from 'vue'
+import { ref, computed, reactive, watch, onUnmounted } from 'vue'
 import QRCode from 'qrcode'
 import { showToast } from '../utils/toast.js'
 import { downloadDataUrl, downloadBlob } from '../utils/download.js'
@@ -243,6 +243,22 @@ const generate = async () => {
     showToast({ message: `生成失败：${err.message}`, type: 'error' })
   }
 }
+
+/** 已有预览时，改颜色/尺寸/容错后立即重绘（避免用户误以为前景色无效） */
+let regenTimer = null
+watch(
+  () => [settings.fgColor, settings.bgColor, settings.size, settings.errorLevel],
+  () => {
+    if (!qrDataUrl.value) return
+    clearTimeout(regenTimer)
+    regenTimer = setTimeout(() => {
+      regenTimer = null
+      generate()
+    }, 80)
+  }
+)
+
+onUnmounted(() => clearTimeout(regenTimer))
 
 const downloadPng = () => {
   downloadDataUrl(qrDataUrl.value, 'qrcode.png')
