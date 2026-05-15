@@ -1029,16 +1029,14 @@ onUnmounted(() => {
 })
 
 const clearImageList = () => {
-  if (confirm('确定要清理所有图片吗？此操作不可撤销。')) {
-    imageList.value = []; currentImageIndex.value = 0
-    if (canvasRef.value) {
-      const canvas = canvasRef.value
-      const ctx = canvas.getContext('2d')
-      ctx.clearRect(0, 0, canvas.width, canvas.height)
-      canvas.width = 800; canvas.height = 600
-    }
-    watermarkOffset.x = 100; watermarkOffset.y = 100
+  imageList.value = []; currentImageIndex.value = 0
+  if (canvasRef.value) {
+    const canvas = canvasRef.value
+    const ctx = canvas.getContext('2d')
+    ctx.clearRect(0, 0, canvas.width, canvas.height)
+    canvas.width = 800; canvas.height = 600
   }
+  watermarkOffset.x = 100; watermarkOffset.y = 100
 }
 
 const resetSettings = () => {
