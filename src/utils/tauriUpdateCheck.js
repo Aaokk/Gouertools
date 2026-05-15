@@ -55,6 +55,8 @@ function markDismissed (version, forceUpdate) {
 }
 
 /**
+ * 与上架接口 variant_urls / variant_url_keys 对齐。
+ * Windows 新版可能使用 win_x64 代替 x64。
  * @param {string} platformOs plugin-os：`macos` | `windows` | ...
  * @param {string} rustArch plugin-os：`aarch64` | `x86_64` | …
  * @param {Record<string, string>} variantUrls API `variant_urls`
@@ -75,7 +77,11 @@ function pickVariantKey (platformOs, rustArch, variantUrls) {
     if (rustArch === 'aarch64' || rustArch === 'arm') {
       if (has('arm64')) return 'arm64'
     }
-    if (rustArch === 'x86_64') return has('x64') ? 'x64' : null
+    if (rustArch === 'x86_64') {
+      if (has('win_x64')) return 'win_x64'
+      if (has('x64')) return 'x64'
+      return null
+    }
     if (rustArch === 'x86') return has('x86') ? 'x86' : null
   }
   return null
@@ -147,9 +153,11 @@ function parseAppUpdatePayload (parsed) {
         : null
 
   if (!block || typeof block !== 'object') return null
-  if (!block.app_version || typeof block.app_version !== 'string') return null
 
-  const v = block.app_version.trim()
+  const v =
+    block.app_version !== undefined && block.app_version !== null
+      ? String(block.app_version).trim()
+      : ''
   if (!v) return null
 
   const variantKey = pickVariantKey(plat, arch(), block.variant_urls)
