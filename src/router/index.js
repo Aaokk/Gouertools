@@ -93,15 +93,12 @@ const routes = [
   }
 ]
 
-// Electron 须用 hash 模式（file:// 下 pathname 是本地文件路径，history 模式无法匹配路由 → 白屏）
-// 与「vite build --mode electron」对齐；再以 file:// 兜底，防止误打成 web 包仍从本地文件打开时白屏
-const isElectron =
-  import.meta.env.MODE === 'electron' ||
-  import.meta.env.VITE_TARGET === 'electron' ||
-  (typeof window !== 'undefined' && window.location.protocol === 'file:')
+// 直接打开本地 dist/index.html（file://）时用 hash，否则 history 无法匹配路径
+const useHashOnFileProtocol =
+  typeof window !== 'undefined' && window.location.protocol === 'file:'
 
 const router = createRouter({
-  history: isElectron ? createWebHashHistory() : createWebHistory('/'),
+  history: useHashOnFileProtocol ? createWebHashHistory() : createWebHistory('/'),
   routes,
 })
 

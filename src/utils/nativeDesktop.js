@@ -1,6 +1,5 @@
 /**
- * 桌面壳统一入口：Electron preload 的 window.electron 或 Tauri invoke + dialog。
- * Web 端两项皆无，返回 null，走浏览器下载。
+ * Tauri 桌面壳：保存/选目录走 dialog + invoke；Web 端无壳则返回 null，走浏览器下载。
  */
 import { invoke, isTauri } from '@tauri-apps/api/core'
 
@@ -38,10 +37,9 @@ const tauriShell = {
   },
 }
 
-/** @returns {typeof window.electron | typeof tauriShell | null} */
+/** @returns {typeof tauriShell | null} */
 export function getDesktopShell () {
   if (typeof window === 'undefined') return null
-  if (window.electron) return window.electron
   if (isTauri()) return tauriShell
   return null
 }

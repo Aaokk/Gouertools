@@ -6,16 +6,10 @@
   "scripts": {
     "browser:dev": "vite --open --host",
     "build": "vite build",
-    "electron:build": "vite build --mode electron && electron-builder",
-    "electron:macbuild": "vite build --mode electron && electron-builder",
-    "electron:winbuild": "npm run electron:build -- --win",
     "tauri": "tauri",
     "tauri:dev": "tauri dev",
     "tauri:build": "node scripts/tauri-build.mjs",
     "tauri:build:windows": "node scripts/tauri-build.mjs"
-  },
-  "dependencies": {
-    "electron-log": "^5.2.4"
   },
   "devDependencies": {
     "@ckpack/vue-color": "^1.5.0",
@@ -23,113 +17,12 @@
     "@tauri-apps/cli": "^2.11.1",
     "@tauri-apps/plugin-dialog": "^2.7.1",
     "@vitejs/plugin-vue": "^5.2.1",
-    "electron": "^33.2.1",
-    "electron-builder": "^25.1.8",
     "exifr": "^7.1.3",
     "jszip": "^3.10.1",
     "qrcode": "^1.5.4",
     "svgo": "^4.0.1",
-    "terser": "^5.47.1",
     "vite": "^6.0.3",
     "vue": "^3.5.13",
     "vue-router": "^4.5.0"
-  },
-  "main": "electron/main.js",
-  "build": {
-    "appId": "com.gouer.watermark",
-    "productName": "Gouer工具包包",
-    "copyright": "Copyright © 2024 Gouer.vip",
-    "publish": [
-      {
-        "provider": "generic",
-        "url": "https://up.gouer.vip/shuiyin/"
-      }
-    ],
-    "directories": {
-      "output": "release/${version}"
-    },
-    "compression": "maximum",
-    "npmRebuild": false,
-    "files": [
-      "electron/**/*"
-    ],
-    "extraResources": [
-      {
-        "from": "dist",
-        "to": "dist"
-      }
-    ],
-    "mac": {
-      "category": "public.app-category.graphics-design",
-      "target": [
-        {
-          "target": "dmg",
-          "arch": [
-            "x64",
-            "arm64"
-          ]
-        }
-      ],
-      "icon": "icon.icns",
-      "hardenedRuntime": false,
-      "gatekeeperAssess": false,
-      "identity": null,
-      "electronUpdaterCompatibility": ">=2.15",
-      "extendInfo": {
-        "NSAppleEventsUsageDescription": "Please allow access to script browser applications to run the app.",
-        "NSCameraUsageDescription": "Please allow access to camera to take photos.",
-        "NSMicrophoneUsageDescription": "Please allow access to microphone to record audio.",
-        "NSPhotoLibraryUsageDescription": "Please allow access to photo library to save photos."
-      }
-    },
-    "dmg": {
-      "contents": [
-        {
-          "x": 130,
-          "y": 220,
-          "type": "file"
-        },
-        {
-          "x": 410,
-          "y": 220,
-          "type": "link",
-          "path": "/Applications"
-        }
-      ],
-      "window": {
-        "width": 640,
-        "height": 480
-      },
-      "iconSize": 128,
-      "backgroundColor": "#ffffff",
-      "title": "Gouer工具包包",
-      "format": "UDZO",
-      "internetEnabled": true,
-      "sign": false,
-      "writeUpdateInfo": false,
-      "artifactName": "${productName}-${version}-${arch}.${ext}"
-    },
-    "win": {
-      "target": [
-        {
-          "target": "nsis",
-          "arch": [
-            "x64"
-          ]
-        }
-      ],
-      "icon": "icon.ico"
-    },
-    "nsis": {
-      "oneClick": false,
-      "allowToChangeInstallationDirectory": true,
-      "installerIcon": "icon.ico",
-      "uninstallerIcon": "icon.ico",
-      "installerHeaderIcon": "icon.ico",
-      "createDesktopShortcut": true,
-      "createStartMenuShortcut": true,
-      "shortcutName": "Gouer工具包包"
-    },
-    "asar": true
   }
 }

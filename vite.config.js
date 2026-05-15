@@ -26,71 +26,40 @@ function manualChunksForVendor(id) {
   return undefined
 }
 
-// 须与「vite build --mode electron」一致；勿只依赖进程环境变量，否则桌面包会走错 base / 路由
-export default defineConfig(({ mode }) => {
-  const isElectron = mode === 'electron'
-
-  /** file:// 下带 crossorigin 的 module script 可能无法执行，Electron 表现为白屏 */
-  const electronStripCrossoriginPlugin =
-    isElectron &&
-    ({
-      name: 'electron-strip-crossorigin',
-      enforce: 'post',
-      apply: 'build',
-      transformIndexHtml(html) {
-        return html.replace(
-          /\s+crossorigin(?:=(?:"anonymous"|"use-credentials"))?/gi,
-          ''
-        )
+export default defineConfig({
+  plugins: [vue()],
+  base: '/',
+  server: {
+    headers: {
+      'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0',
+      Pragma: 'no-cache',
+      Expires: '0',
+    },
+  },
+  resolve: {
+    alias: {
+      '@': fileURLToPath(new URL('./src', import.meta.url)),
+    },
+  },
+  build: {
+    outDir: 'dist',
+    assetsDir: '.',
+    chunkSizeWarningLimit: 1000,
+    minify: 'esbuild',
+    rollupOptions: {
+      input: {
+        main: join(__dirname, 'index.html'),
       },
-    })
-
-  const plugins = [vue()]
-  if (electronStripCrossoriginPlugin) plugins.push(electronStripCrossoriginPlugin)
-
-  return {
-    plugins,
-    base: isElectron ? './' : '/',
-    server: {
-      headers: {
-        'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0',
-        Pragma: 'no-cache',
-        Expires: '0',
+      output: {
+        assetFileNames: () => '[name]-[hash][extname]',
+        compact: true,
+        manualChunks: manualChunksForVendor,
       },
     },
-    resolve: {
-      alias: {
-        '@': fileURLToPath(new URL('./src', import.meta.url)),
-      },
+    emptyOutDir: true,
+    sourcemap: false,
+    commonjsOptions: {
+      include: [/node_modules/],
     },
-    build: {
-      outDir: 'dist',
-      assetsDir: '.',
-      chunkSizeWarningLimit: 1000,
-      minify: isElectron ? 'terser' : 'esbuild',
-      terserOptions: isElectron
-        ? {
-            compress: {
-              drop_console: true,
-              drop_debugger: true,
-            },
-          }
-        : undefined,
-      rollupOptions: {
-        input: {
-          main: join(__dirname, 'index.html'),
-        },
-        output: {
-          assetFileNames: () => '[name]-[hash][extname]',
-          compact: true,
-          manualChunks: manualChunksForVendor,
-        },
-      },
-      emptyOutDir: true,
-      sourcemap: false,
-      commonjsOptions: {
-        include: [/node_modules/],
-      },
-    },
-  }
+  },
 })
