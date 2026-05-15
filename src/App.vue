@@ -7,7 +7,7 @@
     <aside class="sidebar">
       <div class="sidebar-brand">
         <div class="brand-sub">
-          <img class="brand-logo" src="/favicon.svg" alt="G" />
+          <img class="brand-logo" :src="brandLogoHref" alt="G" />
           <div>
             <h2>GOUER</h2>
             <span>工具包包 v1.9.0</span>
@@ -72,6 +72,11 @@ import { initBgCanvas } from './utils/bgCanvas.js'
 export default {
   name: 'App',
   components: { AppToast, ThemeSwitcher },
+  computed: {
+    brandLogoHref () {
+      return `${import.meta.env.BASE_URL || './'}favicon.svg`
+    }
+  },
   setup () {
     const bgCanvasRef = ref(null)
     let stopBg = () => {}

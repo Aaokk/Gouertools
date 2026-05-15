@@ -1,139 +1,27 @@
 const { app, BrowserWindow, ipcMain, dialog, Menu } = require('electron')
-const { autoUpdater } = require('electron-updater')
 const log = require('electron-log')
 const path = require('path')
 const fs = require('fs')
 const isDev = process.env.NODE_ENV === 'development'
 
-// 配置日志
-log.transports.file.level = 'debug'
-autoUpdater.logger = log
-
-// 配置更新
-autoUpdater.autoDownload = false  // 改为手动下载
-autoUpdater.autoInstallOnAppQuit = false
-autoUpdater.disableWebInstaller = true
-autoUpdater.allowDowngrade = true
-autoUpdater.forceDevUpdateConfig = true
-
-// 获取当前系统架构
-const currentArch = process.arch === 'arm64' ? 'arm64' : 'x64'
-
-// 修改更新服务器配置
-autoUpdater.setFeedURL({
-  provider: 'generic',
-  url: 'https://up.gouer.vip/shuiyin',
-  updaterCacheDirName: 'shuiyinimg-updater'
-})
-
-// 检查更新
-function checkForUpdates() {
-  if (isDev) return
-  
+/**
+ * 打包后优先用 extraResources 解包出的 Resources/dist，
+ * file:// + ESM/WASM 在 asar 内偶发加载失败时可避免白屏。
+ */
+function resolveProductionIndexHtml() {
   try {
-    log.info('开始检查更新...')
-    log.info('当前版本:', app.getVersion())
-    log.info('当前平台:', process.platform)
-    log.info('当前架构:', currentArch)
-    log.info('更新服务器:', autoUpdater.getFeedURL())
-    log.info('缓存目录:', autoUpdater.downloadedUpdateHelper?.downloadedPath || '未知')
-    
-    autoUpdater.checkForUpdates().catch(err => {
-      log.error('检查更新失败:', err)
-    })
-  } catch (error) {
-    log.error('检查更新出错:', error)
+    const resourceDist = path.join(process.resourcesPath, 'dist', 'index.html')
+    if (fs.existsSync(resourceDist)) {
+      return resourceDist
+    }
+  } catch (e) {
+    log.warn('resolve ProductionIndexHtml resourcesPath:', e.message)
   }
+  return path.join(__dirname, '..', 'dist', 'index.html')
 }
 
-// 发现新版本
-autoUpdater.on('update-available', (info) => {
-  log.info('发现新版本:', info.version)
-  
-  // macOS 跳转网站下载
-  if (process.platform === 'darwin') {
-    dialog.showMessageBox({
-      type: 'info',
-      title: '发现新版本',
-      message: `发现新版本 ${info.version}`,
-      detail: '由于 macOS 系统限制，请前往官网下载最新版本',
-      buttons: ['前往下载', '稍后更新']
-    }).then((result) => {
-      if (result.response === 0) {
-        require('electron').shell.openExternal('https://gouer.vip/apptools/gouershuiyin.html')
-      }
-    })
-  } 
-  // Windows 使用热更新
-  else {
-    dialog.showMessageBox({
-      type: 'info',
-      title: '发现新版本',
-      message: `发现新版本 ${info.version}，是否现在更新？`,
-      buttons: ['更新', '稍后']
-    }).then((result) => {
-      if (result.response === 0) {
-        autoUpdater.downloadUpdate()
-      }
-    })
-  }
-})
-
-// 更新下载进度
-autoUpdater.on('download-progress', (progressObj) => {
-  log.info(`下载进度: ${progressObj.percent}%`)
-  // 更新任务栏进度条
-  BrowserWindow.getAllWindows().forEach((window) => {
-    window.setProgressBar(progressObj.percent / 100)
-  })
-})
-
-// 更新下载完成
-autoUpdater.on('update-downloaded', () => {
-  // 仅 Windows 平台显示重启提示
-  if (process.platform !== 'darwin') {
-    dialog.showMessageBox({
-      type: 'info',
-      title: '更新就绪',
-      message: '新版本已下载完成，是否立即重启应用？',
-      buttons: ['重启', '稍后']
-    }).then((result) => {
-      if (result.response === 0) {
-        autoUpdater.quitAndInstall()
-      }
-    })
-  }
-})
-
-// 更新错误处理
-autoUpdater.on('error', (err) => {
-  log.error('更新错误:', err)
-  
-  // 对于 macOS，提示用户手动下载
-  if (process.platform === 'darwin') {
-    dialog.showMessageBox({
-      type: 'info',
-      title: '更新提示',
-      message: '请前往官网下载最新版本',
-      detail: 'https://gouer.vip/apptools/gouershuiyin.html',
-      buttons: ['前往下载', '取消']
-    }).then((result) => {
-      if (result.response === 0) {
-        require('electron').shell.openExternal('https://gouer.vip/apptools/gouershuiyin.html')
-      }
-    })
-    return
-  }
-  
-  // 其他平台显示错误信息
-  dialog.showMessageBox({
-    type: 'error',
-    title: '更新错误',
-    message: '更新过程中发生错误',
-    detail: err.message,
-    buttons: ['确定']
-  })
-})
+// 配置日志
+log.transports.file.level = 'debug'
 
 function createWindow() {
   const win = new BrowserWindow({
@@ -160,21 +48,35 @@ function createWindow() {
     win.webContents.openDevTools()
     win.loadURL('http://localhost:5173')
   } else {
-    // 生产环境
-    win.loadFile(path.join(__dirname, '../dist/index.html'))
-    // 移除这行，不在生产环境打开开发者工具
-    // win.webContents.openDevTools()
+    const indexPath = resolveProductionIndexHtml()
+    if (!fs.existsSync(indexPath)) {
+      log.error('生产环境未找到页面文件:', indexPath)
+      dialog.showMessageBoxSync({
+        type: 'error',
+        title: 'Gouer工具包包',
+        message: '无法启动：未找到页面资源。',
+        detail: `路径：${indexPath}\n请确认已使用「vite build --mode electron」打包，并重新生成安装包。`
+      })
+      app.quit()
+      return
+    }
+    // loadFile + hash 适配 Vue Router 的 hash 模式，比手写 file:// URL 更稳
+    log.info('loadFile:', indexPath)
+    win
+      .loadFile(indexPath, { hash: '/' })
+      .catch((err) => {
+        log.error('loadFile 失败:', err)
+        dialog.showMessageBoxSync({
+          type: 'error',
+          title: '加载失败',
+          message: String(err?.message || err)
+        })
+      })
   }
 
-  // 添加错误处理
-  win.webContents.on('did-fail-load', (event, errorCode, errorDescription) => {
-    console.error('页面加载失败:', errorCode, errorDescription)
+  win.webContents.on('did-fail-load', (event, errorCode, errorDescription, validatedURL) => {
+    log.error('did-fail-load:', errorCode, errorDescription, validatedURL)
   })
-
-  // 窗创建后检查更新
-  checkForUpdates()
-
-  // 添加窗口关闭事件处理
   win.on('close', (event) => {
     // 设置退出标志
     app.isQuitting = true
