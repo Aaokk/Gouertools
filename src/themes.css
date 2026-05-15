@@ -45,6 +45,7 @@
   --input-bg-focus: rgba(0,0,0,0.35);
   --grid-line:     rgba(45,184,150,0.028);
   --scanline:      rgba(45,184,150,0.009);
+  --color-surface-drop: rgba(15,22,40,0.92);
 }
 [data-theme="dark"] body { background: var(--color-background); }
 [data-theme="dark"] .sidebar { border-right-color: var(--sidebar-border); }
@@ -93,6 +94,7 @@
   --input-bg-focus: rgba(0,0,0,0.35);
   --grid-line:     rgba(96,165,250,0.025);
   --scanline:      rgba(96,165,250,0.008);
+  --color-surface-drop: rgba(30,41,59,0.92);
 }
 [data-theme="blue"] body { background: var(--color-background); }
 [data-theme="blue"] .sidebar { border-right-color: var(--sidebar-border); }
@@ -143,6 +145,7 @@
   --input-bg-focus: #FFFFFF;
   --grid-line:     rgba(224,152,174,0.08);
   --scanline:      rgba(224,152,174,0.012);
+  --color-surface-drop: rgba(255,255,255,0.88);
 }
 [data-theme="rose"] body { background: var(--color-background); }
 [data-theme="rose"] .select option { background: #FDF6EF; }
@@ -191,6 +194,7 @@
   --input-bg-focus: #ffffff;
   --grid-line:     rgba(17,24,39,0.04);
   --scanline:      rgba(0,0,0,0.006);
+  --color-surface-drop: #f3f4f6;
 }
 [data-theme="ink"] .select option { background: #f9fafb; }
 [data-theme="ink"] .btn-primary {

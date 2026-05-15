@@ -33,6 +33,9 @@
   --color-border:        #E8E4DE;
   --color-border-hover:  rgba(74,155,142,0.40);
 
+  /* 拖拽投放区底色（护眼绿默认） */
+  --color-surface-drop:  rgb(248, 248, 244);
+
   /* 危险色 */
   --color-destructive:       #C95A4A;
   --color-destructive-hover: #B04A3C;
@@ -395,7 +398,7 @@ body {
 .preview-area {
   min-width: 0;
   width: 100%;
-  background: var(--color-surface);
+  background: var(--color-surface-drop, var(--color-surface));
   backdrop-filter: blur(12px);
   border-radius: var(--radius-lg);
   border: 1px dashed var(--color-border);
@@ -426,7 +429,7 @@ body {
 .preview-area.dragover,
 .preview-area.dragging {
   border-color: var(--color-accent);
-  background: rgba(74,155,142,0.04);
+  background: var(--color-accent-dim);
   box-shadow: 0 0 20px var(--color-accent-glow);
 }
 .preview-area .placeholder-icon svg {

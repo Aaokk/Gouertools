@@ -846,7 +846,7 @@ const guessMime = (name) => {
 
 /* ── 表格区域 ────────────────────────────────────────────── */
 .comp-table-wrap {
-  background: var(--color-surface);
+  background: var(--color-surface-drop, var(--color-surface));
   backdrop-filter: blur(12px);
   border-radius: var(--radius-lg);
   border: 1px dashed var(--color-border);
@@ -878,7 +878,7 @@ const guessMime = (name) => {
 /* 拖拽进入效果 */
 .comp-table-wrap.drag-over {
   border-color: var(--color-accent);
-  background: rgba(74,155,142,0.03);
+  background: var(--color-accent-dim);
   box-shadow: 0 0 20px var(--color-accent-glow);
 }
 /* 有文件时切回实线，高度随内容自动撑开 */
