@@ -7,7 +7,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
 <style>
-  :root {
+:root {
     --bg: #0a0e17;
     --bg-secondary: #0f1523;
     --card: rgba(15, 21, 35, 0.7);
@@ -27,11 +27,11 @@
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html { scroll-behavior: smooth; }
-  body {
-    font-family: var(--font-body);
+body {
+  font-family: var(--font-body);
     background: var(--bg);
     color: var(--fg);
-    min-height: 100vh;
+  min-height: 100vh;
     overflow-x: hidden;
     position: relative;
   }
@@ -184,7 +184,7 @@
   .card-header-icon {
     width: 32px; height: 32px; border-radius: 8px;
     background: var(--accent-dim); border: 1px solid var(--border);
-    display: flex; align-items: center; justify-content: center;
+  display: flex; align-items: center; justify-content: center;
     color: var(--accent); font-size: 14px;
   }
   .card-header-title {
@@ -238,7 +238,7 @@
     height: calc(100% + 16px); cursor: pointer; border: none;
   }
   .color-picker-hex {
-    flex: 1;
+  flex: 1;
   }
   /* 滑块 */
   .slider-wrap {
@@ -393,7 +393,7 @@
     color: var(--fg-muted); font-size: 12px;
   }
   .preview-actions { display: flex; gap: 8px; }
-  .btn {
+.btn {
     padding: 8px 18px; border-radius: 8px; font-size: 13px;
     font-weight: 600; cursor: pointer; transition: all 0.25s;
     border: 1px solid var(--border); font-family: var(--font-body);
@@ -487,7 +487,7 @@
     position: fixed; inset: 0; z-index: 0; pointer-events: none;
   }
   /* ===== 响应式 ===== */
-  @media (max-width: 900px) {
+@media (max-width: 900px) {
     .main-layout {
       grid-template-columns: 1fr; padding: 16px;
     }
@@ -543,7 +543,7 @@
   .angle-preset:hover, .angle-preset.active {
     color: var(--accent); border-color: var(--accent);
     background: rgba(0,255,170,0.15);
-  }
+}
 </style>
 </head>
 <body>
@@ -552,7 +552,7 @@
 <div class="bg-grid" aria-hidden="true"></div>
 <div class="bg-orbs" aria-hidden="true">
   <div class="orb"></div><div class="orb"></div><div class="orb"></div>
-</div>
+  </div>
 <div class="scanline" aria-hidden="true"></div>
 <!-- 导航栏 -->
 <nav class="navbar" role="navigation" aria-label="主导航">
@@ -560,14 +560,14 @@
     <div class="navbar-logo" aria-hidden="true">G</div>
     <span class="navbar-title">GOUER</span>
     <span class="navbar-version">v1.9.0</span>
-  </div>
+    </div>
   <div class="navbar-nav" role="tablist">
     <button class="nav-item active" role="tab" aria-selected="true"><i class="fa-solid fa-house"></i>首页</button>
     <button class="nav-item" role="tab"><i class="fa-solid fa-sliders"></i>基础设置</button>
     <button class="nav-item" role="tab"><i class="fa-solid fa-droplet"></i>添加水印</button>
     <button class="nav-item" role="tab"><i class="fa-solid fa-compress"></i>图片压缩</button>
     <button class="nav-item" role="tab"><i class="fa-solid fa-exchange-alt"></i>格式转换</button>
-  </div>
+        </div>
 </nav>
 <!-- 主内容 -->
 <main class="main-layout">
@@ -578,124 +578,124 @@
       <div class="card-header">
         <div class="card-header-icon"><i class="fa-solid fa-cloud-arrow-up"></i></div>
         <span class="card-header-title">选择文件</span>
-      </div>
+        </div>
       <button class="btn-upload" id="uploadBtn" aria-label="选择图片文件">
         <i class="fa-solid fa-folder-open"></i>选择图片文件
       </button>
       <input type="file" id="fileInput" accept="image/jpeg,image/png,image/webp" hidden>
-    </div>
+        </div>
     <!-- 基础设置 -->
     <div class="card">
       <div class="card-header">
         <div class="card-header-icon"><i class="fa-solid fa-gear"></i></div>
         <span class="card-header-title">基础设置</span>
         <span class="card-header-badge">必填</span>
-      </div>
+        </div>
       <div class="form-group">
         <label class="form-label"><i class="fa-solid fa-font"></i>水印文字</label>
         <input type="text" class="form-input" id="watermarkText" placeholder="输入你要添加的水印文字" value="Gouer.vip" maxlength="50">
-      </div>
+        </div>
       <div class="form-group">
         <label class="form-label"><i class="fa-solid fa-palette"></i>文字颜色</label>
         <div class="color-picker-wrap">
           <div class="color-picker-swatch" id="colorSwatch" style="background:#000000;">
             <input type="color" id="watermarkColor" value="#000000" aria-label="选择水印颜色">
-          </div>
-          <input type="text" class="form-input color-picker-hex" id="colorHex" value="#000000" maxlength="7" placeholder="#000000">
         </div>
-      </div>
+          <input type="text" class="form-input color-picker-hex" id="colorHex" value="#000000" maxlength="7" placeholder="#000000">
+    </div>
+  </div>
       <div class="form-group">
         <label class="form-label"><i class="fa-solid fa-eye"></i>不透明度</label>
         <div class="slider-wrap">
           <input type="range" id="opacity" min="5" max="100" value="60" aria-label="不透明度">
           <span class="slider-value" id="opacityVal">60%</span>
+    </div>
         </div>
-      </div>
       <div class="form-group">
         <label class="form-label"><i class="fa-solid fa-text-height"></i>字体比例</label>
         <div class="slider-wrap">
           <input type="range" id="fontScale" min="5" max="100" value="30" aria-label="字体比例">
           <span class="slider-value" id="fontScaleVal">3.0%</span>
-        </div>
       </div>
+        </div>
       <div class="form-group">
         <label class="form-label"><i class="fa-solid fa-rotate"></i>旋转角度</label>
         <div class="slider-wrap">
           <input type="range" id="rotation" min="-90" max="90" value="-30" aria-label="旋转角度">
           <span class="slider-value" id="rotationVal">-30°</span>
-        </div>
+          </div>
         <div class="angle-presets">
           <button class="angle-preset" data-angle="-45">-45°</button>
           <button class="angle-preset active" data-angle="-30">-30°</button>
           <button class="angle-preset" data-angle="0">0°</button>
           <button class="angle-preset" data-angle="30">30°</button>
           <button class="angle-preset" data-angle="45">45°</button>
-        </div>
-      </div>
-    </div>
+              </div>
+            </div>
+            </div>
     <!-- 模式设置 -->
     <div class="card">
       <div class="card-header">
         <div class="card-header-icon"><i class="fa-solid fa-crop"></i></div>
         <span class="card-header-title">模式设置</span>
-      </div>
+              </div>
       <div class="form-group">
         <label class="form-label"><i class="fa-solid fa-expand"></i>比例模式</label>
         <div class="mode-group">
           <button class="mode-btn active" data-mode="adaptive">自适应</button>
           <button class="mode-btn" data-mode="fixed">固定</button>
           <button class="mode-btn" data-mode="tile">平铺</button>
-        </div>
-      </div>
+            </div>
+                </div>
       <div class="form-group">
         <label class="form-label"><i class="fa-solid fa-wand-magic-sparkles"></i>配置模式</label>
         <div class="mode-group">
           <button class="mode-btn active" data-config="simple">简易</button>
           <button class="mode-btn" data-config="advanced">高级</button>
-        </div>
-      </div>
-    </div>
+              </div>
+            </div>
+                </div>
     <!-- 高级设置 -->
     <div class="card" id="advancedCard">
       <div class="card-header">
         <div class="card-header-icon"><i class="fa-solid fa-microchip"></i></div>
         <span class="card-header-title">高级设置</span>
         <span class="card-header-badge">可选</span>
-      </div>
+              </div>
       <div class="form-group">
         <div class="toggle-wrap">
           <span class="toggle-label"><i class="fa-solid fa-repeat" style="color:var(--accent);margin-right:6px;font-size:12px;"></i>重复水印</span>
           <div class="toggle active" id="repeatToggle" role="switch" aria-checked="true" tabindex="0" aria-label="重复水印开关"></div>
-        </div>
-      </div>
+            </div>
+          </div>
       <div class="form-group">
         <label class="form-label"><i class="fa-solid fa-arrows-left-right"></i>间距比例</label>
         <div class="slider-wrap">
           <input type="range" id="gapScale" min="0" max="200" value="50" aria-label="间距比例">
           <span class="slider-value" id="gapScaleVal">5.0%</span>
         </div>
-      </div>
+          </div>
       <div class="form-group">
         <label class="form-label"><i class="fa-solid fa-vector-square"></i>水印框尺寸</label>
         <div class="number-input-group">
           <div class="form-input-wrap">
             <input type="number" class="form-input" id="boxWidth" value="100" min="10" max="2000" aria-label="水印框宽">
             <span class="form-input-suffix">宽px</span>
-          </div>
+              </div>
           <div class="form-input-wrap">
             <input type="number" class="form-input" id="boxHeight" value="100" min="10" max="2000" aria-label="水印框高">
             <span class="form-input-suffix">高px</span>
-          </div>
-        </div>
-      </div>
+            </div>
+                </div>
+              </div>
       <div class="form-group">
         <label class="form-label"><i class="fa-solid fa-image"></i>LOGO设置</label>
         <button class="btn-secondary btn" style="width:100%;padding:10px;" id="logoUploadBtn">
           <i class="fa-solid fa-upload"></i>上传LOGO图片
         </button>
         <input type="file" id="logoInput" accept="image/*" hidden>
-      </div>
-    </div>
+            </div>
+                </div>
     <!-- 重置 -->
     <button class="btn-reset" id="resetBtn">
       <i class="fa-solid fa-arrow-rotate-left"></i>重置全部设置
@@ -712,8 +712,8 @@
         <span class="format-tag">JPG</span>
         <span class="format-tag">PNG</span>
         <span class="format-tag">WebP</span>
-      </div>
-    </div>
+              </div>
+            </div>
     <!-- 预览区 -->
     <div class="preview-zone" id="previewZone">
       <div class="preview-toolbar">
@@ -721,16 +721,16 @@
           <i class="fa-solid fa-image" style="color:var(--accent);"></i>
           <span class="preview-file-name" id="fileName">-</span>
           <span class="preview-file-size" id="fileSize">-</span>
-        </div>
+          </div>
         <div class="preview-actions">
           <button class="btn btn-secondary" id="changeImgBtn"><i class="fa-solid fa-arrows-rotate"></i>更换</button>
           <button class="btn btn-primary" id="downloadBtn"><i class="fa-solid fa-download"></i>下载</button>
         </div>
-      </div>
+          </div>
       <div class="preview-canvas-wrap">
         <canvas id="previewCanvas"></canvas>
-      </div>
-    </div>
+            </div>
+              </div>
   </section>
 </main>
 <!-- 底部状态栏 -->
@@ -738,7 +738,7 @@
   <div class="status-indicator">
     <span class="status-dot"></span>
     <span>系统就绪</span>
-  </div>
+            </div>
   <span>Copyright &copy; 2024 <a href="https://gouer.vip" target="_blank" rel="noopener">Gouer.Vip</a> All Rights Reserved.</span>
 </footer>
 <!-- Toast容器 -->

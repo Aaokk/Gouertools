@@ -73,8 +73,8 @@
         </div>
       </div>
 
-      <!-- 右侧控制面板 -->
-      <div class="control-panel">
+      <!-- 右侧控制面板（相对定位，供颜色弹层在其区域内居中） -->
+      <div class="control-panel wm-control-panel-root">
 
         <!-- 基础设置 -->
         <div class="setting-card">
@@ -100,11 +100,19 @@
             <div class="setting-row">
               <label>文字颜色</label>
               <div class="control" style="display:flex;align-items:center;gap:8px;">
-                <div class="color-dot" :style="{ backgroundColor: watermarkSettings.color }" @click="toggleColorPicker"></div>
-                <input class="input" :value="watermarkSettings.color" @input="e => { watermarkSettings.color = e.target.value; updateColorFromHex(e.target.value) }" style="width:90px;">
-                <div v-if="showColorPicker" class="color-picker-popup">
-                  <Chrome v-model="watermarkSettings.color" :value="watermarkSettings.color" @update:modelValue="updateColor" />
-                </div>
+                <div
+                  class="color-dot wm-color-swatch"
+                  :style="{ background: watermarkSettings.color }"
+                  role="button"
+                  tabindex="0"
+                  title="打开颜色选择"
+                  @click="openColorPicker"
+                  @keydown.enter.prevent="openColorPicker"
+                  @keydown.space.prevent="openColorPicker"
+                />
+                <input class="input" :value="watermarkSettings.color"
+                  @input="e => { watermarkSettings.color = e.target.value; updateColorFromHex(e.target.value) }"
+                  style="width:90px;" maxlength="7" placeholder="#000000">
               </div>
             </div>
             <div class="setting-row">
@@ -259,14 +267,65 @@
         </div>
 
         <button class="btn btn-ghost" style="align-self:center;" @click="resetSettings">重置全部设置</button>
+
+        <!-- 自定义颜色弹层：在右侧控制栏区域内水平垂直居中 -->
+        <div
+          v-if="colorPickerOpen"
+          class="wm-color-overlay"
+          @click.self="cancelColorPicker"
+        >
+          <div
+            class="wm-color-dialog"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="wm-color-dialog-title"
+            @click.stop
+          >
+            <div id="wm-color-dialog-title" class="wm-color-dialog-title">文字颜色</div>
+            <div
+              ref="svPlaneRef"
+              class="wm-sv-plane"
+              :style="{ '--wm-picker-h': pickerHue + 'deg' }"
+              @pointerdown.prevent="onSvPointerDown"
+            >
+              <div class="wm-sv-indicator" :style="svIndicatorStyle"></div>
+            </div>
+            <div class="wm-hue-row">
+              <span class="wm-hue-label">色相</span>
+              <input
+                type="range"
+                class="wm-hue-slider"
+                min="0"
+                max="360"
+                step="1"
+                :value="pickerHue"
+                @input="onHueInput"
+              />
+            </div>
+            <div class="wm-color-dialog-footer">
+              <input
+                class="input wm-hex-input"
+                :value="pickerHexLocal"
+                maxlength="9"
+                placeholder="#000000"
+                spellcheck="false"
+                @input="onPickerHexInput"
+              />
+              <div class="wm-color-preview" :style="{ background: pickerPreviewBg }"></div>
+            </div>
+            <div class="wm-color-dialog-actions">
+              <button type="button" class="btn btn-ghost btn-sm" @click="cancelColorPicker">取消</button>
+              <button type="button" class="btn btn-primary btn-sm" @click="confirmColorPicker">确定</button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { Chrome } from '@ckpack/vue-color'
-import { ref, reactive, onMounted, watch, nextTick, onUnmounted } from 'vue'
+import { ref, reactive, computed, onMounted, watch, nextTick, onUnmounted } from 'vue'
 import { showToast } from '../utils/toast.js'
 import { downloadDataUrl } from '../utils/download.js'
 
@@ -333,7 +392,6 @@ const canvasRef = ref(null)
 const watermarkDragging = ref(false)
 const watermarkStartPos = ref({ x: 0, y: 0 })
 const watermarkOffset = reactive({ x: 100, y: 100 })
-const showColorPicker = ref(false)
 
 const logoSettings = reactive({
   image: null,
@@ -344,6 +402,179 @@ const logoSettings = reactive({
   aspectRatio: 1,
   originalWidth: 0,
   originalHeight: 0
+})
+
+function rgbToHex(r, g, b) {
+  return '#' + [r, g, b].map((x) =>
+    Math.max(0, Math.min(255, Math.round(x))).toString(16).padStart(2, '0')
+  ).join('')
+}
+
+function rgbToHsv(r, g, b) {
+  let rn = r / 255
+  let gn = g / 255
+  let bn = b / 255
+  const max = Math.max(rn, gn, bn)
+  const min = Math.min(rn, gn, bn)
+  const d = max - min
+  let h = 0
+  if (d !== 0) {
+    if (max === rn) h = ((gn - bn) / d + (gn < bn ? 6 : 0)) / 6
+    else if (max === gn) h = ((bn - rn) / d + 2) / 6
+    else h = ((rn - gn) / d + 4) / 6
+  }
+  const s = max === 0 ? 0 : d / max
+  const v = max
+  return { h: h * 360, s, v }
+}
+
+function hsvToRgb(h, s, v) {
+  const hh = ((h % 360) + 360) % 360
+  const c = v * s
+  const x = c * (1 - Math.abs(((hh / 60) % 2) - 1))
+  const m = v - c
+  let rp = 0
+  let gp = 0
+  let bp = 0
+  if (hh < 60) [rp, gp, bp] = [c, x, 0]
+  else if (hh < 120) [rp, gp, bp] = [x, c, 0]
+  else if (hh < 180) [rp, gp, bp] = [0, c, x]
+  else if (hh < 240) [rp, gp, bp] = [0, x, c]
+  else if (hh < 300) [rp, gp, bp] = [x, 0, c]
+  else [rp, gp, bp] = [c, 0, x]
+  return {
+    r: Math.round((rp + m) * 255),
+    g: Math.round((gp + m) * 255),
+    b: Math.round((bp + m) * 255)
+  }
+}
+
+const colorPickerOpen = ref(false)
+const pickerHue = ref(0)
+const pickerS = ref(1)
+const pickerV = ref(1)
+const pickerHexLocal = ref('#000000')
+const svPlaneRef = ref(null)
+let colorPickerSnapshot = null
+
+const svIndicatorStyle = computed(() => ({
+  left: `${pickerS.value * 100}%`,
+  top: `${(1 - pickerV.value) * 100}%`
+}))
+
+const pickerPreviewBg = computed(() => {
+  const { r, g, b } = hsvToRgb(pickerHue.value, pickerS.value, pickerV.value)
+  return `rgb(${r},${g},${b})`
+})
+
+function syncPickerHexLocal() {
+  const { r, g, b } = hsvToRgb(pickerHue.value, pickerS.value, pickerV.value)
+  pickerHexLocal.value = rgbToHex(r, g, b)
+}
+
+/** 弹层打开期间实时预览（取消时用 snapshot 恢复） */
+function applyPickerPreviewToWatermark() {
+  const { r, g, b } = hsvToRgb(pickerHue.value, pickerS.value, pickerV.value)
+  watermarkSettings.rgb.r = r
+  watermarkSettings.rgb.g = g
+  watermarkSettings.rgb.b = b
+  watermarkSettings.color = rgbToHex(r, g, b)
+  updateWatermark()
+}
+
+function openColorPicker() {
+  colorPickerSnapshot = {
+    color: watermarkSettings.color,
+    rgb: { ...watermarkSettings.rgb }
+  }
+  const { h, s, v } = rgbToHsv(watermarkSettings.rgb.r, watermarkSettings.rgb.g, watermarkSettings.rgb.b)
+  pickerHue.value = Number.isFinite(h) ? Math.round(h) : 0
+  pickerS.value = Number.isFinite(s) ? Math.min(1, Math.max(0, s)) : 1
+  pickerV.value = Number.isFinite(v) ? Math.min(1, Math.max(0, v)) : 1
+  syncPickerHexLocal()
+  colorPickerOpen.value = true
+}
+
+function cancelColorPicker() {
+  if (colorPickerSnapshot) {
+    watermarkSettings.color = colorPickerSnapshot.color
+    watermarkSettings.rgb.r = colorPickerSnapshot.rgb.r
+    watermarkSettings.rgb.g = colorPickerSnapshot.rgb.g
+    watermarkSettings.rgb.b = colorPickerSnapshot.rgb.b
+    watermarkSettings.rgb.a = colorPickerSnapshot.rgb.a
+    updateWatermark()
+  }
+  colorPickerSnapshot = null
+  colorPickerOpen.value = false
+}
+
+function confirmColorPicker() {
+  colorPickerSnapshot = null
+  colorPickerOpen.value = false
+}
+
+function updateSvFromClientXY(clientX, clientY) {
+  const el = svPlaneRef.value
+  if (!el) return
+  const rect = el.getBoundingClientRect()
+  if (rect.width <= 0 || rect.height <= 0) return
+  const x = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width))
+  const y = Math.max(0, Math.min(1, (clientY - rect.top) / rect.height))
+  pickerS.value = x
+  pickerV.value = 1 - y
+  syncPickerHexLocal()
+  applyPickerPreviewToWatermark()
+}
+
+function onSvPointerDown(e) {
+  updateSvFromClientXY(e.clientX, e.clientY)
+  const move = (ev) => updateSvFromClientXY(ev.clientX, ev.clientY)
+  const up = () => {
+    document.removeEventListener('pointermove', move)
+    document.removeEventListener('pointerup', up)
+    document.removeEventListener('pointercancel', up)
+  }
+  document.addEventListener('pointermove', move)
+  document.addEventListener('pointerup', up)
+  document.addEventListener('pointercancel', up)
+}
+
+function onHueInput(e) {
+  pickerHue.value = Number(e.target.value)
+  syncPickerHexLocal()
+  applyPickerPreviewToWatermark()
+}
+
+function onPickerHexInput(e) {
+  pickerHexLocal.value = e.target.value
+  let v = pickerHexLocal.value.trim()
+  if (v.length && !v.startsWith('#')) {
+    pickerHexLocal.value = '#' + v
+    v = pickerHexLocal.value
+  }
+  const result = /^#([a-f\d]{6})$/i.exec(v)
+  if (!result) return
+  const hex = result[1]
+  const r = parseInt(hex.slice(0, 2), 16)
+  const g = parseInt(hex.slice(2, 4), 16)
+  const b = parseInt(hex.slice(4, 6), 16)
+  const { h, s, vv } = rgbToHsv(r, g, b)
+  pickerHue.value = Number.isFinite(h) ? Math.round(h) : 0
+  pickerS.value = Number.isFinite(s) ? Math.min(1, Math.max(0, s)) : 1
+  pickerV.value = Number.isFinite(vv) ? Math.min(1, Math.max(0, vv)) : 1
+  applyPickerPreviewToWatermark()
+}
+
+function onColorPickerKeydown(ev) {
+  if (ev.key === 'Escape' && colorPickerOpen.value) {
+    ev.preventDefault()
+    cancelColorPicker()
+  }
+}
+
+watch(colorPickerOpen, (open) => {
+  if (open) document.addEventListener('keydown', onColorPickerKeydown)
+  else document.removeEventListener('keydown', onColorPickerKeydown)
 })
 
 onMounted(() => {
@@ -580,12 +811,6 @@ const saveImage = async () => {
   }
 }
 
-const updateColor = (color) => {
-  watermarkSettings.color = color.hex
-  watermarkSettings.rgb = { ...watermarkSettings.rgb, r: color.rgba.r, g: color.rgba.g, b: color.rgba.b }
-  updateWatermark()
-}
-
 const updateColorFromHex = (hex) => {
   const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
   if (result) {
@@ -596,25 +821,8 @@ const updateColorFromHex = (hex) => {
   }
 }
 
-const toggleColorPicker = (event) => {
-  showColorPicker.value = !showColorPicker.value
-  if (showColorPicker.value) {
-    nextTick(() => {
-      const popup = document.querySelector('.color-picker-popup')
-      if (popup) {
-        const rect = event.target.getBoundingClientRect()
-        popup.style.position = 'fixed'
-        popup.style.top = `${rect.bottom + 5}px`
-        popup.style.left = `${rect.left}px`
-      }
-    })
-  }
-}
 
 const handleClickOutside = (event) => {
-  if (showColorPicker.value && !event.target.closest('.color-picker-popup') && !event.target.closest('.color-dot')) {
-    showColorPicker.value = false
-  }
 }
 
 watch([
@@ -817,6 +1025,7 @@ onUnmounted(() => {
   document.removeEventListener('mousemove', handleWatermarkDrag)
   document.removeEventListener('mouseup', stopWatermarkDrag)
   document.removeEventListener('click', handleClickOutside)
+  document.removeEventListener('keydown', onColorPickerKeydown)
 })
 
 const clearImageList = () => {
@@ -986,14 +1195,147 @@ watch(logoSettings, () => {
   font-weight: 500;
 }
 
-/* Color picker popup */
-.color-picker-popup {
-  position: fixed;
-  z-index: 1000;
-  background: white;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+.wm-control-panel-root {
+  position: relative;
+}
+
+.wm-color-swatch:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.wm-color-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 80;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+  background: transparent;
+  border-radius: var(--radius-lg);
+}
+
+.wm-color-dialog {
+  width: min(100%, 268px);
+  box-sizing: border-box;
+  padding: var(--spacing-md);
+  background: var(--color-surface-solid);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+}
+
+.wm-color-dialog-title {
+  font-family: var(--font-heading);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+  margin-bottom: var(--spacing-sm);
+}
+
+.wm-sv-plane {
+  position: relative;
+  height: 140px;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  cursor: crosshair;
+  touch-action: none;
+  border: 1px solid var(--color-border);
+  background:
+    linear-gradient(to top, #000, transparent),
+    linear-gradient(to right, #fff, hsl(var(--wm-picker-h), 100%, 50%));
+}
+
+.wm-sv-indicator {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35);
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+}
+
+.wm-hue-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: var(--spacing-sm);
+}
+
+.wm-hue-label {
+  flex-shrink: 0;
+  font-size: 12px;
+  color: var(--color-text-muted);
+  font-weight: 500;
+}
+
+.wm-hue-slider {
+  flex: 1;
+  min-width: 0;
+  height: 8px;
   border-radius: 4px;
-  padding: 10px;
+  appearance: none;
+  background: linear-gradient(
+    to right,
+    #f00,
+    #ff0,
+    #0f0,
+    #0ff,
+    #00f,
+    #f0f,
+    #f00
+  );
+}
+
+.wm-hue-slider::-webkit-slider-thumb {
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--color-surface-solid);
+  border: 2px solid var(--color-border);
+  box-shadow: 0 1px 4px rgba(44, 62, 58, 0.2);
+}
+
+.wm-hue-slider::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--color-surface-solid);
+  border: 2px solid var(--color-border);
+  box-shadow: 0 1px 4px rgba(44, 62, 58, 0.2);
+}
+
+.wm-color-dialog-footer {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-md);
+}
+
+.wm-hex-input {
+  flex: 1;
+  min-width: 0;
+}
+
+.wm-color-preview {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  border: 2px solid var(--color-border);
+}
+
+.wm-color-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-md);
 }
 
 @media (max-width: 900px) {
