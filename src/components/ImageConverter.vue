@@ -76,7 +76,14 @@
               <label>输出质量</label>
               <div class="control">
                 <div class="range-group">
-                  <input type="range" min="10" max="100" v-model.number="quality">
+                  <input
+                    type="range"
+                    min="10"
+                    max="100"
+                    step="1"
+                    :value="quality"
+                    @input="onQualityInput"
+                  >
                   <span class="range-value">{{ quality }}%</span>
                 </div>
               </div>
@@ -84,30 +91,42 @@
             <div class="setting-row">
               <label>分辨率</label>
               <div class="control" style="display:flex;align-items:center;gap:4px;">
-                <input class="input" type="number" v-model.number="newWidth" min="1" @input="updateHeight">
+                <input class="input" type="number" v-model.number="newWidth" min="1" @input="updateHeight" @change="updatePreview">
                 <span style="color:var(--color-text-muted);">×</span>
-                <input class="input" type="number" v-model.number="newHeight" min="1" @input="updateWidth">
+                <input class="input" type="number" v-model.number="newHeight" min="1" @input="updateWidth" @change="updatePreview">
               </div>
             </div>
             <div class="setting-row">
               <label>保持比例</label>
               <div class="control">
                 <label class="toggle">
-                  <input type="checkbox" v-model="maintainAspectRatio">
+                  <input type="checkbox" v-model="maintainAspectRatio" @change="onAspectToggle">
                   <span class="toggle-track"></span>
                 </label>
               </div>
             </div>
             <div class="setting-row">
               <label>大小限制</label>
+              <div class="control">
+                <label class="toggle">
+                  <input type="checkbox" v-model="enableSizeLimit">
+                  <span class="toggle-track"></span>
+                </label>
+              </div>
+            </div>
+            <div class="setting-row" v-show="enableSizeLimit">
+              <label>上限</label>
               <div class="control" style="display:flex;align-items:center;gap:6px;">
-                <input class="input" type="number" v-model.number="maxSizeInMB" min="0.1" step="0.1" style="width:80px;">
+                <input class="input" type="number" v-model.number="maxSizeInMB" min="0.1" step="0.1" style="width:80px;" @input="updatePreview" @change="updatePreview">
                 <span style="font-size:13px;color:var(--color-text-muted);">MB</span>
               </div>
             </div>
-            <div v-if="estimatedSize" class="setting-row">
+            <div v-if="selectedFile && hasEstimate" class="setting-row">
               <label>预计大小</label>
-              <div class="control"><span style="font-size:13px;color:var(--color-accent);font-weight:600;">{{ formatFileSize(estimatedSize) }}</span></div>
+              <div class="control">
+                <span class="estimate-bytes">{{ formatFileSize(estimatedSize) }}</span>
+                <span v-if="estimateOverLimit" class="estimate-warn">（已超过上限，开启限制时转换将失败）</span>
+              </div>
             </div>
           </div>
         </div>
@@ -118,7 +137,7 @@
 
 <script>
 import { showToast } from '../utils/toast.js'
-import { downloadDataUrl } from '../utils/download.js'
+import { downloadBlob } from '../utils/download.js'
 
 export default {
   name: 'ImageConverter',
@@ -134,9 +153,12 @@ export default {
       originalWidth: 0,
       originalHeight: 0,
       maintainAspectRatio: true,
+      enableSizeLimit: false,
       maxSizeInMB: 1,
       estimatedSize: 0,
+      hasEstimate: false,
       aspectRatio: 1,
+      _previewSeq: 0,
       cardOpen: true,
       formats: [
         { label: 'JPG',  value: 'image/jpeg' },
@@ -145,9 +167,16 @@ export default {
       ]
     }
   },
+  computed: {
+    estimateOverLimit() {
+      if (!this.enableSizeLimit) return false
+      const max = this.maxSizeInMB * 1024 * 1024
+      return this.hasEstimate && max > 0 && this.estimatedSize > max
+    },
+  },
   watch: {
     targetFormat() { this.updatePreview() },
-    maxSizeInMB() { this.updatePreview() }
+    maxSizeInMB() { this.updatePreview() },
   },
   methods: {
     triggerFileInput() { this.$refs.fileInput.click() },
@@ -181,34 +210,45 @@ export default {
         this.newHeight = Math.round(this.newWidth / this.aspectRatio)
       this.updatePreview()
     },
+    onAspectToggle() {
+      if (this.maintainAspectRatio && this.newWidth)
+        this.newHeight = Math.round(this.newWidth / this.aspectRatio)
+      else if (this.maintainAspectRatio && this.newHeight)
+        this.newWidth = Math.round(this.newHeight * this.aspectRatio)
+      this.updatePreview()
+    },
+    onQualityInput(e) {
+      const v = Number(e.target.value)
+      if (!Number.isFinite(v)) return
+      this.quality = v
+      this.updatePreview()
+    },
     async updatePreview() {
       if (!this.selectedFile) return
+      const seq = ++this._previewSeq
       try {
         const img = await this.loadImage(this.previewUrl)
+        if (seq !== this._previewSeq) return
         const canvas = document.createElement('canvas')
         const ctx = canvas.getContext('2d')
-        canvas.width = this.newWidth; canvas.height = this.newHeight
-        ctx.fillStyle = 'white'; ctx.fillRect(0, 0, canvas.width, canvas.height)
+        canvas.width = this.newWidth
+        canvas.height = this.newHeight
+        ctx.fillStyle = 'white'
+        ctx.fillRect(0, 0, canvas.width, canvas.height)
         ctx.drawImage(img, 0, 0, this.newWidth, this.newHeight)
-        const options = this.targetFormat === 'image/jpeg' ? { quality: this.quality / 100 } : undefined
-        const dataUrl = canvas.toDataURL(this.targetFormat, options)
-        const base64str = dataUrl.split(',')[1]
-        this.estimatedSize = atob(base64str).length
-        if (this.targetFormat === 'image/jpeg' && this.estimatedSize > this.maxSizeInMB * 1024 * 1024) {
-          let tempQuality = this.quality
-          while (tempQuality > 10 && this.estimatedSize > this.maxSizeInMB * 1024 * 1024) {
-            tempQuality -= 5
-            const newDataUrl = canvas.toDataURL(this.targetFormat, { quality: tempQuality / 100 })
-            const newSize = atob(newDataUrl.split(',')[1]).length
-            if (newSize <= this.maxSizeInMB * 1024 * 1024) {
-              this.estimatedSize = newSize
-              if (tempQuality !== this.quality) this.quality = tempQuality
-              break
-            }
-            this.estimatedSize = newSize
-          }
-        }
-      } catch (error) { console.error('预览更新失败:', error) }
+
+        const mime = this.targetFormat
+        const encodeQuality = mime === 'image/jpeg' ? this.quality / 100 : undefined
+        const blob = await new Promise((resolve) => {
+          canvas.toBlob((b) => resolve(b), mime, encodeQuality)
+        })
+        if (seq !== this._previewSeq) return
+        if (!blob) return
+        this.estimatedSize = blob.size
+        this.hasEstimate = true
+      } catch (error) {
+        console.error('预览更新失败:', error)
+      }
     },
     async convertImage() {
       if (!this.selectedFile) return
@@ -217,24 +257,38 @@ export default {
         const img = await this.loadImage(this.previewUrl)
         const canvas = document.createElement('canvas')
         const ctx = canvas.getContext('2d')
-        canvas.width = this.newWidth; canvas.height = this.newHeight
-        ctx.fillStyle = 'white'; ctx.fillRect(0, 0, canvas.width, canvas.height)
+        canvas.width = this.newWidth
+        canvas.height = this.newHeight
+        ctx.fillStyle = 'white'
+        ctx.fillRect(0, 0, canvas.width, canvas.height)
         ctx.drawImage(img, 0, 0, this.newWidth, this.newHeight)
-        const options = this.targetFormat === 'image/jpeg' ? { quality: this.quality / 100 } : undefined
-        const dataUrl = canvas.toDataURL(this.targetFormat, options)
-        const base64str = dataUrl.split(',')[1]
-        const fileSize = atob(base64str).length
-        if (fileSize > this.maxSizeInMB * 1024 * 1024)
-          throw new Error(`转换后文件大小(${this.formatFileSize(fileSize)})超过限制(${this.maxSizeInMB}MB)`)
-        const extension = this.targetFormat.split('/')[1] || 'jpg'
+
+        const mime = this.targetFormat
+        const encodeQuality = mime === 'image/jpeg' ? this.quality / 100 : undefined
+        const blob = await new Promise((resolve) => {
+          canvas.toBlob((b) => resolve(b), mime, encodeQuality)
+        })
+        if (!blob) throw new Error('导出失败（浏览器未生成文件）')
+
+        const maxBytes = this.maxSizeInMB * 1024 * 1024
+        if (this.enableSizeLimit && blob.size > maxBytes) {
+          throw new Error(`转换后文件大小(${this.formatFileSize(blob.size)})超过限制(${this.maxSizeInMB}MB)`)
+        }
+
+        let extension = mime.split('/')[1] || 'jpg'
+        if (extension === 'jpeg') extension = 'jpg'
+
         const originalName = this.selectedFile.name
         const dotIdx = originalName.lastIndexOf('.')
         const baseName = dotIdx > 0 ? originalName.substring(0, dotIdx) : originalName
-        downloadDataUrl(dataUrl, `${baseName}_${this.newWidth}x${this.newHeight}.${extension}`)
+        const filename = `${baseName}_${this.newWidth}x${this.newHeight}.${extension}`
+        downloadBlob(blob, filename)
       } catch (error) {
         console.error('转换失败:', error)
         showToast({ message: `图片转换失败：${error.message}`, type: 'error' })
-      } finally { this.converting = false }
+      } finally {
+        this.converting = false
+      }
     },
     loadImage(url) {
       return new Promise((resolve, reject) => {
@@ -260,6 +314,8 @@ export default {
       this.originalWidth  = 0
       this.originalHeight = 0
       this.estimatedSize  = 0
+      this.hasEstimate    = false
+      this.enableSizeLimit = false
     }
   },
   beforeUnmount() {
@@ -378,5 +434,17 @@ export default {
   .preview-area {
     height: 450px;
   }
+}
+
+.estimate-bytes {
+  font-size: 13px;
+  color: var(--color-accent);
+  font-weight: 600;
+}
+.estimate-warn {
+  font-size: 12px;
+  color: var(--color-destructive);
+  margin-left: 6px;
+  font-weight: 500;
 }
 </style>
