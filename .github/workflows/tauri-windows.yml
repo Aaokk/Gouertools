@@ -1,0 +1,35 @@
+# 在 GitHub 云上打 Windows 版 Tauri（hosted runner 已带 WebView2 运行时环境）
+# 使用：Actions → “Tauri Windows bundle” → Run workflow
+name: Tauri Windows bundle
+
+on:
+  workflow_dispatch:
+
+jobs:
+  bundle:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Rust stable
+        uses: dtolnay/rust-toolchain@v1
+        with:
+          toolchain: stable
+
+      - name: Install frontend deps
+        run: npm ci
+
+      - name: Tauri NSIS bundle
+        run: npm run tauri:build
+
+      - name: Upload Windows installer (.exe from release/tauri/)
+        uses: actions/upload-artifact@v4
+        with:
+          name: Gouer-tools-tauri-windows
+          path: release/tauri/*.exe
+          if-no-files-found: warn

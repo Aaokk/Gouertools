@@ -328,6 +328,7 @@
 import { ref, reactive, computed, onMounted, watch, nextTick, onUnmounted } from 'vue'
 import { showToast } from '../utils/toast.js'
 import { downloadDataUrl } from '../utils/download.js'
+import { getDesktopShell } from '../utils/nativeDesktop.js'
 
 // Card toggle state
 const cardOpen = reactive({
@@ -779,7 +780,8 @@ const rotate = () => { watermarkSettings.angle = (watermarkSettings.angle + 90) 
 
 const saveImage = async () => {
   if (!canvasRef.value) return
-  if (window.electron) {
+  const desktop = getDesktopShell()
+  if (desktop) {
     try {
       const currentImage = imageList.value[currentImageIndex.value]
       const originalName = currentImage.name; const originalType = currentImage.file.type || 'image/jpeg'
@@ -790,9 +792,9 @@ const saveImage = async () => {
       const extension = originalName.substring(lastDotIndex)
       const suggestedName = `${nameWithoutExt}_${timestamp}${extension}`
       const dataUrl = createOptimizedDataURL(canvasRef.value, originalType, 0.92)
-      const savePath = await window.electron.saveFile(suggestedName)
+      const savePath = await desktop.saveFile(suggestedName)
       if (!savePath) return
-      await window.electron.saveImage({ dataUrl, path: savePath })
+      await desktop.saveImage({ dataUrl, path: savePath })
       showToast({ message: '保存成功', type: 'success' })
     } catch (error) {
       console.error('保存失败:', error)
@@ -922,9 +924,10 @@ const nextImage = () => { if (currentImageIndex.value < imageList.value.length -
 
 const saveAllImages = async () => {
   if (!canvasRef.value || imageList.value.length === 0) return
-  if (window.electron) {
+  const desktop = getDesktopShell()
+  if (desktop) {
     try {
-      const result = await window.electron.selectDirectory()
+      const result = await desktop.selectDirectory()
       if (!result || result.canceled) return
       const saveDir = result.filePaths[0]
       let successCount = 0; let failCount = 0
@@ -945,7 +948,7 @@ const saveAllImages = async () => {
           const originalType = currentImage.name.toLowerCase().endsWith('.png') ? 'image/png' : 'image/jpeg'
           const dataUrl = createOptimizedDataURL(canvasRef.value, originalType, 0.9)
           if (!dataUrl || dataUrl === 'data:,') throw new Error('无法生成图片数据')
-          await window.electron.saveImage({ dataUrl, path: filePath })
+          await desktop.saveImage({ dataUrl, path: filePath })
           successCount++
         } catch (error) {
           console.error(`保存第 ${i + 1} 张图片失败:`, error)

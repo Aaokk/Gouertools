@@ -24,3 +24,6 @@ dist-ssr
 *.sln
 *.sw?
 /release/
+
+# Tauri：Cargo 产出改到仓库根的 tauri-dist/（比 src-tauri/target/… 短）
+/tauri-dist/

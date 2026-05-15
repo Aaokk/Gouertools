@@ -8,13 +8,20 @@
     "build": "vite build",
     "electron:build": "vite build --mode electron && electron-builder",
     "electron:macbuild": "vite build --mode electron && electron-builder",
-    "electron:winbuild": "npm run electron:build -- --win"
+    "electron:winbuild": "npm run electron:build -- --win",
+    "tauri": "tauri",
+    "tauri:dev": "tauri dev",
+    "tauri:build": "node scripts/tauri-build.mjs",
+    "tauri:build:windows": "node scripts/tauri-build.mjs"
   },
   "dependencies": {
     "electron-log": "^5.2.4"
   },
   "devDependencies": {
     "@ckpack/vue-color": "^1.5.0",
+    "@tauri-apps/api": "^2.11.0",
+    "@tauri-apps/cli": "^2.11.1",
+    "@tauri-apps/plugin-dialog": "^2.7.1",
     "@vitejs/plugin-vue": "^5.2.1",
     "electron": "^33.2.1",
     "electron-builder": "^25.1.8",
