@@ -22,8 +22,11 @@
           </button>
         </div>
 
-        <!-- 预览框 -->
-        <div class="preview-area qr-preview-area">
+        <!-- 预览框：生成后铺淡灰底，便于与白底码区分；拖拽时略加深 -->
+        <div
+          class="preview-area qr-preview-area"
+          :class="{ 'qr-preview-area--filled': !!qrDataUrl }"
+        >
           <div v-if="!qrDataUrl" class="qr-placeholder">
             <div class="placeholder-icon">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3M17 17h3v3M14 20h3"/></svg>
@@ -117,8 +120,8 @@
           </div>
         </div>
 
-        <!-- 样式设置 -->
-        <div class="setting-card">
+        <!-- 样式设置（码点下拉超出卡片时需 overflow: visible） -->
+        <div class="setting-card qr-dot-dropdown-host">
           <div class="setting-card-header" @click="s2 = !s2">
             <h4>样式设置</h4>
             <svg class="arrow" :class="{ rotated: !s2 }" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
@@ -142,6 +145,158 @@
                   <option value="Q">较高 Q（25%）</option>
                   <option value="H">高 H（30%）</option>
                 </select>
+              </div>
+            </div>
+            <div class="setting-row">
+              <label class="setting-label-with-hint">
+                <span>码边距</span>
+                <button
+                  type="button"
+                  class="qr-hint-trigger"
+                  aria-label="码边距说明"
+                  title="二维码图案距离四周的留白（按模块/色块计）。ISO/IEC 18004 建议静默区不小于 4 个模块；日常可选用 2～4，更紧凑时可试 1。"
+                >
+                  ?
+                </button>
+              </label>
+              <div class="control">
+                <select class="select" v-model.number="settings.marginModules">
+                  <option v-for="n in qrMarginOptions" :key="n" :value="n">{{ n }} 个色块</option>
+                </select>
+              </div>
+            </div>
+            <div class="setting-row">
+              <label>码点形状</label>
+              <div class="control">
+                <div ref="dotDropdownEl" class="dot-style-dropdown">
+                  <button
+                    type="button"
+                    class="dot-style-trigger"
+                    :aria-expanded="dotStyleDropdownOpen"
+                    aria-haspopup="listbox"
+                    aria-controls="dot-style-listbox"
+                    @click.stop="toggleDotStyleDropdown"
+                  >
+                    <span class="dot-style-trigger-main">
+                      <span class="dot-style-trigger-thumb">
+                        <svg class="dot-style-thumb-svg" viewBox="0 0 24 24" aria-hidden="true">
+                          <rect width="24" height="24" fill="#ffffff" />
+                          <g fill="#2a3330" v-html="qrDotThumbFragmentMarkup(settings.dotStyle)" />
+                        </svg>
+                      </span>
+                      <span class="dot-style-trigger-label">{{ dotStyleLabel }}</span>
+                    </span>
+                    <svg
+                      class="dot-style-chevron"
+                      :class="{ open: dotStyleDropdownOpen }"
+                      width="11"
+                      height="11"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      aria-hidden="true"
+                    ><path d="M6 9l6 6 6-6"/></svg>
+                  </button>
+                  <div
+                    v-show="dotStyleDropdownOpen"
+                    id="dot-style-listbox"
+                    class="dot-style-popover"
+                    role="listbox"
+                    @click.stop
+                  >
+                    <button
+                      v-for="s in QR_DOT_STYLES"
+                      :id="`dot-opt-${s.id}`"
+                      :key="s.id"
+                      type="button"
+                      class="dot-style-cell"
+                      role="option"
+                      :class="{ active: settings.dotStyle === s.id }"
+                      :aria-selected="settings.dotStyle === s.id"
+                      @click="pickDotStyle(s.id)"
+                    >
+                      <span class="dot-style-thumb-wrap">
+                        <span class="dot-style-thumb-frame">
+                          <svg class="dot-style-thumb-svg" viewBox="0 0 24 24" aria-hidden="true">
+                            <rect width="24" height="24" fill="#ffffff" />
+                            <g fill="#1a1f1d" v-html="qrDotThumbFragmentMarkup(s.id)" />
+                          </svg>
+                        </span>
+                      </span>
+                      <span class="dot-style-cell-label">{{ s.label }}</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="setting-row">
+              <label>码眼形状</label>
+              <div class="control">
+                <div ref="eyeDropdownEl" class="dot-style-dropdown">
+                  <button
+                    type="button"
+                    class="dot-style-trigger"
+                    :aria-expanded="eyeStyleDropdownOpen"
+                    aria-haspopup="listbox"
+                    aria-controls="eye-style-listbox"
+                    @click.stop="toggleEyeStyleDropdown"
+                  >
+                    <span class="dot-style-trigger-main">
+                      <span class="dot-style-trigger-thumb">
+                        <svg
+                          class="dot-style-thumb-svg"
+                          viewBox="0 0 24 24"
+                          aria-hidden="true"
+                          v-html="qrEyeThumbMarkup(settings.eyeStyle)"
+                        />
+                      </span>
+                      <span class="dot-style-trigger-label">{{ eyeStyleLabel }}</span>
+                    </span>
+                    <svg
+                      class="dot-style-chevron"
+                      :class="{ open: eyeStyleDropdownOpen }"
+                      width="11"
+                      height="11"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      aria-hidden="true"
+                    ><path d="M6 9l6 6 6-6"/></svg>
+                  </button>
+                  <div
+                    v-show="eyeStyleDropdownOpen"
+                    id="eye-style-listbox"
+                    class="dot-style-popover"
+                    role="listbox"
+                    @click.stop
+                  >
+                    <button
+                      v-for="s in QR_EYE_STYLES"
+                      :id="`eye-opt-${s.id}`"
+                      :key="s.id"
+                      type="button"
+                      class="dot-style-cell"
+                      role="option"
+                      :class="{ active: settings.eyeStyle === s.id }"
+                      :aria-selected="settings.eyeStyle === s.id"
+                      @click="pickEyeStyle(s.id)"
+                    >
+                      <span class="dot-style-thumb-wrap">
+                        <span class="dot-style-thumb-frame">
+                          <svg
+                            class="dot-style-thumb-svg"
+                            viewBox="0 0 24 24"
+                            aria-hidden="true"
+                            v-html="qrEyeThumbMarkup(s.id)"
+                          />
+                        </span>
+                      </span>
+                      <span class="dot-style-cell-label">{{ s.label }}</span>
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
             <div class="setting-row">
@@ -175,12 +330,25 @@
 
 <script setup>
 import { ref, computed, reactive, watch, onUnmounted } from 'vue'
-import QRCode from 'qrcode'
+import {
+  styledQrToDataUrl,
+  styledQrToSvgString,
+  QR_DOT_STYLES,
+  QR_EYE_STYLES,
+  qrDotThumbFragmentMarkup,
+  qrEyeThumbMarkup,
+} from '../utils/qrStyled.js'
 import { showToast } from '../utils/toast.js'
 import { downloadDataUrl, downloadBlob } from '../utils/download.js'
 
 const s1 = ref(true)
 const s2 = ref(true)
+/** 码边距可选模块数（与 qrStyled margin 一致） */
+const qrMarginOptions = [1, 2, 3, 4]
+const dotStyleDropdownOpen = ref(false)
+const eyeStyleDropdownOpen = ref(false)
+const dotDropdownEl = ref(null)
+const eyeDropdownEl = ref(null)
 const qrDataUrl   = ref('')
 const qrSvgString = ref('')
 const contentType = ref('url')
@@ -188,7 +356,11 @@ const contentType = ref('url')
 const settings = reactive({
   content:    'https://gouer.vip',
   size:       400,
-  errorLevel: 'M',
+  errorLevel: 'H',
+  /** 四周留白模块数，对应 QR quiet zone */
+  marginModules: 2,
+  dotStyle:   'normal',
+  eyeStyle:   'square',
   fgColor:    '#000000',
   bgColor:    '#ffffff',
   showLabel:  false,
@@ -213,6 +385,64 @@ const qrWrapStyle = computed(() => ({
   borderRadius: '8px',
 }))
 
+const dotStyleLabel = computed(() => {
+  const f = QR_DOT_STYLES.find((s) => s.id === settings.dotStyle)
+  return f ? f.label : settings.dotStyle
+})
+
+const eyeStyleLabel = computed(() => {
+  const f = QR_EYE_STYLES.find((s) => s.id === settings.eyeStyle)
+  return f ? f.label : settings.eyeStyle
+})
+
+function pickEyeStyle(id) {
+  settings.eyeStyle = id
+  eyeStyleDropdownOpen.value = false
+}
+
+function toggleEyeStyleDropdown() {
+  eyeStyleDropdownOpen.value = !eyeStyleDropdownOpen.value
+  if (eyeStyleDropdownOpen.value) dotStyleDropdownOpen.value = false
+}
+
+function pickDotStyle(id) {
+  settings.dotStyle = id
+  dotStyleDropdownOpen.value = false
+}
+
+function toggleDotStyleDropdown() {
+  dotStyleDropdownOpen.value = !dotStyleDropdownOpen.value
+  if (dotStyleDropdownOpen.value) eyeStyleDropdownOpen.value = false
+}
+
+function closeQrStyleMenusOnEscape(e) {
+  if (e.key === 'Escape') {
+    dotStyleDropdownOpen.value = false
+    eyeStyleDropdownOpen.value = false
+  }
+}
+
+function onQrStyleMenuPointerDown(e) {
+  const t = e.target
+  if (dotStyleDropdownOpen.value && dotDropdownEl.value && !dotDropdownEl.value.contains(t)) {
+    dotStyleDropdownOpen.value = false
+  }
+  if (eyeStyleDropdownOpen.value && eyeDropdownEl.value && !eyeDropdownEl.value.contains(t)) {
+    eyeStyleDropdownOpen.value = false
+  }
+}
+
+watch([dotStyleDropdownOpen, eyeStyleDropdownOpen], ([dotOpen, eyeOpen]) => {
+  const anyOpen = dotOpen || eyeOpen
+  if (anyOpen) {
+    document.addEventListener('keydown', closeQrStyleMenusOnEscape)
+    document.addEventListener('mousedown', onQrStyleMenuPointerDown)
+  } else {
+    document.removeEventListener('keydown', closeQrStyleMenusOnEscape)
+    document.removeEventListener('mousedown', onQrStyleMenuPointerDown)
+  }
+})
+
 const getContent = () => {
   if (contentType.value === 'wifi') {
     return `WIFI:T:${wifi.encryption};S:${wifi.ssid};P:${wifi.password};;`
@@ -220,25 +450,25 @@ const getContent = () => {
   return settings.content.trim()
 }
 
-const generate = async () => {
+const generate = () => {
   const content = getContent()
   if (!content) {
     showToast({ message: '请先输入内容', type: 'info' })
     return
   }
   try {
-    qrDataUrl.value = await QRCode.toDataURL(content, {
+    const margin = Math.min(4, Math.max(1, Math.round(Number(settings.marginModules)) || 2))
+    const opts = {
       width: settings.size,
       errorCorrectionLevel: settings.errorLevel,
-      color: { dark: settings.fgColor, light: settings.bgColor },
-      margin: 2,
-    })
-    qrSvgString.value = await QRCode.toString(content, {
-      type: 'svg',
-      errorCorrectionLevel: settings.errorLevel,
-      color: { dark: settings.fgColor, light: settings.bgColor },
-      margin: 2,
-    })
+      fgColor: settings.fgColor,
+      bgColor: settings.bgColor,
+      margin,
+      dotStyle: settings.dotStyle,
+      eyeStyle: settings.eyeStyle,
+    }
+    qrDataUrl.value = styledQrToDataUrl(content, opts)
+    qrSvgString.value = styledQrToSvgString(content, opts)
   } catch (err) {
     showToast({ message: `生成失败：${err.message}`, type: 'error' })
   }
@@ -247,7 +477,15 @@ const generate = async () => {
 /** 已有预览时，改颜色/尺寸/容错后立即重绘（避免用户误以为前景色无效） */
 let regenTimer = null
 watch(
-  () => [settings.fgColor, settings.bgColor, settings.size, settings.errorLevel],
+  () => [
+    settings.fgColor,
+    settings.bgColor,
+    settings.size,
+    settings.errorLevel,
+    settings.marginModules,
+    settings.dotStyle,
+    settings.eyeStyle,
+  ],
   () => {
     if (!qrDataUrl.value) return
     clearTimeout(regenTimer)
@@ -258,7 +496,11 @@ watch(
   }
 )
 
-onUnmounted(() => clearTimeout(regenTimer))
+onUnmounted(() => {
+  clearTimeout(regenTimer)
+  document.removeEventListener('keydown', closeQrStyleMenusOnEscape)
+  document.removeEventListener('mousedown', onQrStyleMenuPointerDown)
+})
 
 const downloadPng = () => {
   downloadDataUrl(qrDataUrl.value, 'qrcode.png')
@@ -278,6 +520,19 @@ const downloadSvg = () => {
 
 .qr-preview-area {
   display: flex; align-items: center; justify-content: center;
+}
+
+.preview-area.qr-preview-area.qr-preview-area--filled {
+  background: rgba(44, 62, 58, 0.06);
+  border-style: solid;
+  border-color: var(--color-border);
+}
+
+.preview-area.qr-preview-area.qr-preview-area--filled.preview-area.dragover,
+.preview-area.qr-preview-area.qr-preview-area--filled.preview-area.dragging {
+  background: rgba(44, 62, 58, 0.1);
+  border-color: var(--color-border-hover);
+  box-shadow: var(--shadow-sm);
 }
 /* placeholder 样式完全依赖全局 .preview-area .placeholder-* 规则，无需重复 */
 .qr-placeholder {
@@ -317,7 +572,190 @@ const downloadSvg = () => {
 }
 .qr-textarea { min-height: 72px; height: auto; resize: vertical; padding: 8px 10px; }
 
-.control-panel { box-sizing: border-box; width: 100%; min-width: 0; overflow-x: hidden; display: flex; flex-direction: column; gap: var(--spacing-md); }
+.control-panel { box-sizing: border-box; width: 100%; min-width: 0; overflow: visible; display: flex; flex-direction: column; gap: var(--spacing-md); }
 .arrow { transition: transform var(--transition-fast); color: var(--color-text-muted); flex-shrink: 0; }
 .arrow.rotated { transform: rotate(-90deg); }
+
+.qr-dot-dropdown-host {
+  overflow: visible;
+}
+
+.setting-label-with-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.qr-hint-trigger {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  border: 1px solid var(--color-border);
+  border-radius: 50%;
+  background: var(--input-bg);
+  color: var(--color-text-muted);
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: help;
+}
+.qr-hint-trigger:hover {
+  border-color: var(--color-border-hover);
+  color: var(--color-foreground);
+}
+
+.dot-style-dropdown {
+  position: relative;
+  width: 100%;
+}
+.dot-style-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-height: 36px;
+  padding: 0 10px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--input-bg);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  font-family: var(--font-body);
+  color: var(--color-foreground);
+  text-align: left;
+  transition: border-color var(--transition-fast), background var(--transition-fast);
+}
+.dot-style-trigger:hover {
+  border-color: var(--color-border-hover);
+  background: var(--input-bg-focus);
+}
+.dot-style-trigger-main {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+}
+.dot-style-trigger-thumb {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  border-radius: 3px;
+  border: 1px solid var(--color-border);
+  background: #fff;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.dot-style-trigger-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.dot-style-chevron {
+  flex-shrink: 0;
+  color: var(--color-text-muted);
+  transition: transform var(--transition-fast);
+}
+.dot-style-chevron.open {
+  transform: rotate(180deg);
+}
+
+/* 码点 / 码眼共用：列宽随内容收缩，避免 1fr 把格子拉得过宽显得空旷 */
+.dot-style-popover {
+  position: absolute;
+  left: 0;
+  top: calc(100% + 4px);
+  z-index: 50;
+  box-sizing: border-box;
+  width: max-content;
+  max-width: calc(100vw - 24px);
+  padding: 4px;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(5, auto);
+  gap: 4px 5px;
+  justify-items: center;
+  background: var(--color-surface-solid);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-md);
+}
+
+.dot-style-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  width: max-content;
+  max-width: 52px;
+  padding: 1px 2px 0;
+  margin: 0;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  cursor: pointer;
+  font-family: var(--font-body);
+  transition: background var(--transition-fast);
+}
+
+.dot-style-cell:hover {
+  background: rgba(74, 155, 142, 0.06);
+}
+
+.dot-style-thumb-wrap {
+  width: auto;
+  display: flex;
+  justify-content: center;
+}
+
+.dot-style-thumb-frame {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 22px;
+  aspect-ratio: 1;
+  padding: 2px;
+  border-radius: 2px;
+  border: 1px solid #e5e2dc;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+
+.dot-style-thumb-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.dot-style-cell.active .dot-style-thumb-frame {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 1px var(--color-accent);
+}
+
+.dot-style-cell-label {
+  font-size: 8px;
+  font-weight: 500;
+  line-height: 1.12;
+  color: var(--color-text-muted);
+  text-align: center;
+  width: 100%;
+  padding: 0;
+  word-break: keep-all;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+
+.dot-style-cell.active .dot-style-cell-label {
+  color: var(--color-accent);
+  font-weight: 600;
+}
 </style>
