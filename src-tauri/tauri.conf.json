@@ -6,8 +6,14 @@
   "build": {
     "frontendDist": "../dist",
     "devUrl": "http://127.0.0.1:5173",
-    "beforeDevCommand": "vite --host 127.0.0.1 --port 5173 --strictPort",
-    "beforeBuildCommand": "npm run build"
+    "beforeDevCommand": {
+      "cwd": "..",
+      "script": "npm run tauri:before-dev"
+    },
+    "beforeBuildCommand": {
+      "cwd": "..",
+      "script": "npm run tauri:before-build"
+    }
   },
   "app": {
     "windows": [

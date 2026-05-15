@@ -1,7 +1,11 @@
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
+import { readFileSync } from 'node:fs'
 import { fileURLToPath, URL } from 'node:url'
 import { join } from 'path'
+
+// __APP_VERSION__ 来自 package.json 的 version（运行 sync-version / tauri 构建时会同步其它清单）
+const pkgJson = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf-8'))
 
 function manualChunksForVendor(id) {
   if (!id.includes('node_modules')) return undefined
@@ -27,6 +31,10 @@ function manualChunksForVendor(id) {
 }
 
 export default defineConfig({
+  define: {
+    // 运行时更新检查等使用，与桌面包展示版本同源
+    __APP_VERSION__: JSON.stringify(pkgJson.version),
+  },
   plugins: [vue()],
   base: '/',
   server: {

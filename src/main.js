@@ -1,6 +1,7 @@
 import { createApp } from 'vue'
 import App from './App.vue'
 import router from './router'
+import { runTauriUpdateCheckOnce } from './utils/tauriUpdateCheck.js'
 import './style.css'
 import './themes.css'
 
@@ -33,6 +34,10 @@ app.use(router)
 
 // 挂载应用
 app.mount('#app')
+
+setTimeout(() => {
+  runTauriUpdateCheckOnce()
+}, 4000)
 
 // 调试信息
 console.log('应用已启动')

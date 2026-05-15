@@ -10,7 +10,7 @@
           <img class="brand-logo" :src="brandLogoHref" alt="G" />
           <div>
             <h2>GOUER</h2>
-            <span>工具包包 v1.9.0</span>
+            <span>工具包包 v{{ displayedVersion }}</span>
           </div>
         </div>
       </div>
@@ -75,6 +75,10 @@ export default {
   computed: {
     brandLogoHref () {
       return `${import.meta.env.BASE_URL || './'}favicon.svg`
+    },
+    /** Vite inject：与 package.json version 同源（参见 vite.config define） */
+    displayedVersion () {
+      return typeof __APP_VERSION__ !== 'undefined' ? __APP_VERSION__ : '0.0.0'
     }
   },
   setup () {
