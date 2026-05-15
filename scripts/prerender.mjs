@@ -25,6 +25,7 @@ const ROUTES = [
   '/qrcode',
   '/exif',
   '/mosaic',
+  '/app-icon',
 ]
 
 const MIME = {

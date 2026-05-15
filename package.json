@@ -2,7 +2,7 @@
   "name": "shuiyinimg",
   "private": true,
   "_version_sync_note": "只需改 package.json 的 version。tauri:dev / tauri:build 会经 tauri.conf 钩子自动 sync 到 Cargo.toml 与 tauri.conf.json；也可用 npm version patch 会自动跑 version 脚本同步。一般不必手敲 sync-version（除非只跑 vite / 纯 cargo 且不经 tauri cli）。",
-  "version": "2.1.6",
+  "version": "2.1.7",
   "type": "commonjs",
   "scripts": {
     "sync-version": "node scripts/sync-version-from-package.mjs",

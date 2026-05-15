@@ -45,6 +45,15 @@
           <div class="card-desc">可视化拖拽裁剪，内置一寸 / 二寸 / 护照 / 身份证比例</div>
           <span class="card-cta">开始使用 →</span>
         </router-link>
+
+        <router-link to="/app-icon" class="tool-card">
+          <div class="card-icon">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/></svg>
+          </div>
+          <h3>应用图标</h3>
+          <div class="card-desc">批量导出 Android / iOS / 网站 favicon，圆角与边距可调</div>
+          <span class="card-cta">开始使用 →</span>
+        </router-link>
       </div>
     </div>
 
