@@ -8,6 +8,7 @@ import QrCodeGen from '../components/QrCodeGen.vue'
 import ExifEditor from '../components/ExifEditor.vue'
 import MosaicEditor from '../components/MosaicEditor.vue'
 import AppIconMaker from '../components/AppIconMaker.vue'
+import NotFound from '../components/NotFound.vue'
 
 const BASE = 'Gouer工具包包'
 
@@ -101,6 +102,16 @@ const routes = [
       description: '免费在线应用图标生成器，上传图片一键批量生成 Android mipmap 全套、iOS AppIcon.appiconset（含 Contents.json）与网站 favicon.ico，支持圆角调整，打包 ZIP 下载，本地处理。',
       keywords: '应用图标生成器,App Icon生成,安卓图标生成,iOS图标生成,favicon生成器,ic_launcher生成,AppIcon.appiconset,mipmap图标,应用图标制作,批量生成图标,图标圆角,PWA图标,apple-touch-icon,在线图标工具',
     }
+  },
+  {
+    path: '/:pathMatch(.*)*',
+    name: 'not-found',
+    component: NotFound,
+    meta: {
+      title: `页面不存在 (404) — ${BASE}`,
+      description: '您访问的地址在 Gouer工具包包中不存在，请返回首页或从左侧菜单选择功能。',
+      keywords: '404,页面未找到,Gouer工具包包',
+    }
   }
 ]
 
@@ -117,8 +128,9 @@ const SITE_BASE = 'https://tools.gouer.vip'
 
 // 路由切换时动态更新 title / meta / canonical / JSON-LD
 router.afterEach((to) => {
+  const notFound = to.name === 'not-found'
   const { title, description, keywords } = to.meta || {}
-  const canonical = SITE_BASE + to.path
+  const canonical = notFound ? `${SITE_BASE}/` : SITE_BASE + to.path
 
   if (title) document.title = title
 
@@ -131,16 +143,17 @@ router.afterEach((to) => {
   setMeta('name', 'twitter:title',       title       || '')
   setMeta('name', 'twitter:description', description || '')
   setMeta('name', 'twitter:card',        'summary')
+  setMeta('name', 'robots', notFound ? 'noindex, nofollow' : 'index, follow')
 
-  // canonical 链接
+  // canonical 链接（404 统一点到首页，避免无效 URL 被当作规范地址）
   setLink('canonical', canonical)
 
   // JSON-LD 结构化数据（WebApplication）
   setJsonLd({
     '@context': 'https://schema.org',
     '@type': 'WebApplication',
-    name: title || BASE,
-    description: description || '',
+    name: notFound ? BASE : (title || BASE),
+    description: notFound ? '免费在线图片处理工具箱（本地运行，隐私安全）' : (description || ''),
     url: canonical,
     applicationCategory: 'MultimediaApplication',
     operatingSystem: 'Web Browser',
