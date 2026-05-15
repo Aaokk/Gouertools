@@ -47,6 +47,8 @@ for (const sub of ['dmg', 'nsis', 'msi', 'macos']) {
   for (const name of readdirSync(dir)) {
     const lower = name.toLowerCase()
     if (!(lower.endsWith('.dmg') || lower.endsWith('.exe'))) continue
+    // macOS 打包链（hdiutil 等）会在 bundle 内生成 rw.<pid>.产品名.dmg，属读写临时映像，不是给用户安装的成品
+    if (lower.endsWith('.dmg') && /^rw\.\d+\./i.test(name)) continue
     const src = join(dir, name)
     if (!statSync(src).isFile()) continue
     const dest = join(flatOut, name)
