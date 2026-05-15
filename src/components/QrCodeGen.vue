@@ -154,7 +154,7 @@
                   type="button"
                   class="qr-hint-trigger"
                   aria-label="码边距说明"
-                  title="二维码图案距离四周的留白（按模块/色块计）。ISO/IEC 18004 建议静默区不小于 4 个模块；日常可选用 2～4，更紧凑时可试 1。"
+                  title="二维码图案距离四周的留白（按模块/色块计）。默认 1；ISO/IEC 18004 建议静默区不小于 4 个模块，扫码要求高时可改为 2～4。"
                 >
                   ?
                 </button>
@@ -358,7 +358,7 @@ const settings = reactive({
   size:       400,
   errorLevel: 'H',
   /** 四周留白模块数，对应 QR quiet zone */
-  marginModules: 2,
+  marginModules: 1,
   dotStyle:   'normal',
   eyeStyle:   'square',
   fgColor:    '#000000',
@@ -457,7 +457,7 @@ const generate = () => {
     return
   }
   try {
-    const margin = Math.min(4, Math.max(1, Math.round(Number(settings.marginModules)) || 2))
+    const margin = Math.min(4, Math.max(1, Math.round(Number(settings.marginModules)) || 1))
     const opts = {
       width: settings.size,
       errorCorrectionLevel: settings.errorLevel,

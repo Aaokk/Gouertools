@@ -197,6 +197,7 @@ function roundRectTLBRRoundedPath(ctx, x, y, w, h, r) {
   ctx.closePath()
 }
 
+/** 四角星：偶数顶点为外尖半径 outer，奇数为内凹半径 inner；inner 越大臂越粗 */
 function drawFourPointStar(ctx, cx, cy, outer, inner) {
   ctx.beginPath()
   for (let i = 0; i < 8; i++) {
@@ -248,11 +249,12 @@ export function drawQrDotShape(ctx, styleId, x, y, w, h) {
       ctx.fill()
       break
     case 'starThick':
-      drawFourPointStar(ctx, cx, cy, m * 0.44, m * 0.14)
+      /* 凹角半径大 → 四面「臂」粗；与 starThin 对比勿搞反 */
+      drawFourPointStar(ctx, cx, cy, m * 0.4, m * 0.26)
       ctx.fill()
       break
     case 'starThin':
-      drawFourPointStar(ctx, cx, cy, m * 0.4, m * 0.26)
+      drawFourPointStar(ctx, cx, cy, m * 0.44, m * 0.14)
       ctx.fill()
       break
     case 'grid':
@@ -312,7 +314,7 @@ function svgDotShape(styleId, x, y, w, h) {
     case 'starThick': {
       let d = ''
       for (let si = 0; si < 8; si++) {
-        const r = si % 2 === 0 ? m * 0.44 : m * 0.14
+        const r = si % 2 === 0 ? m * 0.4 : m * 0.26
         const a = (Math.PI / 4) * si - Math.PI / 2
         const px = cx + Math.cos(a) * r
         const py = cy + Math.sin(a) * r
@@ -323,7 +325,7 @@ function svgDotShape(styleId, x, y, w, h) {
     case 'starThin': {
       let d = ''
       for (let si = 0; si < 8; si++) {
-        const r = si % 2 === 0 ? m * 0.4 : m * 0.26
+        const r = si % 2 === 0 ? m * 0.44 : m * 0.14
         const a = (Math.PI / 4) * si - Math.PI / 2
         const px = cx + Math.cos(a) * r
         const py = cy + Math.sin(a) * r
@@ -867,7 +869,7 @@ export function renderStyledQrCanvas(content, options) {
     errorCorrectionLevel = 'H',
     fgColor = '#000000',
     bgColor = '#ffffff',
-    margin = 2,
+    margin = 1,
     dotStyle = 'normal',
     eyeStyle = 'square',
   } = options
@@ -970,7 +972,7 @@ export function styledQrToSvgString(content, options) {
     errorCorrectionLevel = 'H',
     fgColor = '#000000',
     bgColor = '#ffffff',
-    margin = 2,
+    margin = 1,
     dotStyle = 'normal',
     eyeStyle = 'square',
   } = options
