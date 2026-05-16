@@ -275,7 +275,7 @@ const clearAndDownload = () => {
 .exif-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .exif-preview-img { max-width: 100%; max-height: 100%; object-fit: contain; }
 
-.control-panel { box-sizing: border-box; width: 100%; min-width: 0; overflow-x: hidden; display: flex; flex-direction: column; gap: var(--spacing-md); }
+.control-panel { box-sizing: border-box; width: 100%; min-width: 0; overflow-x: hidden; display: flex; flex-direction: column; gap: var(--spacing-sm); }
 
 .exif-empty {
   display: flex; flex-direction: column; align-items: center; justify-content: center;

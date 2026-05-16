@@ -443,7 +443,7 @@ const downloadResult = () => {
 .mode-btn:hover { border-color: var(--color-accent); color: var(--color-accent); background: var(--color-accent-dim); }
 .mode-btn.active { border-color: var(--color-accent); color: var(--color-accent); background: var(--color-accent-dim); }
 
-.control-panel { box-sizing: border-box; width: 100%; min-width: 0; overflow-x: hidden; display: flex; flex-direction: column; gap: var(--spacing-md); }
+.control-panel { box-sizing: border-box; width: 100%; min-width: 0; overflow-x: hidden; display: flex; flex-direction: column; gap: var(--spacing-sm); }
 .arrow { transition: transform var(--transition-fast); color: var(--color-text-muted); flex-shrink: 0; }
 .arrow.rotated { transform: rotate(-90deg); }
 

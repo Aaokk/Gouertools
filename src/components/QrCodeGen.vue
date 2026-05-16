@@ -1306,7 +1306,7 @@ const downloadSvg = () => {
 }
 .qr-textarea { min-height: 72px; height: auto; resize: vertical; padding: 8px 10px; }
 
-.control-panel { box-sizing: border-box; width: 100%; min-width: 0; overflow: visible; display: flex; flex-direction: column; gap: var(--spacing-md); }
+.control-panel { box-sizing: border-box; width: 100%; min-width: 0; overflow: visible; display: flex; flex-direction: column; gap: var(--spacing-sm); }
 
 .qr-panel-footer-btns {
   display: flex;

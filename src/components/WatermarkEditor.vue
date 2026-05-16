@@ -1142,7 +1142,7 @@ watch(logoSettings, () => {
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-sm);
+  gap: var(--spacing-md);
 }
 
 .preview-canvas {
@@ -1159,7 +1159,7 @@ watch(logoSettings, () => {
   overflow-x: hidden;
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-md);
+  gap: var(--spacing-sm);
 }
 .arrow {
   transition: transform var(--transition-fast);

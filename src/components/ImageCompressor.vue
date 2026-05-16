@@ -308,7 +308,7 @@
               <input type="range" min="2" max="256" step="1" v-model.number="settings.png.colors">
               <span class="range-value">{{ settings.png.colors }}</span>
             </div>
-            <p class="param-label" style="margin-top:6px;">设置抖色系数（0-1）</p>
+            <p class="param-label" style="margin-top:4px;">设置抖色系数（0-1）</p>
             <div class="range-group">
               <input type="range" min="0" max="100" step="1" :value="Math.round(settings.png.dithering * 100)"
                 @input="e => { settings.png.dithering = Number(e.target.value) / 100 }">
@@ -329,7 +329,7 @@
               <input type="range" min="2" max="256" step="1" v-model.number="settings.gif.colors">
               <span class="range-value">{{ settings.gif.colors }}</span>
             </div>
-            <div class="setting-row" style="margin-top:8px;">
+            <div class="setting-row" style="margin-top:6px;">
               <label>开启抖色</label>
               <div class="control">
                 <label class="toggle">
@@ -353,7 +353,7 @@
               <input type="range" min="1" max="100" step="1" v-model.number="settings.avif.quality">
               <span class="range-value">{{ settings.avif.quality }}</span>
             </div>
-            <p class="param-label" style="margin-top:6px;">设置压缩速度（1-10）</p>
+            <p class="param-label" style="margin-top:4px;">设置压缩速度（1-10）</p>
             <div class="range-group">
               <input type="range" min="1" max="10" step="1" v-model.number="settings.avif.speed">
               <span class="range-value">{{ settings.avif.speed }}</span>
@@ -1067,7 +1067,7 @@ const guessMime = (name) => {
 .comp-sidebar {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-md);
+  gap: var(--spacing-sm);
   position: sticky;
   top: 24px;
 }
@@ -1084,7 +1084,7 @@ const guessMime = (name) => {
   font-size: 12px;
   color: var(--color-text-muted);
   font-weight: 500;
-  margin: 0 0 6px;
+  margin: 0 0 4px;
   white-space: nowrap;
 }
 
