@@ -124,7 +124,8 @@ function drawMesh(c, t) {
     const angle = Math.atan2(cy - IC, cx - IC)
     const flash = Math.sin(-t * 2.5 + angle * 1.5)
     if (flash > 0.75) {
-      c.fillStyle = `rgba(255,220,180,${(flash - 0.75) * 2.2})`
+      const hl = Math.max(60, accentHSL.l + 20)
+      c.fillStyle = `hsla(${accentHSL.h},${Math.max(50, accentHSL.s)}%,${hl}%,${(flash - 0.75) * 2.2})`
       c.beginPath()
       c.moveTo(a.x, a.y); c.lineTo(b.x, b.y); c.lineTo(cv2.x, cv2.y)
       c.closePath(); c.fill()
