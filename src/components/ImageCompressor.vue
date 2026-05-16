@@ -44,7 +44,7 @@
                 保存全部
               </button>
             </AnchoredBubbleTip>
-            <AnchoredBubbleTip :visible="tipZip.visible" :text="tipZip.text">
+            <AnchoredBubbleTip v-if="zipEligibleCount >= 2" :visible="tipZip.visible" :text="tipZip.text">
               <button type="button" class="btn btn-purple btn-sm" title="将已完成压缩的图片打包为一个 ZIP" @click="handleZipClick">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><path d="M3.27 6.96L12 12.01l8.73-5.05M12 22.08V12"/></svg>
                 ZIP 打包下载
@@ -464,6 +464,11 @@ const settings = reactive({
 
 /* ── 计算属性 ────────────────────────────────────────────── */
 const doneCount = computed(() => fileList.value.filter(f => f.status === 'done').length)
+
+/** 已有压缩输出，可计入 ZIP（与 handleZipClick / downloadZipAll 判定一致） */
+const zipEligibleCount = computed(() =>
+  fileList.value.filter(f => f.status === 'done' && f.outBlob).length,
+)
 
 const totalOrigSize = computed(() =>
   fileList.value.reduce((s, f) => s + (f.origSize || 0), 0)
