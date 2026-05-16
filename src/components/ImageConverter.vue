@@ -477,12 +477,6 @@ export default {
   box-shadow: 0 0 10px var(--color-accent-glow);
 }
 
-@media (max-width: 900px) {
-  .preview-area {
-    height: 450px;
-  }
-}
-
 .estimate-bytes {
   font-size: 13px;
   color: var(--color-accent);

@@ -1528,11 +1528,25 @@ const downloadSvg = () => {
   align-items: center;
   gap: var(--spacing-sm);
   user-select: none;
-  overflow: visible;
-  height: auto;
-  min-height: 480px;
   cursor: default;
   padding-bottom: var(--spacing-sm);
+}
+
+@media (min-width: 901px) {
+  .qr-poster-shell {
+    overflow: visible;
+    height: auto;
+    min-height: 480px;
+  }
+}
+
+@media (max-width: 900px) {
+  .qr-poster-shell {
+    height: var(--tool-preview-area-height);
+    min-height: 0;
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+  }
 }
 
 .qr-poster-fit-inner {
@@ -1545,11 +1559,22 @@ const downloadSvg = () => {
 .qr-poster-img {
   display: block;
   max-width: 100%;
-  max-height: 640px;
   width: auto;
   height: auto;
   object-fit: contain;
   pointer-events: none;
+}
+
+@media (min-width: 901px) {
+  .qr-poster-img {
+    max-height: 640px;
+  }
+}
+
+@media (max-width: 900px) {
+  .qr-poster-img {
+    max-height: calc(var(--tool-preview-area-height) - 72px);
+  }
 }
 
 .qr-poster-overlay-wrap {

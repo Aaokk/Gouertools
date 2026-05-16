@@ -1333,10 +1333,4 @@ watch(logoSettings, () => {
   gap: var(--spacing-sm);
   margin-top: var(--spacing-md);
 }
-
-@media (max-width: 900px) {
-  .preview-area {
-    height: 450px;
-  }
-}
 </style>

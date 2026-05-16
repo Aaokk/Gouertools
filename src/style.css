@@ -78,6 +78,10 @@
 
   /* 工具页左侧预览列纵向间距：顶部按钮 ⇄ 虚线预览区 ⇄ 缩略列表等（全页统一可调） */
   --tool-preview-stack-gap: var(--spacing-sm);
+  /* 窄屏工具页拖拽预览区高度（与同断点 watermark 原先 450px 一致） */
+  --tool-preview-area-height-mobile: 450px;
+  /* 默认（≥901px）工具页虚线拖拽区高度；窄屏在 RESPONSIVE 中覆写为 mobile */
+  --tool-preview-area-height: 600px;
 
   --sidebar-width: 230px;
   --transition-fast: 150ms ease;
@@ -423,7 +427,7 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 600px;
+  height: var(--tool-preview-area-height);
   transition: border-color var(--transition-normal), background var(--transition-normal), box-shadow var(--transition-normal);
   cursor: pointer;
   position: relative;
@@ -858,6 +862,12 @@ body {
   .sidebar-footer { display: none; }
   /* 内容区布局 */
   .tool-body { grid-template-columns: 1fr; }
+  :root {
+    --tool-preview-area-height: var(--tool-preview-area-height-mobile);
+  }
+  .preview-area {
+    min-height: unset;
+  }
 }
 
 @media (max-width: 360px) {
