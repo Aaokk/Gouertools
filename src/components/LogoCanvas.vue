@@ -186,8 +186,9 @@ onMounted(() => {
   const ctx = c.getContext('2d')
 
   const off = document.createElement('canvas')
-  off.width = INTERNAL; off.height = INTERNAL
+  off.width = INTERNAL * dpr; off.height = INTERNAL * dpr
   const oc = off.getContext('2d')
+  oc.scale(dpr, dpr)
 
   initMesh()
   accentHSL = getThemeAccentHSL()
@@ -210,7 +211,7 @@ onMounted(() => {
 
     ctx.clearRect(0, 0, c.width, c.height)
     const ox = (outSz - gBBox.w) / 2, oy = (outSz - gBBox.h) / 2
-    ctx.drawImage(off, gBBox.x, gBBox.y, gBBox.w, gBBox.h, ox * dpr, oy * dpr, gBBox.w * dpr, gBBox.h * dpr)
+    ctx.drawImage(off, gBBox.x * dpr, gBBox.y * dpr, gBBox.w * dpr, gBBox.h * dpr, ox * dpr, oy * dpr, gBBox.w * dpr, gBBox.h * dpr)
     raf = requestAnimationFrame(render)
   }
   raf = requestAnimationFrame(render)
