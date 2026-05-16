@@ -117,15 +117,35 @@ function drawMesh(c, t) {
     c.stroke()
   }
 
+  // 钻石折射：多层不同速度/方向的彩虹色扫光
+  const sweeps = [
+    { speed: -0.9, mul: 1.5, hueOff: 0 },
+    { speed: 0.7,  mul: -2,  hueOff: 120 },
+    { speed: -1.1, mul: 1,   hueOff: 240 },
+  ]
   for (let i = 0; i < faces.length; i++) {
     const f = faces[i]
     const a = verts[f[0]], b = verts[f[1]], cv2 = verts[f[2]]
     const cx = (a.x + b.x + cv2.x) / 3, cy = (a.y + b.y + cv2.y) / 3
     const angle = Math.atan2(cy - IC, cx - IC)
-    const flash = Math.sin(-t * 2.5 + angle * 1.5)
-    if (flash > 0.75) {
-      const hl = Math.max(60, accentHSL.l + 20)
-      c.fillStyle = `hsla(${accentHSL.h},${Math.max(50, accentHSL.s)}%,${hl}%,${(flash - 0.75) * 2.2})`
+    const dist = Math.sqrt((cx - IC) ** 2 + (cy - IC) ** 2)
+
+    for (const sw of sweeps) {
+      const flash = Math.sin(t * sw.speed + angle * sw.mul + dist * 0.008)
+      if (flash > 0.7) {
+        const intensity = (flash - 0.7) * 2.5
+        const hue = (angle * 57.3 + sw.hueOff + t * 15) % 360
+        c.fillStyle = `hsla(${hue},100%,65%,${(intensity * 0.75).toFixed(2)})`
+        c.beginPath()
+        c.moveTo(a.x, a.y); c.lineTo(b.x, b.y); c.lineTo(cv2.x, cv2.y)
+        c.closePath(); c.fill()
+      }
+    }
+
+    // 白色火彩闪点
+    const spark = Math.sin(t * 2.2 + i * 2.3 + angle * 3)
+    if (spark > 0.92) {
+      c.fillStyle = `rgba(255,255,255,${(spark - 0.92) * 8})`
       c.beginPath()
       c.moveTo(a.x, a.y); c.lineTo(b.x, b.y); c.lineTo(cv2.x, cv2.y)
       c.closePath(); c.fill()
