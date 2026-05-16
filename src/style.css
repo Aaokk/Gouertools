@@ -76,6 +76,9 @@
   --spacing-xl:  32px;
   --spacing-2xl: 48px;
 
+  /* 工具页左侧预览列纵向间距：顶部按钮 ⇄ 虚线预览区 ⇄ 缩略列表等（全页统一可调） */
+  --tool-preview-stack-gap: var(--spacing-sm);
+
   --sidebar-width: 230px;
   --transition-fast: 150ms ease;
   --transition-normal: 250ms ease-out;
@@ -396,6 +399,15 @@ body {
   margin: 0 auto;
   flex: 1;
   align-items: start;
+}
+
+/* 与「二维码」「水印」等页一致的操作栏⇄预览区⇄附带区块纵向节奏；避免各页 Scoped 写成 md/sm 混搭 */
+.tool-page .tool-body > .preview-stack {
+  min-width: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--tool-preview-stack-gap);
 }
 
 /* Preview Area */

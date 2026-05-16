@@ -815,7 +815,7 @@ const guessMime = (name) => {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-sm);
+  gap: var(--tool-preview-stack-gap);
 }
 
 /* ── 操作栏 ──────────────────────────────────────────────── */

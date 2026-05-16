@@ -452,14 +452,6 @@ const doCrop = () => {
   min-width: 0;
 }
 
-.preview-stack {
-  min-width: 0;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-md);
-}
-
 .crop-actions {
   display: flex;
   align-items: center;

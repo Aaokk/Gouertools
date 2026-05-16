@@ -422,7 +422,6 @@ const downloadResult = () => {
 <style scoped>
 :deep(.tool-body) { padding-top: var(--spacing-md); }
 .tool-page { flex: 1; display: flex; flex-direction: column; width: 100%; min-width: 0; }
-.preview-stack { min-width: 0; width: 100%; display: flex; flex-direction: column; gap: var(--spacing-sm); }
 .mosaic-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .mosaic-canvas-wrap { display: flex; align-items: center; justify-content: center; }
 .mosaic-canvas { max-width: 100%; max-height: 580px; display: block; cursor: crosshair; }

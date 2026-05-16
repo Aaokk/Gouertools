@@ -1198,7 +1198,6 @@ const downloadSvg = () => {
 <style scoped>
 :deep(.tool-body) { padding-top: var(--spacing-md); }
 .tool-page { flex: 1; display: flex; flex-direction: column; width: 100%; min-width: 0; }
-.preview-stack { min-width: 0; width: 100%; display: flex; flex-direction: column; gap: var(--spacing-sm); }
 .qr-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 
 .qr-preview-area {

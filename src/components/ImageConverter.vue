@@ -394,14 +394,6 @@ export default {
 }
 
 /* 预览框上方操作栏 */
-.preview-stack {
-  min-width: 0;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-md);
-}
-
 .conv-actions {
   display: flex;
   align-items: center;

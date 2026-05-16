@@ -1137,14 +1137,6 @@ watch(logoSettings, () => {
   min-width: 0;
 }
 
-.preview-stack {
-  min-width: 0;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-md);
-}
-
 .preview-canvas {
   max-width: 100%;
   max-height: 100%;
