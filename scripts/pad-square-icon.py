@@ -6,7 +6,7 @@
 1. **outer_margin_px**：整张主图四周透明留白（常为 ~50px，对齐 Apple Design Resources）。
 2. **plate_extra_inset_px**：在余下的「安全矩形」内侧再缩一圈，才把**浅色圆角底板**画上。
    Boxed App（Chrome 等）的圆角白板通常不占满整块 924²，否则在 Dock/Finder 里会比邻居显大。
-3. **glyph_of_plate_frac**：Logo 最长边相对于**当前底板边长**的比例（提高可减小「白墙边距太大、字太小」）。
+3. **glyph_of_plate_frac**：Logo 最长边相对底板边长的目标比例；会先裁 alpha 再以该边长为准等比缩放（**含放大**，与 thumbnail 不同）。
 
 用法:
   python3 scripts/pad-square-icon.py macos-plate \\
@@ -26,6 +26,33 @@ from PIL import Image, ImageDraw
 
 CORNER_RADIUS_FRAC = 0.2237
 DEFAULT_PLATE = (255, 255, 255, 255)
+
+
+def crop_to_alpha_bbox (im: Image.Image) -> Image.Image:
+  """裁掉 RGBA 四周完全透明的边，避免源图自带大透明区导致字母在板子里显小。"""
+  alpha = im.getchannel('A')
+  bbox = alpha.getbbox()
+  if bbox is None:
+    return im
+  return im.crop(bbox)
+
+
+def scale_to_fit_max_side (im: Image.Image, max_side: int) -> Image.Image:
+  """
+  等比缩放使最长边 = max_side（可放大）。
+  Pillow 的 thumbnail() 不会在图像小于上限时放大，会造成小 Logo 在周正白板里永久显小。
+  """
+  max_side = max(1, int(max_side))
+  w, h = im.size
+  if w < 1 or h < 1:
+    return im
+  side = max(w, h)
+  factor = max_side / side
+  nw = max(1, int(round(w * factor)))
+  nh = max(1, int(round(h * factor)))
+  if (nw, nh) == (w, h):
+    return im
+  return im.resize((nw, nh), Image.Resampling.LANCZOS)
 
 
 def compose_float (_inp: str, outp: str, size: int, frac: float) -> None:
@@ -64,8 +91,13 @@ def compose_macos_plate (
   draw.rounded_rectangle([(left, top), (right, bottom)], radius=r_plate, fill=DEFAULT_PLATE)
 
   logo_max = max(1, int(round(pw * glyph_of_plate_frac)))
+  print(
+    f'[pad-square-icon] macos-plate: plate={pw}px logo_max={logo_max}px glyph={glyph_of_plate_frac}',
+    file=sys.stderr,
+  )
   logo = Image.open(_inp).convert('RGBA')
-  logo.thumbnail((logo_max, logo_max), Image.Resampling.LANCZOS)
+  logo = crop_to_alpha_bbox(logo)
+  logo = scale_to_fit_max_side(logo, logo_max)
   cx = (left + right + 1) // 2
   cy = (top + bottom + 1) // 2
   x = cx - logo.width // 2

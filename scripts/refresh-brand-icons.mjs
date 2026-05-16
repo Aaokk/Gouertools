@@ -85,8 +85,11 @@ const APPLE_APP_ICON_CLEAR_MARGIN_PX = 50
  */
 const MACOS_PLATE_EXTRA_INSET_PX = 52
 
-/** 商标最长边 / 当前底板边长。提高可把 G 拉大、减少白板环。 */
-const TAURI_GLYPH_OF_PLATE_FRAC = 0.92
+/**
+ * Logo 在白板内的目标比例（会先裁透明边再缩放；改完务必跑刷新脚本）。
+ * 再小：0.72～0.78；再大：约 0.90。
+ */
+const TAURI_GLYPH_OF_PLATE_FRAC = 0.87
 
 function sipsResize (src, w, h, outAbs) {
   const r = spawnSync('sips', ['-z', String(h), String(w), src, '--out', outAbs], {
@@ -172,6 +175,18 @@ if (padded.status !== 0 && padded.status != null) {
   sipsResize(srcAbs, TAURI_ICON_PX, TAURI_ICON_PX, tauriSource)
 }
 if (padded.error) throw padded.error
+
+const plateSide =
+  TAURI_ICON_PX -
+  2 * APPLE_APP_ICON_CLEAR_MARGIN_PX -
+  2 * MACOS_PLATE_EXTRA_INSET_PX
+const logoTargetMax = Math.round(plateSide * TAURI_GLYPH_OF_PLATE_FRAC)
+console.log(
+  `[refresh-brand-icons] 桌面主图 → ${tauriSource}：白板边长≈${plateSide}px，Logo 最长边目标≈${logoTargetMax}px（TAURI_GLYPH_OF_PLATE_FRAC=${TAURI_GLYPH_OF_PLATE_FRAC}）`,
+)
+console.log(
+  '[refresh-brand-icons] 仅此链影响 Tauri 的 .icns/.ico；浏览器 favicon 不会因该比例变化。图标没变化时：重装/重打 .app，或结束 tauri dev 后重启，并把程序从 Dock 拿掉再固定以清缓存。',
+)
 
 const tauriDir = join(root, 'src-tauri')
 const tauriIconsOut = join(tauriDir, 'icons')
