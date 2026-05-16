@@ -1454,14 +1454,14 @@ const downloadSvg = () => {
   margin: 0;
   border: none;
   border-radius: 4px;
-  background: transparent;
+  background: var(--color-muted);
   cursor: pointer;
   font-family: var(--font-body);
   transition: background var(--transition-fast);
 }
 
 .dot-style-cell:hover {
-  background: rgba(74, 155, 142, 0.06);
+  background: var(--color-accent-dim);
 }
 
 .dot-style-thumb-wrap {

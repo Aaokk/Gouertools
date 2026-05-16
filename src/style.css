@@ -744,9 +744,9 @@ body {
   box-shadow: 0 0 24px var(--color-accent-glow);
 }
 .btn-secondary {
-  background: transparent;
+  background: var(--input-bg);
   color: var(--color-secondary);
-  border: 1px solid rgba(74,155,142,0.40);
+  border-color: color-mix(in srgb, var(--color-accent) 38%, var(--color-border));
 }
 .btn-secondary:hover {
   background: var(--color-cyan-dim);
@@ -761,8 +761,14 @@ body {
   background: rgba(201,90,74,0.18);
   border-color: var(--color-destructive);
 }
-.btn-ghost { background: transparent; color: var(--color-text-muted); }
-.btn-ghost:hover { background: var(--color-muted); color: var(--color-foreground); }
+.btn-ghost {
+  background: var(--color-muted);
+  color: var(--color-text-muted);
+}
+.btn-ghost:hover {
+  background: var(--color-accent-dim);
+  color: var(--color-foreground);
+}
 .btn-sm { height: 30px; padding: 0 10px; font-size: 11px; }
 .btn-purple {
   background: rgba(124,111,184,0.12);

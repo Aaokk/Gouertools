@@ -39,15 +39,15 @@
               </button>
             </AnchoredBubbleTip>
             <AnchoredBubbleTip :visible="tipSaveAll.visible" :text="tipSaveAll.text">
-              <button type="button" class="btn btn-primary btn-sm" @click="handleSaveAllClick">
+              <button
+                type="button"
+                class="btn btn-primary btn-sm"
+                title="将已完成压缩的图片打包为一个 ZIP 并下载"
+                :disabled="zipBusy"
+                @click="handleSaveAllClick"
+              >
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
                 保存全部
-              </button>
-            </AnchoredBubbleTip>
-            <AnchoredBubbleTip v-if="zipEligibleCount >= 2" :visible="tipZip.visible" :text="tipZip.text">
-              <button type="button" class="btn btn-purple btn-sm" title="将已完成压缩的图片打包为一个 ZIP" @click="handleZipClick">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><path d="M3.27 6.96L12 12.01l8.73-5.05M12 22.08V12"/></svg>
-                ZIP 打包下载
               </button>
             </AnchoredBubbleTip>
           </div>
@@ -402,9 +402,8 @@ const zipBusy       = ref(false)
 
 const tipClearList = useAnchoredBubbleTip({ initialText: '请先添加图片' })
 const tipReCompress = useAnchoredBubbleTip({ initialText: '请先添加图片' })
-const tipSaveAll = useAnchoredBubbleTip({ initialText: '请先添加并完成压缩后再保存' })
-const tipZip = useAnchoredBubbleTip({
-  initialText: '至少需要 2 张已完成压缩的图片后再 ZIP 打包下载',
+const tipSaveAll = useAnchoredBubbleTip({
+  initialText: '请先添加并完成压缩后再打包下载（ZIP）',
 })
 const tipApply = useAnchoredBubbleTip({ initialText: '请先添加图片' })
 
@@ -464,11 +463,6 @@ const settings = reactive({
 
 /* ── 计算属性 ────────────────────────────────────────────── */
 const doneCount = computed(() => fileList.value.filter(f => f.status === 'done').length)
-
-/** 已有压缩输出，可计入 ZIP（与 handleZipClick / downloadZipAll 判定一致） */
-const zipEligibleCount = computed(() =>
-  fileList.value.filter(f => f.status === 'done' && f.outBlob).length,
-)
 
 const totalOrigSize = computed(() =>
   fileList.value.reduce((s, f) => s + (f.origSize || 0), 0)
@@ -666,24 +660,16 @@ function handleReCompressClick() {
 }
 
 function handleSaveAllClick() {
-  if (!doneCount.value) {
-    tipSaveAll.flash()
-    return
-  }
-  saveAll()
-}
-
-function handleZipClick() {
   if (zipBusy.value) {
-    tipZip.flash('打包进行中，请稍候')
+    tipSaveAll.flash('打包进行中，请稍候')
     return
   }
   const done = fileList.value.filter(f => f.status === 'done' && f.outBlob)
-  if (done.length < 2) {
-    tipZip.flash()
+  if (!done.length) {
+    tipSaveAll.flash()
     return
   }
-  downloadZipAll()
+  downloadAllAsZip()
 }
 
 function handleApplySettingsClick() {
@@ -736,16 +722,6 @@ const downloadItem = (item) => {
   downloadBlob(item.outSrc, `${base}_compressed.${ext}`, false)
 }
 
-const saveAll = async () => {
-  const done = fileList.value.filter(f => f.status === 'done' && f.outSrc)
-  if (!done.length) return
-  for (const item of done) {
-    downloadItem(item)
-    await new Promise(r => setTimeout(r, 150))
-  }
-  showToast({ message: `已下载 ${done.length} 个文件`, type: 'success' })
-}
-
 function extFromMime(blob) {
   const sub = (blob.type.split('/')[1] || 'jpg').replace('jpeg', 'jpg')
   return sub === 'svg+xml' ? 'svg' : sub
@@ -757,10 +733,10 @@ function sanitizeZipBase(name) {
   return base.replace(/[/\\:*?"<>|]/g, '_').slice(0, 120)
 }
 
-/** 至少 2 张已完成时可打包 ZIP（入口已由 handleZipClick 校验） */
-const downloadZipAll = async () => {
+/** 「保存全部」：将已完成条目打包为一个 ZIP（入口已由 handleSaveAllClick 校验） */
+const downloadAllAsZip = async () => {
   const done = fileList.value.filter(f => f.status === 'done' && f.outBlob)
-  if (done.length < 2) return
+  if (!done.length) return
   zipBusy.value = true
   try {
     const zip = new JSZip()
@@ -792,10 +768,10 @@ const downloadZipAll = async () => {
       String(now.getMinutes()).padStart(2, '0') +
       String(now.getSeconds()).padStart(2, '0')
     downloadBlob(blob, `compressed_${ts}.zip`)
-    showToast({ message: `已打包下载 ${done.length} 个文件`, type: 'success' })
+    showToast({ message: `已下载 ZIP（内含 ${done.length} 个文件）`, type: 'success' })
   } catch (e) {
     console.error(e)
-    showToast({ message: `ZIP 打包失败：${e?.message || '未知错误'}`, type: 'error' })
+    showToast({ message: `打包失败：${e?.message || '未知错误'}`, type: 'error' })
   } finally {
     zipBusy.value = false
   }
@@ -1042,7 +1018,7 @@ const guessMime = (name) => {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: transparent;
+  background: var(--color-muted);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
   cursor: pointer;

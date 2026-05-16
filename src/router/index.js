@@ -40,7 +40,7 @@ const routes = [
     component: ImageCompressor,
     meta: {
       title: `在线图片压缩 — 免费批量压缩 JPG/PNG/WebP/GIF/AVIF — ${BASE}`,
-      description: '免费在线压缩图片，支持 JPG、PNG、WebP、GIF、AVIF、SVG 格式，可调整质量与分辨率，批量处理一键打包 ZIP 下载，100% 浏览器本地处理不上传服务器。',
+      description: '免费在线压缩图片，支持 JPG、PNG、WebP、GIF、AVIF、SVG 格式，可调整质量与分辨率，已完成项可「保存全部」打成 ZIP 一次下载，100% 浏览器本地处理不上传服务器。',
       keywords: '在线图片压缩,图片压缩工具,PNG压缩,JPG压缩,WebP压缩,GIF压缩,AVIF压缩,SVG优化,批量压缩图片,图片瘦身,减小图片体积,无损压缩,指定大小压缩,本地压缩不上传',
     }
   },

@@ -155,7 +155,7 @@ onUnmounted(() => {
   padding: 7px 8px;
   border-radius: var(--radius-md);
   border: none;
-  background: transparent;
+  background: var(--color-muted);
   cursor: pointer;
   font-size: 13px;
   font-family: var(--font-body);
@@ -166,7 +166,7 @@ onUnmounted(() => {
   transition: background var(--transition-fast), color var(--transition-fast);
 }
 .theme-item:hover {
-  background: var(--color-muted);
+  background: var(--color-accent-dim);
 }
 .theme-item.active {
   color: var(--color-accent);
