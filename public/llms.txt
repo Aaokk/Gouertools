@@ -1,0 +1,32 @@
+# Gouer工具包包 — 一站式图片处理工具
+> https://tools.gouer.vip
+
+## 概述
+Gouer工具包包是一款免费在线图片处理工具箱，所有操作均在浏览器本地完成，不上传服务器，保护用户隐私。同时提供 macOS 和 Windows 桌面客户端。
+
+## 功能列表
+- 添加水印：文字/图片水印，支持批量、平铺、拖拽位置调整
+- 图片压缩：支持 JPG/PNG/WebP/GIF/AVIF/SVG，可调质量，批量打包 ZIP
+- 格式转换：JPG/PNG/WebP 互转，可调质量与分辨率
+- 图片裁剪：自由裁剪 + 证件照预设（一寸/二寸/护照/身份证）
+- 局部打码：马赛克/模糊/黑块，画笔或选框，可撤销
+- EXIF 查看/清除：查看相机/GPS/时间等元数据，一键清除保护隐私
+- 二维码生成：网址/文字/WiFi，自定义颜色，嵌入 Logo，导出 PNG/SVG
+- 应用图标生成：批量导出 Android/iOS/favicon 全套，支持圆角调整
+
+## 技术特点
+- 100% 浏览器本地处理，零上传
+- Vue 3 + Vite 构建
+- 桌面端基于 Tauri 2（Rust）
+- 支持多主题切换
+
+## 链接
+- 首页: https://tools.gouer.vip/
+- 添加水印: https://tools.gouer.vip/watermark
+- 图片压缩: https://tools.gouer.vip/image-compressor
+- 格式转换: https://tools.gouer.vip/image-converter
+- 图片裁剪: https://tools.gouer.vip/image-cropper
+- 局部打码: https://tools.gouer.vip/mosaic
+- EXIF 查看/清除: https://tools.gouer.vip/exif
+- 二维码生成: https://tools.gouer.vip/qrcode
+- 应用图标生成: https://tools.gouer.vip/app-icon

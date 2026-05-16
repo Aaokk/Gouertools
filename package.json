@@ -9,13 +9,13 @@
     "version": "node scripts/sync-version-from-package.mjs",
     "browser:dev": "vite --open --host",
     "build": "vite build",
-    "build:seo": "vite build && node scripts/prerender.mjs",
+    "build:seo": "vite build && node scripts/prerender.mjs && open dist",
     "tauri:before-dev": "npm run sync-version && vite --host 127.0.0.1 --port 5173 --strictPort",
     "tauri:before-build": "npm run sync-version && npm run build",
     "tauri": "tauri",
     "tauri:icon": "tauri icon ./public/favicon.svg",
     "tauri:dev": "tauri dev",
-    "tauri:build": "npm run sync-version && node scripts/tauri-build.mjs"
+    "tauri:build": "npm run sync-version && node scripts/tauri-build.mjs && open release/tauri"
   },
   "devDependencies": {
     "@ckpack/vue-color": "^1.5.0",

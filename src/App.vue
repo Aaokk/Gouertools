@@ -54,7 +54,7 @@
         </router-link>
       </nav>
       <div class="sidebar-footer">
-        Copyright © 2024
+        Copyright © 2024–2026
         <a href="https://gouer.vip" target="_blank" rel="noopener noreferrer">Gouer.Vip</a><br>
         All Rights Reserved.
       </div>

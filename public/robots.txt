@@ -7,8 +7,9 @@ Sitemap: https://tools.gouer.vip/sitemap.xml
 User-agent: GPTBot
 Disallow: /
 
-User-agent: Google-Extended
-Disallow: /
+# Google-Extended 仅控制 AI Overviews 引用，不用于训练，允许抓取
+# User-agent: Google-Extended
+# Disallow: /
 
 User-agent: Bytespider
 Disallow: /

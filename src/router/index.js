@@ -142,7 +142,7 @@ router.afterEach((to) => {
   setMeta('property', 'og:type',        'website')
   setMeta('name', 'twitter:title',       title       || '')
   setMeta('name', 'twitter:description', description || '')
-  setMeta('name', 'twitter:card',        'summary')
+  setMeta('name', 'twitter:card',        'summary_large_image')
   setMeta('name', 'robots', notFound ? 'noindex, nofollow' : 'index, follow')
 
   // canonical 链接（404 统一点到首页，避免无效 URL 被当作规范地址）
@@ -151,12 +151,12 @@ router.afterEach((to) => {
   // JSON-LD 结构化数据（WebApplication）
   setJsonLd({
     '@context': 'https://schema.org',
-    '@type': 'WebApplication',
+    '@type': 'SoftwareApplication',
     name: notFound ? BASE : (title || BASE),
     description: notFound ? '免费在线图片处理工具箱（本地运行，隐私安全）' : (description || ''),
     url: canonical,
     applicationCategory: 'MultimediaApplication',
-    operatingSystem: 'Web Browser',
+    operatingSystem: 'Web Browser, Windows, macOS',
     offers: { '@type': 'Offer', price: '0', priceCurrency: 'CNY' },
     inLanguage: 'zh-CN',
   })
