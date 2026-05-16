@@ -50,11 +50,6 @@
       <!-- 右侧控制面板 -->
       <div class="control-panel">
 
-        <div v-if="selectedFile" class="file-info-card">
-          <span class="file-name">{{ selectedFile.name }}</span>
-          <span class="file-size">{{ formatFileSize(selectedFile.size) }}</span>
-        </div>
-
         <div class="setting-card">
           <div class="setting-card-header" @click="cardOpen = !cardOpen">
             <h4>转换设置</h4>
@@ -122,6 +117,10 @@
                 <input class="input" type="number" v-model.number="maxSizeInMB" min="0.1" step="0.1" style="width:80px;" @input="updatePreview" @change="updatePreview">
                 <span style="font-size:13px;color:var(--color-text-muted);">MB</span>
               </div>
+            </div>
+            <div v-if="selectedFile" class="conv-setting-file-meta">
+              <span class="conv-setting-file-name" :title="selectedFile.name">{{ selectedFile.name }}</span>
+              <span class="conv-setting-file-size">{{ formatFileSize(selectedFile.size) }}</span>
             </div>
             <div v-if="selectedFile && hasEstimate" class="setting-row">
               <label>预计大小</label>
@@ -424,28 +423,32 @@ export default {
   transform: rotate(-90deg);
 }
 
-.file-info-card {
+.conv-setting-file-meta {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: var(--spacing-md);
+  gap: var(--spacing-sm);
+  padding: 8px 10px;
   background: var(--color-surface-solid);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  font-size: 13px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
 }
-.file-info-card .file-name {
+
+.conv-setting-file-name {
   color: var(--color-foreground);
   font-weight: 500;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  min-width: 0;
   flex: 1;
 }
-.file-info-card .file-size {
+
+.conv-setting-file-size {
   color: var(--color-text-muted);
   flex-shrink: 0;
-  margin-left: var(--spacing-sm);
+  font-variant-numeric: tabular-nums;
 }
 
 .format-btns {
