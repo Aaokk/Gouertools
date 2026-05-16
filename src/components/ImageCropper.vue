@@ -420,10 +420,17 @@ const doCrop = () => {
   const ctx = canvas.getContext('2d')
   const img = new Image()
   img.src = imgSrc.value
+  img.onerror = () => {
+    showToast({ message: '裁剪失败：图片加载异常', type: 'error' })
+  }
   img.onload = () => {
     ctx.drawImage(img, sx, sy, sw, sh, 0, 0, sw, sh)
     const ext = outputFormat.value.split('/')[1] || 'jpg'
     canvas.toBlob((blob) => {
+      if (!blob) {
+        showToast({ message: '裁剪失败：无法生成图片', type: 'error' })
+        return
+      }
       downloadBlob(blob, `${fileName.value}_cropped.${ext}`)
       showToast({ message: `裁剪完成：${sw} × ${sh} px`, type: 'success' })
     }, outputFormat.value, outputQuality.value / 100)

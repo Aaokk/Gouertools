@@ -566,6 +566,7 @@ const scheduleCompress = (item) => {
     } catch (err) {
       item.status = 'error'
       console.error('压缩失败:', err)
+      showToast({ message: `${item.name} 压缩失败：${err?.message || '未知错误'}`, type: 'error' })
     }
     // 检查是否全部完成
     const stillRunning = fileList.value.some(f => f.status === 'waiting' || f.status === 'compressing')

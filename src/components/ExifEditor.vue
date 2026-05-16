@@ -112,6 +112,7 @@ const loadFile = async (f) => {
   } catch (err) {
     console.warn('EXIF 读取:', err)
     exifData.value = null
+    showToast({ message: '无法读取 EXIF 信息，文件可能不含元数据', type: 'warning' })
   }
 }
 

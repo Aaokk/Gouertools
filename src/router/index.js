@@ -1,14 +1,15 @@
 import { createRouter, createWebHashHistory, createWebHistory } from 'vue-router'
 import Home from '../components/Home.vue'
-import WatermarkEditor from '../components/WatermarkEditor.vue'
-import ImageConverter from '../components/ImageConverter.vue'
-import ImageCompressor from '../components/ImageCompressor.vue'
-import ImageCropper from '../components/ImageCropper.vue'
-import QrCodeGen from '../components/QrCodeGen.vue'
-import ExifEditor from '../components/ExifEditor.vue'
-import MosaicEditor from '../components/MosaicEditor.vue'
-import AppIconMaker from '../components/AppIconMaker.vue'
-import NotFound from '../components/NotFound.vue'
+
+const WatermarkEditor = () => import('../components/WatermarkEditor.vue')
+const ImageConverter = () => import('../components/ImageConverter.vue')
+const ImageCompressor = () => import('../components/ImageCompressor.vue')
+const ImageCropper = () => import('../components/ImageCropper.vue')
+const QrCodeGen = () => import('../components/QrCodeGen.vue')
+const ExifEditor = () => import('../components/ExifEditor.vue')
+const MosaicEditor = () => import('../components/MosaicEditor.vue')
+const AppIconMaker = () => import('../components/AppIconMaker.vue')
+const NotFound = () => import('../components/NotFound.vue')
 
 const BASE = 'Gouer工具包包'
 
@@ -138,10 +139,13 @@ router.afterEach((to) => {
   setMeta('name', 'keywords',           keywords    || '')
   setMeta('property', 'og:title',       title       || '')
   setMeta('property', 'og:description', description || '')
+  const ogImage = `${SITE_BASE}/og-image.png`
+  setMeta('property', 'og:image',       ogImage)
   setMeta('property', 'og:url',         canonical)
   setMeta('property', 'og:type',        'website')
   setMeta('name', 'twitter:title',       title       || '')
   setMeta('name', 'twitter:description', description || '')
+  setMeta('name', 'twitter:image',       ogImage)
   setMeta('name', 'twitter:card',        'summary_large_image')
   setMeta('name', 'robots', notFound ? 'noindex, nofollow' : 'index, follow')
 

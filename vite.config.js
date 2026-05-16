@@ -21,7 +21,6 @@ function manualChunksForVendor(id) {
   if (id.includes('node_modules/jszip')) return 'jszip-vendor'
   if (id.includes('node_modules/exifr')) return 'exifr-vendor'
   if (
-    id.includes('node_modules/@ckpack/vue-color') ||
     id.includes('node_modules/@ctrl/tinycolor') ||
     id.includes('node_modules/material-colors')
   ) {

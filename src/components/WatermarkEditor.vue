@@ -892,6 +892,9 @@ const handleFileSelect = () => {
           nextTick(() => { updateWatermark() })
         }
       }
+      reader.onerror = () => {
+        showToast({ message: `${file.name} 读取失败`, type: 'error' })
+      }
       reader.readAsDataURL(file)
     })
   }

@@ -201,6 +201,10 @@ const loadFile = (f) => {
     baseImageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
     imgLoaded.value = true
   }
+  img.onerror = () => {
+    URL.revokeObjectURL(url)
+    showToast({ message: '图片加载失败，请检查文件格式', type: 'error' })
+  }
   img.src = url
 }
 

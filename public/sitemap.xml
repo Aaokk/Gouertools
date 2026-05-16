@@ -67,4 +67,12 @@
     <mobile:mobile/>
   </url>
 
+  <url>
+    <loc>https://tools.gouer.vip/app-icon</loc>
+    <lastmod>2026-05-16</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <mobile:mobile/>
+  </url>
+
 </urlset>

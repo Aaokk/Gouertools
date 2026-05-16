@@ -229,6 +229,7 @@ body {
 .main {
   margin-left: var(--sidebar-width);
   flex: 1;
+  min-width: 0;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -842,18 +843,11 @@ body {
 }
 
 @media (max-width: 360px) {
-  .sidebar { width: 56px; }
-  .main { margin-left: 56px; }
-  .sidebar-nav a { font-size: 8px; padding: 7px 2px; }
-}
-
-@media (max-width: 360px) {
-  /* 超窄屏（< 360px）：侧栏只留图标 */
   .sidebar { width: 46px; }
   .main { margin-left: 46px; }
   .sidebar-brand { display: none; }
+  .sidebar-nav a { font-size: 8px; padding: 12px 0; gap: 0; justify-content: center; }
   .sidebar-nav a span { display: none; }
-  .sidebar-nav a { justify-content: center; padding: 12px 0; gap: 0; }
 }
 
 /* ========================================
@@ -903,7 +897,7 @@ body {
   margin: 0 0 14px;
   font-size: 15px;
   font-weight: 600;
-  color: var(--color-text);
+  color: var(--color-foreground);
 }
 .update-dl-bar-wrap {
   height: 8px;
@@ -979,6 +973,4 @@ body {
   min-height: 0;
 }
 
-.main {
-  min-width: 0;
-}
+/* .main 的 min-width: 0 已合并到上方主定义 */

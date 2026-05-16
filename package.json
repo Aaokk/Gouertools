@@ -18,7 +18,6 @@
     "tauri:build": "npm run sync-version && node scripts/tauri-build.mjs && open release/tauri"
   },
   "devDependencies": {
-    "@ckpack/vue-color": "^1.5.0",
     "@tauri-apps/api": "^2.11.0",
     "@tauri-apps/cli": "^2.11.1",
     "@tauri-apps/plugin-dialog": "^2.7.1",
