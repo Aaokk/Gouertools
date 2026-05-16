@@ -105,7 +105,7 @@ function drawMesh(c, t) {
 
     const pos = cy / INTERNAL + Math.sin(t * 0.6 + i * 0.015) * 0.08
     const rgb = samplePalette(pos)
-    const alpha = 0.65 + Math.sin(t * 2 + i * 0.3) * 0.2
+    const alpha = 0.18 + Math.sin(t * 2 + i * 0.3) * 0.08
 
     c.fillStyle = `rgba(${Math.round(rgb[0])},${Math.round(rgb[1])},${Math.round(rgb[2])},${alpha.toFixed(2)})`
     c.beginPath()
@@ -120,9 +120,11 @@ function drawMesh(c, t) {
   for (let i = 0; i < faces.length; i++) {
     const f = faces[i]
     const a = verts[f[0]], b = verts[f[1]], cv2 = verts[f[2]]
-    const flash = Math.sin(t * 3.5 + i * 0.7)
-    if (flash > 0.88) {
-      c.fillStyle = `rgba(255,220,180,${(flash - 0.88) * 2.5})`
+    const cx = (a.x + b.x + cv2.x) / 3, cy = (a.y + b.y + cv2.y) / 3
+    const angle = Math.atan2(cy - IC, cx - IC)
+    const flash = Math.sin(-t * 2.5 + angle * 1.5)
+    if (flash > 0.75) {
+      c.fillStyle = `rgba(255,220,180,${(flash - 0.75) * 2.2})`
       c.beginPath()
       c.moveTo(a.x, a.y); c.lineTo(b.x, b.y); c.lineTo(cv2.x, cv2.y)
       c.closePath(); c.fill()
