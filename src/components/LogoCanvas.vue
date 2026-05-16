@@ -105,7 +105,7 @@ function drawMesh(c, t) {
 
     const pos = cy / INTERNAL + Math.sin(t * 0.6 + i * 0.015) * 0.08
     const rgb = samplePalette(pos)
-    const alpha = 0.3 + Math.sin(t * 2 + i * 0.3) * 0.15
+    const alpha = 0.65 + Math.sin(t * 2 + i * 0.3) * 0.2
 
     c.fillStyle = `rgba(${Math.round(rgb[0])},${Math.round(rgb[1])},${Math.round(rgb[2])},${alpha.toFixed(2)})`
     c.beginPath()
