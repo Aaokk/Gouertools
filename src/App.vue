@@ -7,7 +7,7 @@
     <aside class="sidebar">
       <div class="sidebar-brand">
         <div class="brand-sub">
-          <img class="brand-logo" :src="brandLogoHref" alt="G" />
+          <LogoCanvas />
           <div>
             <h2>GOUER</h2>
             <span>工具包包 v{{ displayedVersion }}</span>
@@ -74,11 +74,12 @@ import { ref, onMounted, onUnmounted } from 'vue'
 import AppToast from './components/AppToast.vue'
 import ThemeSwitcher from './components/ThemeSwitcher.vue'
 import UpdateDownloadOverlay from './components/UpdateDownloadOverlay.vue'
+import LogoCanvas from './components/LogoCanvas.vue'
 import { initBgCanvas } from './utils/bgCanvas.js'
 
 export default {
   name: 'App',
-  components: { AppToast, ThemeSwitcher, UpdateDownloadOverlay },
+  components: { AppToast, ThemeSwitcher, UpdateDownloadOverlay, LogoCanvas },
   computed: {
     brandLogoHref () {
       return `${import.meta.env.BASE_URL || './'}favicon.svg`
