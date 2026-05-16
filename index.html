@@ -34,10 +34,14 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="工具包包" />
 
-    <!-- Favicon -->
+    <!-- Favicon（多尺寸 PNG + ICO；SVG 引用 favicon.png 便于矢量入口统一换图）-->
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="icon" type="image/png" href="/favicon.png" />
+    <link rel="icon" type="image/png" sizes="512x512" href="/favicon.png" />
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
     <!-- Sitemap & Canonical (初始值，路由切换时会被 JS 更新) -->
     <link rel="sitemap" type="application/xml" href="/sitemap.xml" />
     <link rel="canonical" href="https://tools.gouer.vip/" />

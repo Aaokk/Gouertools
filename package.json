@@ -13,7 +13,8 @@
     "tauri:before-dev": "npm run sync-version && vite --host 127.0.0.1 --port 5173 --strictPort",
     "tauri:before-build": "npm run sync-version && npm run build",
     "tauri": "tauri",
-    "tauri:icon": "tauri icon ./public/favicon.svg",
+    "refresh-brand-icons": "node scripts/refresh-brand-icons.mjs",
+    "tauri:icon": "cd src-tauri && npx tauri icon ../public/logo-app-source.png -o icons && cp icons/icon.icns ../icon.icns && cp icons/icon.ico ../icon.ico",
     "tauri:dev": "tauri dev",
     "tauri:build": "npm run sync-version && node scripts/tauri-build.mjs && open release/tauri"
   },
