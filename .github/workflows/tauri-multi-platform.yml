@@ -62,6 +62,10 @@ jobs:
         run: node scripts/ensure-rust-target.mjs ${{ matrix.rust-target }}
 
       - name: Sync version & bundle (vite + Cargo + copy to release/tauri/)
+        env:
+          # GitHub 自带 CI=true。若不设此项，Tauri DMG 会加 --skip-jenkins，跳过 Finder AppleScript，
+          # `bundle.macos.dmg.windowSize` / 图标布局失效（常见现象：挂载后窗口特别大，例如 ~1840×928）。
+          TAURI_BUNDLER_DMG_IGNORE_CI: 'true'
         run: npm run sync-version && node scripts/tauri-build.mjs --target ${{ matrix.rust-target }}
 
       - name: Upload ${{ matrix.artifact }}
