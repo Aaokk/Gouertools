@@ -1,7 +1,5 @@
 <template>
-  <canvas ref="bgCanvasRef" id="bgCanvas" aria-hidden="true" />
-  <div class="bg-grid-overlay" aria-hidden="true" />
-  <div class="bg-scanlines" aria-hidden="true" />
+  <div class="app-bg-plain" aria-hidden="true" />
   <div class="app-layout">
     <!-- Sidebar -->
     <aside class="sidebar">
@@ -70,12 +68,10 @@
 </template>
 
 <script>
-import { ref, onMounted, onUnmounted } from 'vue'
 import AppToast from './components/AppToast.vue'
 import ThemeSwitcher from './components/ThemeSwitcher.vue'
 import UpdateDownloadOverlay from './components/UpdateDownloadOverlay.vue'
 import LogoCanvas from './components/LogoCanvas.vue'
-import { initBgCanvas } from './utils/bgCanvas.js'
 
 export default {
   name: 'App',
@@ -88,19 +84,6 @@ export default {
     displayedVersion () {
       return typeof __APP_VERSION__ !== 'undefined' ? __APP_VERSION__ : '0.0.0'
     }
-  },
-  setup () {
-    const bgCanvasRef = ref(null)
-    let stopBg = () => {}
-
-    onMounted(() => {
-      stopBg = initBgCanvas(bgCanvasRef.value)
-    })
-    onUnmounted(() => {
-      stopBg()
-    })
-
-    return { bgCanvasRef }
   }
 }
 </script>

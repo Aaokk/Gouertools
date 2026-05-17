@@ -104,29 +104,14 @@ body {
 }
 
 /* ========================================
-   BACKGROUND EFFECTS
+   背景（纯 CSS，无 Canvas / 高分屏无额外绘制）
    ======================================== */
-#bgCanvas {
-  position: fixed; inset: 0; z-index: 0; pointer-events: none;
-}
-.bg-grid-overlay {
-  position: fixed; inset: 0; z-index: 0; pointer-events: none;
-  background-image:
-    linear-gradient(var(--grid-line) 1px, transparent 1px),
-    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
-  background-size: 50px 50px;
-  animation: gridDrift 30s linear infinite;
-}
-@keyframes gridDrift {
-  0% { transform: translate(0,0); }
-  100% { transform: translate(50px,50px); }
-}
-.bg-scanlines {
-  position: fixed; inset: 0; z-index: 0; pointer-events: none;
-  background: repeating-linear-gradient(
-    0deg, transparent, transparent 2px,
-    var(--scanline) 2px, var(--scanline) 4px
-  );
+.app-bg-plain {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: var(--color-background);
 }
 
 /* ========================================
