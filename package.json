@@ -16,8 +16,8 @@
     "refresh-brand-icons": "node scripts/refresh-brand-icons.mjs",
     "tauri:icon": "cd src-tauri && npx tauri icon ../public/logo-app-source.png -o icons && cp icons/icon.icns ../icon.icns && cp icons/icon.ico ../icon.ico",
     "tauri:dev": "tauri dev",
-    "tauri:build": "npm run sync-version && node scripts/tauri-build.mjs && open release/tauri",
-    "tauri:build:mac-intel": "node scripts/ensure-rust-target.mjs x86_64-apple-darwin && npm run sync-version && node scripts/tauri-build.mjs --target x86_64-apple-darwin && open release/tauri"
+    "tauri:build": "npm run sync-version && node scripts/tauri-build.mjs && node scripts/open-release-tauri-mac.mjs",
+    "tauri:build:mac-intel": "node scripts/ensure-rust-target.mjs x86_64-apple-darwin && npm run sync-version && node scripts/tauri-build.mjs --target x86_64-apple-darwin && node scripts/open-release-tauri-mac.mjs"
   },
   "devDependencies": {
     "@tauri-apps/api": "^2.11.0",
