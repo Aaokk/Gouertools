@@ -1,7 +1,7 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "Gouer工具包包",
-  "version": "3.1.0",
+  "version": "3.1.8",
   "identifier": "com.gouer.watermark",
   "build": {
     "frontendDist": "../dist",
@@ -46,6 +46,10 @@
         "windowSize": {
           "width": 660,
           "height": 460
+        },
+        "windowPosition": {
+          "x": 630,
+          "y": 310
         }
       }
     }
