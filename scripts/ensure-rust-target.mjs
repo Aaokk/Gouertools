@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
- * Intel macOS：`rustup target add x86_64-apple-darwin`，并校验本机 rustc 能看见该目标的 std。
- * usage: node scripts/ensure-rust-target.mjs x86_64-apple-darwin
+ * CI / 本地：为指定 rustc triple 安装 `rustup target add` + 校验可用 std。
+ * usage: node scripts/ensure-rust-target.mjs [TRIPLE]，默认 x86_64-apple-darwin。
  */
 import { spawnSync } from 'node:child_process'
 import { existsSync } from 'node:fs'

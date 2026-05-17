@@ -1,0 +1,72 @@
+# macOS（Apple Silicon + Intel）DMG；Windows（x64 + x86 NSIS）。产物在每条 matrix 任务的 Artifacts。
+# Usage: Actions → Tauri multi-platform builds → Run workflow；或推送 tag「v…」触发。
+#
+# 工件说明：
+#   - tauri-macos-arm64 / tauri-macos-intel ：.dmg
+#   - tauri-windows-x64 / tauri-windows-x86 ：.exe（均为 80x86 PC；ARM64 PC 如需可再加 aarch64-pc-windows-msvc）
+#
+name: Tauri multi-platform builds
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tauri-multi-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  bundle:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest
+            rust-target: aarch64-apple-darwin
+            artifact: tauri-macos-arm64
+          - os: macos-latest
+            rust-target: x86_64-apple-darwin
+            artifact: tauri-macos-intel
+          - os: windows-latest
+            rust-target: x86_64-pc-windows-msvc
+            artifact: tauri-windows-x64
+          - os: windows-latest
+            rust-target: i686-pc-windows-msvc
+            artifact: tauri-windows-x86
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Rust stable + ${{ matrix.rust-target }}
+        uses: dtolnay/rust-toolchain@v1
+        with:
+          toolchain: stable
+          targets: ${{ matrix.rust-target }}
+
+      - name: Frontend deps
+        run: npm ci
+
+      - name: Ensure Rust target / std (${{ matrix.rust-target }})
+        run: node scripts/ensure-rust-target.mjs ${{ matrix.rust-target }}
+
+      - name: Sync version & bundle (vite + Cargo + copy to release/tauri/)
+        run: npm run sync-version && node scripts/tauri-build.mjs --target ${{ matrix.rust-target }}
+
+      - name: Upload ${{ matrix.artifact }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: release/tauri/
+          if-no-files-found: error
