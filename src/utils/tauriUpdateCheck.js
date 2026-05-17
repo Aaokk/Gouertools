@@ -106,7 +106,6 @@ function packageUrlLooksLikeArtifact (urlStr) {
 function resolveDownloadUrl (block, variantKey) {
   if (!block) return null
   const pkg = typeof block.package_url === 'string' ? block.package_url.trim() : ''
-  // 典型：package_url 已是 https://.../xxx_aarch64.dmg，variant_urls 仍为 { arm64: "arm64" } 占位 — 不可再拼接
   if (pkg && packageUrlLooksLikeArtifact(pkg)) {
     return pkg.startsWith('https://') && isAllowedPublicUrl(pkg) ? pkg : null
   }
