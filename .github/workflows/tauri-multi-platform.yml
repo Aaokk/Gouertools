@@ -1,9 +1,9 @@
 # macOS（Apple Silicon + Intel）DMG；Windows（x64 + x86 NSIS）。产物在每条 matrix 任务的 Artifacts。
 # Usage: Actions → Tauri multi-platform builds → Run workflow；或推送 tag「v…」触发。
 #
-# 工件说明：
-#   - tauri-macos-arm64 / tauri-macos-intel ：.dmg
-#   - tauri-windows-x64 / tauri-windows-x86 ：.exe（均为 80x86 PC；ARM64 PC 如需可再加 aarch64-pc-windows-msvc）
+# 工件名称（Artifacts 下载 zip 名）；改 matrix.artifact 即可换前缀：
+#   - Gouer-mac-arm64 / Gouer-mac-intel ：.dmg
+#   - Gouer-win-x64 / Gouer-win-x86 ：.exe（均为 80x86 PC）
 #
 name: Tauri multi-platform builds
 
@@ -28,16 +28,16 @@ jobs:
         include:
           - os: macos-latest
             rust-target: aarch64-apple-darwin
-            artifact: tauri-macos-arm64
+            artifact: Gouer-mac-arm64
           - os: macos-latest
             rust-target: x86_64-apple-darwin
-            artifact: tauri-macos-intel
+            artifact: Gouer-mac-intel
           - os: windows-latest
             rust-target: x86_64-pc-windows-msvc
-            artifact: tauri-windows-x64
+            artifact: Gouer-win-x64
           - os: windows-latest
             rust-target: i686-pc-windows-msvc
-            artifact: tauri-windows-x86
+            artifact: Gouer-win-x86
 
     runs-on: ${{ matrix.os }}
 
