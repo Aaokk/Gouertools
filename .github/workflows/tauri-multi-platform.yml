@@ -1,5 +1,5 @@
-# macOS（Apple Silicon + Intel）DMG；Windows（x64 + x86 NSIS）。产物在每条 matrix 任务的 Artifacts。
-# Usage: Actions → Tauri multi-platform builds → Run workflow；或推送 tag「v…」触发。
+# macOS（Apple Silicon + Intel）DMG；Windows（x64 + x86 NSIS）。每条 matrix job 上传 Artifact；推送 tag 「v…」且全部通过后自动发布 GitHub Release 并挂载安装包。
+# Usage: Actions → Run workflow（仅 Artifact，不发 Release）；或 git push origin v… 完成后在 Releases 页查看同名 tag 的 Assets。
 #
 # 工件名称（Artifacts 下载 zip 名）；改 matrix.artifact 即可换前缀：
 #   - Gouer-mac-arm64 / Gouer-mac-intel ：.dmg
@@ -70,3 +70,38 @@ jobs:
           name: ${{ matrix.artifact }}
           path: release/tauri/
           if-no-files-found: error
+
+  publish-release:
+    name: Publish GitHub Release (${{ github.ref_name }})
+    needs: bundle
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      # 每个 matrix 工件在 dist/<artifact-name>/…，避免解压重名冲突
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+
+      - name: Attach DMG / EXE to Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: ${{ github.ref_name }}
+          generate_release_notes: true
+          draft: false
+          prerelease: false
+          body: |
+            - **Apple Silicon**：名称中含 **aarch64** / **arm64** 的 **DMG**
+            - **Intel Mac**：对应的 **Intel / x86_64** **DMG**
+            - **Windows**：**x64 / x86** 对应的安装 **exe**
+
+            若 macOS 提示「已损坏，无法打开」，多为下载隔离（quarantine）；可在终端对相关 `.app` 执行 `xattr -cr`。长期建议做 Apple 开发者公证。
+          files: |
+            dist/**/*.dmg
+            dist/**/*.exe
+          fail_on_unmatched_files: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
