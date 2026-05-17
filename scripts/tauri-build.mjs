@@ -6,6 +6,7 @@ import { spawnSync } from 'node:child_process'
 import { mkdirSync, readdirSync, copyFileSync, statSync, rmSync, existsSync } from 'node:fs'
 import { resolve, dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { withRustupPathFirst } from './tauri-env.mjs'
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const outTarget = resolve(root, 'tauri-dist')
@@ -15,11 +16,39 @@ process.env.CARGO_TARGET_DIR = outTarget
 const forwarded = process.argv.slice(2)
 const runArgs = ['tauri', 'build', ...forwarded]
 
+/** Cargo：未指定 target → `$CARGO_TARGET_DIR/release/…`；`--target TRIPLE` → `$CARGO_TARGET_DIR/TRIPLE/release/…` */
+function cargoTargetTripleFromArgv (argv) {
+  for (let i = 0; i < argv.length; i++) {
+    const a = argv[i]
+    if (a === '--target' && argv[i + 1]) return argv[i + 1]
+    if (typeof a === 'string' && a.startsWith('--target='))
+      return a.slice('--target='.length).trim()
+  }
+  return null
+}
+
+/** @param {string | null} triple */
+function cargoBundleRoots (triple) {
+  const paths = triple
+    ? [join(outTarget, triple, 'release', 'bundle'), join(outTarget, 'release', 'bundle')]
+    : [join(outTarget, 'release', 'bundle')]
+  return [...new Set(paths)]
+}
+
+function pickExistingBundleRoot (triple) {
+  for (const p of cargoBundleRoots(triple)) {
+    try {
+      if (statSync(p).isDirectory()) return p
+    } catch {}
+  }
+  return cargoBundleRoots(triple)[0]
+}
+
 const run = spawnSync('npx', runArgs, {
   cwd: root,
   stdio: 'inherit',
   shell: true,
-  env: { ...process.env, CARGO_TARGET_DIR: outTarget },
+  env: withRustupPathFirst({ ...process.env, CARGO_TARGET_DIR: outTarget }),
 })
 
 if (run.status !== 0 && run.status != null) {
@@ -27,7 +56,8 @@ if (run.status !== 0 && run.status != null) {
 }
 if (run.error) throw run.error
 
-const bundleRoot = join(outTarget, 'release', 'bundle')
+const forwardedTriple = cargoTargetTripleFromArgv(forwarded)
+const bundleRoot = pickExistingBundleRoot(forwardedTriple)
 const flatOut = resolve(root, 'release', 'tauri')
 // 每次打版版本号会变，产物文件名也会变；不清空会留下旧 DMG/EXE，容易误以为「没更新」
 if (existsSync(flatOut)) {
@@ -62,7 +92,19 @@ if (copied.length) {
   copied.forEach((p) => console.info(' •', p))
   console.info(`\n中间产物仍在: ${bundleRoot}`)
 } else {
-  console.info(`\n[tauri-build] 未找到 DMG/EXE，请到 ${bundleRoot} 查看`)
+  console.info(`\n[tauri-build] 未找到可复制的 DMG/EXE`)
+  console.info(` • 先看目录是否存在: ${bundleRoot}`)
+  if (forwardedTriple) {
+    console.info(
+      ` • 你已使用 --target ${forwardedTriple}，Cargo bundle 往往在 ${join(
+        outTarget,
+        forwardedTriple,
+        'release',
+        'bundle',
+      )}，而不是顶层 release/bundle`,
+    )
+  }
+  console.info(` • release/tauri/ 仍会创建；若整条命令失败则无此目录`)
 }
 
 if (
@@ -74,4 +116,19 @@ if (
     '\n[tauri-build] Windows 安装包（NSIS .exe）：在 Windows 环境执行 `npm run tauri:build`，' +
       '或使用 `.github/workflows/tauri-windows.yml`（GitHub Actions）。'
   )
+}
+
+if (
+  process.platform === 'darwin' &&
+  process.arch === 'arm64' &&
+  !forwarded.some((arg) =>
+    /^x86_64-apple-darwin$/.test(arg) || /^aarch64-apple-darwin$/.test(arg))
+) {
+  const joined = forwarded.join(' ')
+  if (!joined.includes('x86_64-apple-darwin') && !joined.includes('--target')) {
+    console.info(
+      '\n[tauri-build] macOS：当前为本机 aarch64 构建，产出为 Apple Silicon DMG。\n' +
+        'Intel (x86_64) DMG 需：`rustup target add x86_64-apple-darwin` → `npm run tauri:build:mac-intel`。',
+    )
+  }
 }
