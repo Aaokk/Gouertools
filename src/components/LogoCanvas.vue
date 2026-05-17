@@ -9,9 +9,12 @@ const DISPLAY = 48
 const INTERNAL = 400
 const G_FONT = 340
 const IC = INTERNAL / 2
+const GRID = 7
+const CELL = INTERNAL / GRID
+const FRAME_MS = 1000 / 30
 
 const cvs = ref(null)
-let raf = 0, time = 0, lastT = 0
+let raf = 0, time = 0, lastT = 0, lastRender = 0
 let gBBox = null
 
 function getThemeAccentHSL() {
@@ -37,9 +40,6 @@ function getThemeAccentHSL() {
 
 let accentHSL = { h: 160, s: 55, l: 50 }
 
-/* ===== 几何网格（仿 Three.js PlaneGeometry flat-shading）===== */
-const GRID = 10
-const CELL = INTERNAL / GRID
 const verts = []
 const faces = []
 
@@ -68,8 +68,24 @@ function initMesh() {
     for (let col = 0; col < GRID; col++) {
       const tl = row * cols + col, tr = tl + 1
       const bl = (row + 1) * cols + col, br = bl + 1
-      faces.push([tl, tr, bl])
-      faces.push([tr, br, bl])
+
+      const va = verts[tl], vb = verts[tr], vc = verts[bl]
+      const bcx1 = (va.bx + vb.bx + vc.bx) / 3
+      const bcy1 = (va.by + vb.by + vc.by) / 3
+      faces.push({
+        i: [tl, tr, bl],
+        ba: Math.atan2(bcy1 - IC, bcx1 - IC),
+        bd: Math.sqrt((bcx1 - IC) ** 2 + (bcy1 - IC) ** 2)
+      })
+
+      const vd = verts[br]
+      const bcx2 = (vb.bx + vd.bx + vc.bx) / 3
+      const bcy2 = (vb.by + vd.by + vc.by) / 3
+      faces.push({
+        i: [tr, br, bl],
+        ba: Math.atan2(bcy2 - IC, bcx2 - IC),
+        bd: Math.sqrt((bcx2 - IC) ** 2 + (bcy2 - IC) ** 2)
+      })
     }
   }
 }
@@ -90,6 +106,11 @@ function samplePalette(t) {
   return lerpRGB(PALETTE[i], PALETTE[i + 1], pos - i)
 }
 
+const sweeps = [
+  { speed: -0.9, mul: 1.5, hueOff: 0 },
+  { speed: 0.7,  mul: -2,  hueOff: 180 },
+]
+
 function drawMesh(c, t) {
   for (let i = 0; i < verts.length; i++) {
     const v = verts[i]
@@ -100,55 +121,38 @@ function drawMesh(c, t) {
 
   for (let i = 0; i < faces.length; i++) {
     const f = faces[i]
-    const a = verts[f[0]], b = verts[f[1]], cv2 = verts[f[2]]
+    const a = verts[f.i[0]], b = verts[f.i[1]], cv2 = verts[f.i[2]]
     const cy = (a.y + b.y + cv2.y) / 3
 
+    // 基础填色
     const pos = cy / INTERNAL + Math.sin(t * 0.6 + i * 0.015) * 0.08
     const rgb = samplePalette(pos)
     const alpha = 0.18 + Math.sin(t * 2 + i * 0.3) * 0.08
-
-    c.fillStyle = `rgba(${Math.round(rgb[0])},${Math.round(rgb[1])},${Math.round(rgb[2])},${alpha.toFixed(2)})`
+    c.fillStyle = `rgba(${Math.round(rgb[0])},${Math.round(rgb[1])},${Math.round(rgb[2])},${alpha})`
     c.beginPath()
     c.moveTo(a.x, a.y); c.lineTo(b.x, b.y); c.lineTo(cv2.x, cv2.y)
-    c.closePath(); c.fill()
+    c.fill()
 
-    c.strokeStyle = `rgba(${Math.min(255, Math.round(rgb[0]) + 30)},${Math.min(255, Math.round(rgb[1]) + 30)},${Math.min(255, Math.round(rgb[2]) + 30)},0.12)`
-    c.lineWidth = 0.5
-    c.stroke()
-  }
-
-  // 钻石折射：多层不同速度/方向的彩虹色扫光
-  const sweeps = [
-    { speed: -0.9, mul: 1.5, hueOff: 0 },
-    { speed: 0.7,  mul: -2,  hueOff: 120 },
-    { speed: -1.1, mul: 1,   hueOff: 240 },
-  ]
-  for (let i = 0; i < faces.length; i++) {
-    const f = faces[i]
-    const a = verts[f[0]], b = verts[f[1]], cv2 = verts[f[2]]
-    const cx = (a.x + b.x + cv2.x) / 3, cy = (a.y + b.y + cv2.y) / 3
-    const angle = Math.atan2(cy - IC, cx - IC)
-    const dist = Math.sqrt((cx - IC) ** 2 + (cy - IC) ** 2)
-
+    // 钻石折射扫光
     for (const sw of sweeps) {
-      const flash = Math.sin(t * sw.speed + angle * sw.mul + dist * 0.008)
+      const flash = Math.sin(t * sw.speed + f.ba * sw.mul + f.bd * 0.008)
       if (flash > 0.7) {
         const intensity = (flash - 0.7) * 2.5
-        const hue = (angle * 57.3 + sw.hueOff + t * 15) % 360
-        c.fillStyle = `hsla(${hue},100%,65%,${(intensity * 0.75).toFixed(2)})`
+        const hue = (f.ba * 57.3 + sw.hueOff + t * 15) % 360
+        c.fillStyle = `hsla(${hue},100%,65%,${intensity * 0.75})`
         c.beginPath()
         c.moveTo(a.x, a.y); c.lineTo(b.x, b.y); c.lineTo(cv2.x, cv2.y)
-        c.closePath(); c.fill()
+        c.fill()
       }
     }
 
     // 白色火彩闪点
-    const spark = Math.sin(t * 2.2 + i * 2.3 + angle * 3)
+    const spark = Math.sin(t * 2.2 + i * 2.3 + f.ba * 3)
     if (spark > 0.92) {
       c.fillStyle = `rgba(255,255,255,${(spark - 0.92) * 8})`
       c.beginPath()
       c.moveTo(a.x, a.y); c.lineTo(b.x, b.y); c.lineTo(cv2.x, cv2.y)
-      c.closePath(); c.fill()
+      c.fill()
     }
   }
 }
@@ -177,7 +181,7 @@ function drawGStroke(c) {
 function measureGBBox() {
   const tmp = document.createElement('canvas')
   tmp.width = INTERNAL; tmp.height = INTERNAL
-  const tc = tmp.getContext('2d')
+  const tc = tmp.getContext('2d', { willReadFrequently: true })
   setGFont(tc)
   tc.fillStyle = '#fff'
   tc.fillText('G', IC, IC)
@@ -215,7 +219,23 @@ onMounted(() => {
   const themeObs = new MutationObserver(() => { accentHSL = getThemeAccentHSL() })
   themeObs.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] })
 
+  // 预渲染 G 描边到静态 canvas，避免每帧 3 次 shadowBlur 文本绘制
+  const gStroke = document.createElement('canvas')
+  gStroke.width = INTERNAL * dpr; gStroke.height = INTERNAL * dpr
+  const gsCtx = gStroke.getContext('2d')
+  gsCtx.scale(dpr, dpr)
+  drawGStroke(gsCtx)
+
+  // 预计算 dpr 倍率参数
+  const sx = gBBox.x * dpr, sy = gBBox.y * dpr
+  const sw = gBBox.w * dpr, sh = gBBox.h * dpr
+  const dx = (outSz - gBBox.w) / 2 * dpr, dy = (outSz - gBBox.h) / 2 * dpr
+
   function render(ts) {
+    raf = requestAnimationFrame(render)
+    if (ts - lastRender < FRAME_MS) return
+    lastRender = ts
+
     const dt = Math.min((ts - lastT) / 1000, 0.05)
     lastT = ts; time += dt
 
@@ -227,12 +247,10 @@ onMounted(() => {
     setGFont(oc); oc.fillStyle = '#fff'
     oc.fillText('G', IC, IC)
     oc.globalCompositeOperation = 'source-over'
-    drawGStroke(oc)
+    oc.drawImage(gStroke, 0, 0, INTERNAL, INTERNAL)
 
     ctx.clearRect(0, 0, c.width, c.height)
-    const ox = (outSz - gBBox.w) / 2, oy = (outSz - gBBox.h) / 2
-    ctx.drawImage(off, gBBox.x * dpr, gBBox.y * dpr, gBBox.w * dpr, gBBox.h * dpr, ox * dpr, oy * dpr, gBBox.w * dpr, gBBox.h * dpr)
-    raf = requestAnimationFrame(render)
+    ctx.drawImage(off, sx, sy, sw, sh, dx, dy, sw, sh)
   }
   raf = requestAnimationFrame(render)
 })
