@@ -123,7 +123,42 @@ export function resolveArtifactForPlatform (platforms, platformOs, rustArch) {
   return downloadUrl ? { downloadUrl, version, variantKey: vk } : null
 }
 
-/** 浏览器环境下的平台 + 架构推断（启发式）。 */
+/** 浏览器环境下检测 macOS 真实 CPU 架构（UA 在 Apple Silicon 上仍报告 Intel，不可靠）。 */
+async function detectMacArchAsync () {
+  if (typeof navigator === 'undefined' || typeof document === 'undefined') return 'aarch64'
+
+  // ① navigator.userAgentData（Chrome/Edge 90+，精确返回真实架构）
+  if (navigator.userAgentData?.getHighEntropyValues) {
+    try {
+      const hints = await navigator.userAgentData.getHighEntropyValues(['architecture'])
+      if (hints.architecture) {
+        const a = String(hints.architecture).toLowerCase()
+        if (a.includes('arm') || a.includes('aarch')) return 'aarch64'
+        if (a.includes('x86') || a.includes('amd')) return 'x86_64'
+      }
+    } catch { /* ignore */ }
+  }
+
+  // ② WebGL 渲染器辅助：Apple GPU 只出现在 Apple Silicon Mac 上
+  try {
+    const canvas = document.createElement('canvas')
+    const gl = canvas.getContext('webgl')
+    if (gl) {
+      const ext = gl.getExtension('WEBGL_debug_renderer_info')
+      if (ext) {
+        const renderer = String(gl.getParameter(ext.UNMASKED_RENDERER_WEBGL))
+        if (/apple/i.test(renderer)) return 'aarch64'
+        // Intel / AMD / NVIDIA GPU → 大概率 Intel Mac
+        if (/intel|amd|nvidia/i.test(renderer)) return 'x86_64'
+      }
+    }
+  } catch { /* ignore */ }
+
+  // ③ 无法判断时默认 Apple Silicon（2020 年后出货的 Mac 绝大多数为 ARM）
+  return 'aarch64'
+}
+
+/** 浏览器环境下的平台 + 架构推断（启发式）。macOS 下不猜测架构，由调用方用 detectMacArchAsync 覆盖。 */
 export function detectWebArchPlatform () {
   const ua =
     typeof navigator !== 'undefined' ? navigator.userAgent || '' : ''
@@ -142,6 +177,7 @@ export function detectWebArchPlatform () {
 
   let rustArch = 'x86_64'
   if (platformOs === 'macos') {
+    // UA 在 Apple Silicon 上不可靠，由 getDeviceProfile() 异步覆盖，此处仅做粗判
     rustArch = uaArm ? 'aarch64' : 'x86_64'
   } else if (platformOs === 'windows') {
     if (/\barm(?![a-z0-9])\b|\baarch64\b|arm64/i.test(ua + platformStr)) {
@@ -170,7 +206,11 @@ export async function getDeviceProfile () {
     const os = await import('@tauri-apps/plugin-os')
     return { platformOs: os.platform(), rustArch: os.arch() }
   } catch {
-    return detectWebArchPlatform()
+    const base = detectWebArchPlatform()
+    if (base.platformOs === 'macos') {
+      base.rustArch = await detectMacArchAsync()
+    }
+    return base
   }
 }
 

@@ -219,9 +219,13 @@ export default {
           return
         }
       } catch (_) { /* noop */ }
-      const w = window.open(href, '_blank', 'noopener,noreferrer')
-      if (w) w.focus()
-      else window.location.href = href
+      // 用原生 <a> 标签触发下载，避免 window.open 在部分浏览器中对文件 URL 重复请求
+      const a = document.createElement('a')
+      a.href = href
+      a.style.display = 'none'
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
     },
     async resolveAndOpen (platformOs, rustArch, loadingKey) {
       this.loading = loadingKey ?? 'go'
@@ -251,6 +255,7 @@ export default {
     },
     async onPick (card) {
       if (this.loading) return
+      this.loading = card.loadingKey
       let rustArch =
         card.platformOs === 'windows' ? 'x86_64' : 'aarch64'
       try {
@@ -267,12 +272,15 @@ export default {
     },
     async onRecommended () {
       if (this.loading) return
+      this.loading = 'go'
       const { platformOs, rustArch } = await getDeviceProfile()
       if (platformOs === 'linux') {
+        this.loading = ''
         this.toast('当前为 Linux：请点上方的 Windows / macOS 图标选择下载。')
         return
       }
       if (platformOs === 'ios') {
+        this.loading = ''
         this.toast('当前为移动端：请在电脑上打开本页下载桌面端。')
         return
       }
