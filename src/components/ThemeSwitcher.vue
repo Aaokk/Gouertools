@@ -1,7 +1,23 @@
 <template>
-  <div class="theme-switcher" ref="wrapRef">
-    <!-- 触发按钮 -->
-    <button class="theme-btn" @click="open = !open" :title="current.label" aria-label="切换主题">
+  <div class="theme-corner" ref="wrapRef">
+    <!-- 仅在浏览器站点显示；桌面端（Tauri）已有更新与安装链路，不占角标位置 -->
+    <router-link
+      v-if="showBrowserDownload"
+      to="/download"
+      class="theme-btn dl-corner"
+      title="桌面客户端下载"
+      aria-label="桌面客户端下载"
+    >
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+        <polyline points="7 10 12 15 17 10"/>
+        <line x1="12" y1="15" x2="12" y2="3"/>
+      </svg>
+      <span class="dl-corner-label">下载客户端</span>
+    </router-link>
+    <div class="theme-switcher">
+      <!-- 触发按钮 -->
+      <button class="theme-btn" @click="open = !open" :title="current.label" aria-label="切换主题">
       <span class="theme-dot-preview" :style="{ background: current.preview }"></span>
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <circle cx="12" cy="12" r="3"/>
@@ -29,13 +45,17 @@
         </div>
       </div>
     </Transition>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { computed, ref, onMounted, onUnmounted } from 'vue'
+import { isTauri } from '@tauri-apps/api/core'
 
 const STORAGE_KEY = 'gouer-theme'
+
+const showBrowserDownload = computed(() => !isTauri())
 
 const themes = [
   { id: 'warm', label: '护眼绿', preview: '#4A9B8E',
@@ -81,14 +101,30 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-.theme-switcher {
+.theme-corner {
   position: fixed;
   top: 16px;
   right: 20px;
   z-index: 9000;
   display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 8px;
+}
+.theme-switcher {
+  display: flex;
   flex-direction: column;
   align-items: flex-end;
+}
+.dl-corner {
+  text-decoration: none;
+  flex-shrink: 0;
+}
+.dl-corner-label {
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1;
+  white-space: nowrap;
 }
 
 /* 触发按钮 */

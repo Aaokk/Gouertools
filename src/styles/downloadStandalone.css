@@ -1,0 +1,425 @@
+/**
+ * /download 独立页 — 纯色绿背景 + 底白弧形（对齐微信下载页视感）
+ */
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap');
+
+.dl-standalone-host {
+  --dl-green: #2aae67;
+  --dl-green-hover: #229656;
+  --white: #ffffff;
+  --white-t: rgba(255, 255, 255, 0.92);
+  --white-line: rgba(255, 255, 255, 0.28);
+  --radius: 16px;
+  --ease: cubic-bezier(0.4, 0, 0.2, 1);
+
+  position: fixed;
+  inset: 0;
+  z-index: 100000;
+  font-family:
+    'Noto Sans SC',
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+  background: var(--dl-green);
+  color: var(--white);
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+}
+
+.dl-standalone-host *,
+.dl-standalone-host *::before,
+.dl-standalone-host *::after {
+  box-sizing: border-box;
+}
+
+/* 顶部主内容区 */
+.dl-standalone-host .center {
+  position: relative;
+  z-index: 4;
+  flex: 1;
+  width: 100%;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: clamp(28px, 4vh, 56px) clamp(22px, 5vw, 40px)
+    clamp(12px, 2vh, 28px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(14px, 2vh, 28px);
+  overflow-y: auto;
+  min-height: 0;
+  scrollbar-width: none;
+  animation: dl-fade-up 0.65s var(--ease) both;
+}
+.dl-standalone-host .center::-webkit-scrollbar {
+  display: none;
+}
+
+@keyframes dl-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 品牌 — 顶部动态 G Logo（LogoCanvas） */
+.dl-standalone-host .brand {
+  text-align: center;
+}
+
+.dl-standalone-host .brand-icon {
+  width: 88px;
+  height: 88px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: clamp(8px, 1.5vh, 18px);
+  background: transparent;
+  animation: dl-icon-pop 0.62s cubic-bezier(0.34, 1.56, 0.64, 1) 0.08s both;
+}
+
+.dl-standalone-host .brand-icon .logo-canvas {
+  display: block;
+  border-radius: 14px;
+}
+
+@keyframes dl-icon-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.5) translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.dl-standalone-host .brand h1 {
+  font-size: clamp(30px, 5vw, 46px);
+  font-weight: 900;
+  letter-spacing: -0.5px;
+  line-height: 1.2;
+  margin: 0 0 12px;
+  color: var(--white);
+}
+
+.dl-standalone-host .brand h1 em.brand-accent,
+.dl-standalone-host .brand h1 strong.brand-accent {
+  font-style: normal;
+  color: inherit;
+}
+
+.dl-standalone-host .brand p {
+  color: var(--white-t);
+  font-size: clamp(14px, 1.8vw, 16px);
+  font-weight: 400;
+  max-width: 26rem;
+  margin: 0;
+  line-height: 1.55;
+}
+
+/* 更新分割线 + 简述列表 */
+.dl-standalone-host .dl-changelog {
+  width: 100%;
+  max-width: 520px;
+}
+
+.dl-standalone-host .dl-changelog-hr {
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--white-line),
+    transparent
+  );
+  margin: 0 0 16px;
+  border: 0;
+}
+
+.dl-standalone-host .dl-log-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.dl-standalone-host .dl-log-li {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.dl-standalone-host .dl-log-li:last-child {
+  border-bottom: none;
+}
+
+.dl-standalone-host .dl-log-text {
+  font-size: 13px;
+  line-height: 1.48;
+  color: var(--white-t);
+}
+
+.dl-standalone-host .dl-log-date {
+  flex-shrink: 0;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.7);
+  font-variant-numeric: tabular-nums;
+}
+
+.dl-standalone-host .dl-log-more {
+  margin-top: 10px;
+  font-size: 13px;
+  text-align: right;
+}
+
+.dl-standalone-host .dl-log-more span {
+  color: rgba(255, 255, 255, 0.92);
+  cursor: default;
+}
+
+/* Windows / macOS — 纯白图标铺在绿底上，无底圈无底框 */
+.dl-standalone-host .dl-platform-strip {
+  padding: 8px 0 4px;
+  width: 100%;
+  max-width: 340px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 56px;
+  background: transparent;
+}
+
+.dl-standalone-host .plat-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 100px;
+  cursor: pointer;
+  user-select: none;
+  outline: none;
+  padding: 4px;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  background: transparent;
+}
+
+.dl-standalone-host .plat-tile:focus-visible {
+  border-radius: 12px;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.85),
+    0 0 0 5px rgba(43, 162, 69, 0.45);
+}
+
+.dl-standalone-host .plat-tile:hover:not(.plat-tile--disabled) {
+  transform: translateY(-2px);
+}
+
+.dl-standalone-host .plat-tile.plat-tile--disabled {
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+.dl-standalone-host .plat-circle {
+  width: auto;
+  height: auto;
+  border: none;
+  background: none;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dl-standalone-host .plat-circle svg {
+  width: 52px;
+  height: 52px;
+  fill: currentColor;
+  color: #fff;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.08));
+}
+
+.dl-standalone-host .plat-label .plat-title {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.35;
+  color: #fff;
+}
+
+/* 立即下载 — 白底绿字胶囊 */
+.dl-standalone-host .dl-cta-main {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 15px 48px;
+  border-radius: 999px;
+  background: var(--white);
+  color: var(--dl-green);
+  font-family: inherit;
+  font-size: 17px;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 6px 26px rgba(0, 0, 0, 0.12);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s;
+}
+
+.dl-standalone-host .dl-cta-main:hover:not(.dl-cta-main--disabled) {
+  background: rgba(255, 255, 255, 0.98);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.16);
+}
+
+.dl-standalone-host .dl-cta-main.dl-cta-main--disabled {
+  opacity: 0.55;
+  cursor: wait;
+  pointer-events: none;
+}
+
+.dl-standalone-host .dl-cta-main svg {
+  width: 22px;
+  height: 22px;
+  stroke: currentColor;
+}
+
+.dl-standalone-host .dl-back {
+  margin-top: 4px;
+}
+
+.dl-standalone-host .dl-back a {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.88);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.dl-standalone-host .dl-back a:hover {
+  color: #fff;
+}
+
+/*
+ * 底部分界：白条上缘 ∪。波浪块高度单独用 ::before clamp 控制；
+ * 弧线通过 Q 第二控制分量拉低中间（不改变上述高度数值）。
+ */
+.dl-standalone-host .bottom-wave-area {
+  position: relative;
+  z-index: 2;
+  flex-shrink: 0;
+  margin-top: auto;
+  width: 100%;
+}
+
+.dl-standalone-host .bottom-wave-area::before {
+  content: '';
+  display: block;
+  width: 100%;
+  height: clamp(140px, 22vh, 240px);
+  background-repeat: no-repeat;
+  background-position: center bottom;
+  background-size: 100% 100%;
+  /* 高度保持不变；拉高 Q 控制点 y → 谷底中点下移（白条上缘中间更贴近底边） */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 220' preserveAspectRatio='none'%3E%3Cpath fill='%23ffffff' d='M0 64 Q720 332 1440 64 V220 H0 Z'/%3E%3C/svg%3E");
+}
+
+/* 页底白底 + 版权（原 dl-footer-spacer 空白区） */
+.dl-standalone-host .dl-site-footer {
+  flex-shrink: 0;
+  width: 100%;
+  background: #fff;
+  padding: clamp(20px, 4vh, 40px) clamp(20px, 5vw, 32px)
+    clamp(28px, 5vh, 48px);
+  pointer-events: auto;
+}
+
+.dl-standalone-host .dl-footer-copy {
+  margin: 0;
+  text-align: center;
+  font-size: 12px;
+  line-height: 1.7;
+  letter-spacing: 0.02em;
+  color: #71717a;
+}
+
+.dl-standalone-host .dl-footer-copy a {
+  color: #3d9d66;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.dl-standalone-host .dl-footer-copy a:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 540px) {
+  .dl-standalone-host .bottom-wave-area::before {
+    height: clamp(120px, 20vh, 200px);
+  }
+}
+
+/* Teleport 到 body，层级高于 dl-standalone-host，避免塞进 overflow:flex 宿主 */
+.dl-download-toasts.toast-box {
+  position: fixed;
+  top: 24px;
+  right: 24px;
+  z-index: 101000;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  pointer-events: none;
+}
+
+.dl-download-toasts .toast {
+  padding: 13px 20px;
+  border-radius: 11px;
+  background: rgba(26, 26, 26, 0.94);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.2);
+  animation: dl-t-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  max-width: 300px;
+}
+
+.dl-download-toasts .toast.out {
+  animation: dl-t-out 0.28s ease forwards;
+}
+
+.dl-download-toasts .toast-ico {
+  flex-shrink: 0;
+  color: #2aae67;
+}
+
+@keyframes dl-t-in {
+  from {
+    opacity: 0;
+    transform: translateX(28px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes dl-t-out {
+  to {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dl-download-toasts .toast {
+    animation-duration: 0.01ms !important;
+  }
+}

@@ -5,7 +5,10 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
 
-const DISPLAY = 48
+const props = defineProps({
+  /** 画布 CSS 像素边长（侧边栏等小场景默认 48；下载页等可放大） */
+  displaySize: { type: Number, default: 48 },
+})
 const INTERNAL = 400
 const G_FONT = 340
 const IC = INTERNAL / 2
@@ -15,6 +18,8 @@ const FRAME_MS = 1000 / 30
 
 const cvs = ref(null)
 let raf = 0, time = 0, lastT = 0, lastRender = 0
+/** @type {MutationObserver | null} */
+let themeObserver = null
 let gBBox = null
 
 function getThemeAccentHSL() {
@@ -206,7 +211,8 @@ onMounted(() => {
   const outSz = Math.max(gBBox.w, gBBox.h)
   const dpr = window.devicePixelRatio || 2
   c.width = outSz * dpr; c.height = outSz * dpr
-  c.style.width = DISPLAY + 'px'; c.style.height = DISPLAY + 'px'
+  c.style.width = props.displaySize + 'px'
+  c.style.height = props.displaySize + 'px'
   const ctx = c.getContext('2d')
 
   const off = document.createElement('canvas')
@@ -216,8 +222,8 @@ onMounted(() => {
 
   initMesh()
   accentHSL = getThemeAccentHSL()
-  const themeObs = new MutationObserver(() => { accentHSL = getThemeAccentHSL() })
-  themeObs.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] })
+  themeObserver = new MutationObserver(() => { accentHSL = getThemeAccentHSL() })
+  themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] })
 
   // 预渲染 G 描边到静态 canvas，避免每帧 3 次 shadowBlur 文本绘制
   const gStroke = document.createElement('canvas')
@@ -255,7 +261,11 @@ onMounted(() => {
   raf = requestAnimationFrame(render)
 })
 
-onUnmounted(() => { cancelAnimationFrame(raf) })
+onUnmounted(() => {
+  cancelAnimationFrame(raf)
+  themeObserver?.disconnect()
+  themeObserver = null
+})
 </script>
 
 <style scoped>

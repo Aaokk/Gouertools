@@ -9,11 +9,25 @@ const QrCodeGen = () => import('../components/QrCodeGen.vue')
 const ExifEditor = () => import('../components/ExifEditor.vue')
 const MosaicEditor = () => import('../components/MosaicEditor.vue')
 const AppIconMaker = () => import('../components/AppIconMaker.vue')
+import DownloadLanding from '../components/DownloadLanding.vue'
 const NotFound = () => import('../components/NotFound.vue')
 
 const BASE = 'Gouer工具包包'
 
 const routes = [
+  {
+    path: '/download',
+    name: 'download',
+    component: DownloadLanding,
+    meta: {
+      standaloneLayout: true,
+      title: `下载桌面客户端 — ${BASE}`,
+      description:
+        '下载 Gouer工具包包桌面版（Windows / macOS），点击时从官方上架更新接口解析本机匹配的 HTTPS 安装包直链。',
+      keywords:
+        'Gouer工具包包下载,桌面客户端,Tauri,Windows exe,macOS dmg,app 更新,tools.ge0,gouer',
+    },
+  },
   {
     path: '/',
     name: 'home',

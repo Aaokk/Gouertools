@@ -7,9 +7,11 @@ import { ask, message } from '@tauri-apps/plugin-dialog'
 import { openUrl } from '@tauri-apps/plugin-opener'
 import { arch, platform as osPlatform } from '@tauri-apps/plugin-os'
 import { downloadUpdateAssetThenOpen } from './tauriUpdateDownload.js'
-
-const UPDATE_API_URL =
-  'https://tapi.ge0.cc/app/appup/getAppUpdate?appname=tools'
+import {
+  UPDATE_API_URL,
+  pickVariantKey,
+  resolveDownloadUrl,
+} from './updateManifestShared.js'
 
 const DISMISS_PREFIX = 'update:dismiss:v'
 
@@ -26,18 +28,6 @@ function compareSemver (remote, local) {
   return 0
 }
 
-/** 只允许下载/落地页的 HTTPS 域名（与后端配置一致时可扩展） */
-function isAllowedPublicUrl (url) {
-  try {
-    const u = new URL(String(url).trim())
-    if (u.protocol !== 'https:') return false
-    const host = u.hostname.toLowerCase()
-    return host === 'tools.gouer.vip' || host === 'up.gouer.vip'
-  } catch {
-    return false
-  }
-}
-
 /** 仅当 URL 指向常见安装包后缀时，提供应用内自动下载 */
 function canAutoDownloadUrl (url) {
   try {
@@ -52,84 +42,6 @@ function markDismissed (version, forceUpdate) {
   if (!forceUpdate) {
     localStorage.setItem(DISMISS_PREFIX + version, '1')
   }
-}
-
-/**
- * 与上架接口 variant_urls / variant_url_keys 对齐。
- * Windows 新版可能使用 win_x64 代替 x64。
- * @param {string} platformOs plugin-os：`macos` | `windows` | ...
- * @param {string} rustArch plugin-os：`aarch64` | `x86_64` | …
- * @param {Record<string, string>} variantUrls API `variant_urls`
- */
-function pickVariantKey (platformOs, rustArch, variantUrls) {
-  const vu = variantUrls && typeof variantUrls === 'object' ? variantUrls : {}
-  const has = (k) => typeof vu[k] === 'string' && vu[k].trim() !== ''
-
-  if (platformOs === 'macos') {
-    if (rustArch === 'aarch64' || rustArch === 'arm') {
-      return has('arm64') ? 'arm64' : null
-    }
-    if (rustArch === 'x86_64' || rustArch === 'x86') {
-      return has('x64') ? 'x64' : null
-    }
-  }
-  if (platformOs === 'windows') {
-    if (rustArch === 'aarch64' || rustArch === 'arm') {
-      if (has('arm64')) return 'arm64'
-    }
-    if (rustArch === 'x86_64') {
-      if (has('win_x64')) return 'win_x64'
-      if (has('x64')) return 'x64'
-      return null
-    }
-    if (rustArch === 'x86') return has('x86') ? 'x86' : null
-  }
-  return null
-}
-
-/** package_url 是否已是安装包的完整 HTTPS 路径（避免因 variant_urls 占位符再拼接） */
-function packageUrlLooksLikeArtifact (urlStr) {
-  try {
-    const u = String(urlStr).trim()
-    if (!u.startsWith('https://')) return false
-    const path = new URL(u).pathname.toLowerCase()
-    return /\.(dmg|pkg|zip|exe|msi)(\?|$)/i.test(path)
-  } catch {
-    return false
-  }
-}
-
-/**
- * @param {{ package_url?: string, variant_urls?: Record<string, string> }} block platforms.xxx
- * @param {string | null} variantKey `arm64` / `x64` / …
- */
-function resolveDownloadUrl (block, variantKey) {
-  if (!block) return null
-  const pkg = typeof block.package_url === 'string' ? block.package_url.trim() : ''
-  if (pkg && packageUrlLooksLikeArtifact(pkg)) {
-    return pkg.startsWith('https://') && isAllowedPublicUrl(pkg) ? pkg : null
-  }
-
-  const vu = typeof block.variant_urls === 'object' && block.variant_urls ? block.variant_urls : {}
-  const seg =
-    variantKey && typeof vu[variantKey] === 'string'
-      ? vu[variantKey].trim()
-      : ''
-
-  let candidate = ''
-
-  if (seg.startsWith('https://')) {
-    candidate = seg
-  } else if (seg && pkg) {
-    const base = pkg.replace(/\/?$/, '/')
-    candidate = base + seg.replace(/^\//, '')
-  }
-
-  if (!candidate && pkg) {
-    candidate = pkg
-  }
-
-  return candidate.startsWith('https://') && isAllowedPublicUrl(candidate) ? candidate : null
 }
 
 /**
