@@ -174,7 +174,7 @@ body {
   font-size: 13px;
   font-weight: 500;
   position: relative;
-  transition: all var(--transition-fast);
+  transition: color 80ms ease-out, background 80ms ease-out, border-color 80ms ease-out;
   border-left: 3px solid transparent;
   cursor: pointer;
 }
@@ -188,7 +188,7 @@ body {
   border-left-color: var(--color-accent);
   text-shadow: none;
 }
-.sidebar-nav a svg { width: 18px; height: 18px; flex-shrink: 0; opacity: 0.6; transition: opacity var(--transition-fast); }
+.sidebar-nav a svg { width: 18px; height: 18px; flex-shrink: 0; opacity: 0.6; transition: opacity 80ms ease-out; }
 .sidebar-nav a.active svg { opacity: 1; }
 .sidebar-nav a:hover svg { opacity: 0.85; }
 
@@ -726,7 +726,7 @@ body {
   border-radius: var(--radius-md);
   border: 1px solid var(--color-border);
   cursor: pointer;
-  transition: all var(--transition-fast);
+  transition: background var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast), transform var(--transition-fast);
   white-space: nowrap;
   text-decoration: none;
   position: relative;
