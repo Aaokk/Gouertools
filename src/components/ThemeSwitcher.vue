@@ -112,6 +112,7 @@ onUnmounted(() => {
   gap: 8px;
 }
 .theme-switcher {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: flex-end;
@@ -161,6 +162,9 @@ onUnmounted(() => {
 
 /* 面板 */
 .theme-panel {
+  position: absolute;
+  top: 100%;
+  right: 0;
   margin-top: 6px;
   background: var(--color-surface-solid);
   border: 1px solid var(--color-border);
