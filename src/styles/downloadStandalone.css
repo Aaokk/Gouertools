@@ -1,7 +1,7 @@
 /**
  * /download 独立页 — 纯色绿背景 + 底白弧形（对齐微信下载页视感）
+ * 中文正文字体使用系统自带（苹方/微软雅黑/思源），不加载远程 web font。
  */
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap');
 
 .dl-standalone-host {
   --dl-green: #2aae67;

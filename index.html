@@ -4,6 +4,41 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
     <!-- 缓存策略由服务端/CDN Response Header 控制，不在 HTML meta 里禁缓存 -->
+    <!-- 内联临界样式：Vue 挂载前消除白屏，下载页立即渲染绿色背景 + 绿色 loading -->
+    <style>
+      body { margin: 0; background: #f5f5f5; }
+      #app { min-height: 100vh; }
+      #app .splash {
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        min-height: 100vh; gap: 20px;
+        font-family: -apple-system, BlinkMacSystemFont, "Microsoft YaHei", "PingFang SC", sans-serif;
+      }
+      #app .splash-ring {
+        width: 36px; height: 36px;
+        border: 3px solid rgba(0,0,0,0.1); border-top-color: #4A9B8E;
+        border-radius: 50%;
+        animation: splash-spin 0.7s linear infinite;
+      }
+      #app .splash-text { font-size: 14px; letter-spacing: 0.04em; color: #9ca3af; }
+      #app.dl-splash .splash-ring { border-color: rgba(255,255,255,0.22); border-top-color: #fff; }
+      #app.dl-splash .splash-text { color: rgba(255,255,255,0.82); }
+      @keyframes splash-spin { to { transform: rotate(360deg); } }
+    </style>
+    <script>
+      (function(){
+        var dl = window.location.pathname === '/download';
+        if (dl) {
+          document.documentElement.style.background = '#2aae67';
+          document.body.style.background = '#2aae67';
+        }
+        var app = document.getElementById('app');
+        var s = document.createElement('div');
+        s.className = 'splash';
+        s.innerHTML = '<div class="splash-ring"></div><span class="splash-text">Gouer\u5DE5\u5177\u5305\u5305</span>';
+        app.appendChild(s);
+        if (dl) app.className = 'dl-splash';
+      })();
+    </script>
 
     <!-- 基础 SEO -->
     <title>Gouer工具包包 — 一站式图片处理工具</title>

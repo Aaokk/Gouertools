@@ -18,6 +18,7 @@ const PORT = 4936
 
 const ROUTES = [
   '/',
+  '/download',
   '/watermark',
   '/image-compressor',
   '/image-converter',
