@@ -19,9 +19,9 @@
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2zM17 21v-8H7v8M7 3v5h8"/></svg>
             保存当前
           </button>
-          <button v-if="imageList.length > 1" class="btn btn-purple btn-sm" @click="saveAllImages">
+          <button v-if="imageList.length > 1" class="btn btn-purple btn-sm" :disabled="zipBusy" @click="saveAllImages">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
-            批量保存
+            {{ zipBusy ? '打包中…' : '批量保存' }}
           </button>
           <button v-if="imageList.length" class="btn btn-danger btn-sm" @click="clearImageList">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>
@@ -327,8 +327,9 @@
 <script setup>
 import { ref, reactive, computed, onMounted, watch, nextTick, onUnmounted } from 'vue'
 import { showToast } from '../utils/toast.js'
-import { downloadDataUrl } from '../utils/download.js'
+import { downloadDataUrl, downloadBlob } from '../utils/download.js'
 import { getDesktopShell } from '../utils/nativeDesktop.js'
+import JSZip from 'jszip'
 
 // Card toggle state
 const cardOpen = reactive({
@@ -450,6 +451,7 @@ function hsvToRgb(h, s, v) {
   }
 }
 
+const zipBusy = ref(false)
 const colorPickerOpen = ref(false)
 const pickerHue = ref(0)
 const pickerS = ref(1)
@@ -628,6 +630,15 @@ const createOptimizedDataURL = (canvas, format, quality) => {
   } else {
     return canvas.toDataURL(format, quality)
   }
+}
+
+const dataUrlToBlob = (dataUrl) => {
+  const parts = dataUrl.split(',')
+  const mime = parts[0].match(/:(.*?);/)[1]
+  const raw = atob(parts[1])
+  const u8 = new Uint8Array(raw.length)
+  for (let i = 0; i < raw.length; i++) u8[i] = raw.charCodeAt(i)
+  return new Blob([u8], { type: mime })
 }
 
 const updateWatermark = () => {
@@ -880,9 +891,10 @@ watch([
 const handleFileSelect = () => {
   const input = document.createElement('input')
   input.type = 'file'; input.accept = 'image/*'; input.multiple = true
+  input.style.display = 'none'
   input.onchange = (e) => {
     const files = Array.from(e.target.files)
-    if (files.length === 0) return
+    if (files.length === 0) { input.remove(); return }
     imageList.value = []; currentImageIndex.value = 0
     files.forEach((file, index) => {
       const reader = new FileReader()
@@ -897,7 +909,9 @@ const handleFileSelect = () => {
       }
       reader.readAsDataURL(file)
     })
+    input.remove()
   }
+  document.body.appendChild(input)
   input.click()
 }
 
@@ -967,8 +981,14 @@ const saveAllImages = async () => {
       showToast({ message: `批量保存失败：${error.message}`, type: 'error' })
     }
   } else {
+    if (zipBusy.value) return
+    zipBusy.value = true
+    const savedIdx = currentImageIndex.value
     try {
-      let successCount = 0; let failCount = 0
+      const zip = new JSZip()
+      const usedNames = new Set()
+      let failCount = 0
+
       for (let i = 0; i < imageList.value.length; i++) {
         try {
           currentImageIndex.value = i
@@ -978,28 +998,58 @@ const saveAllImages = async () => {
           const originalName = currentImage.name
           const nameWithoutExt = originalName.substring(0, originalName.lastIndexOf('.')) || originalName
           const extension = originalName.substring(originalName.lastIndexOf('.')) || '.jpg'
-          const now = new Date()
-          const timestamp = now.getFullYear() + ('0' + (now.getMonth() + 1)).slice(-2) + ('0' + now.getDate()).slice(-2) + ('0' + now.getHours()).slice(-2) + ('0' + now.getMinutes()).slice(-2) + ('0' + now.getSeconds()).slice(-2) + ('0' + now.getMilliseconds()).slice(-3)
-          const fileName = `${nameWithoutExt}_watermark_${timestamp}${extension}`
           if (!canvasRef.value) throw new Error('Canvas未初始化')
           const originalType = currentImage.name.toLowerCase().endsWith('.png') ? 'image/png' : 'image/jpeg'
           const dataUrl = createOptimizedDataURL(canvasRef.value, originalType, 0.9)
           if (!dataUrl || dataUrl === 'data:,') throw new Error('无法生成图片数据')
-          downloadDataUrl(dataUrl, fileName)
-          successCount++
-          await new Promise(resolve => setTimeout(resolve, 800))
+
+          let entryName = `${nameWithoutExt}_watermark${extension}`
+          let n = 1
+          while (usedNames.has(entryName.toLowerCase())) {
+            entryName = `${nameWithoutExt}_watermark (${n})${extension}`
+            n++
+          }
+          usedNames.add(entryName.toLowerCase())
+          zip.file(entryName, dataUrlToBlob(dataUrl))
         } catch (error) {
-          console.error(`保存第 ${i + 1} 张图片失败:`, error)
+          console.error(`处理第 ${i + 1} 张图片失败:`, error)
           failCount++
         }
       }
-      showToast({
-        message: `批量保存完成 · 成功 ${successCount} 张 · 失败 ${failCount} 张`,
-        type: failCount === 0 ? 'success' : successCount === 0 ? 'error' : 'info',
+
+      // 恢复之前的预览
+      if (savedIdx < imageList.value.length) {
+        currentImageIndex.value = savedIdx
+        await new Promise(resolve => { nextTick(() => { updateWatermark(); setTimeout(resolve, 200) }) })
+      }
+
+      if (usedNames.size === 0) throw new Error('没有成功处理的图片')
+
+      const zipBlob = await zip.generateAsync({
+        type: 'blob',
+        compression: 'DEFLATE',
+        compressionOptions: { level: 6 },
       })
-    } catch (error) {
-      console.error('批量保存失败:', error)
-      showToast({ message: `批量保存失败：${error.message}`, type: 'error' })
+      const now = new Date()
+      const ts = now.getFullYear() +
+        String(now.getMonth() + 1).padStart(2, '0') +
+        String(now.getDate()).padStart(2, '0') +
+        '_' +
+        String(now.getHours()).padStart(2, '0') +
+        String(now.getMinutes()).padStart(2, '0') +
+        String(now.getSeconds()).padStart(2, '0')
+      downloadBlob(zipBlob, `watermark_${ts}.zip`)
+      showToast({
+        message: failCount === 0
+          ? `已下载 ZIP（内含 ${usedNames.size} 个文件）`
+          : `已下载 ZIP（成功 ${usedNames.size} 个，失败 ${failCount} 个）`,
+        type: failCount === 0 ? 'success' : 'info',
+      })
+    } catch (e) {
+      console.error(e)
+      showToast({ message: `打包失败：${e?.message || '未知错误'}`, type: 'error' })
+    } finally {
+      zipBusy.value = false
     }
   }
 }
@@ -1078,9 +1128,10 @@ watch([() => watermarkOffset.x, () => watermarkOffset.y], () => {
 const handleLogoSelect = () => {
   const input = document.createElement('input')
   input.type = 'file'; input.accept = 'image/*'
+  input.style.display = 'none'
   input.onchange = (e) => {
     const file = e.target.files[0]
-    if (!file) return
+    if (!file) { input.remove(); return }
     const reader = new FileReader()
     reader.onload = (e) => {
       const img = new Image()
@@ -1094,7 +1145,9 @@ const handleLogoSelect = () => {
       img.src = e.target.result
     }
     reader.readAsDataURL(file)
+    input.remove()
   }
+  document.body.appendChild(input)
   input.click()
 }
 
