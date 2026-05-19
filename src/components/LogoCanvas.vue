@@ -183,6 +183,29 @@ function drawGStroke(c) {
   c.restore()
 }
 
+/**
+ * G 字形内部：径向高光银白渐变（不偏灰褐），再上 mesh。
+ */
+function fillGSilverInterior (c) {
+  setGFont(c)
+  const hx = IC - INTERNAL * 0.22
+  const hy = IC - INTERNAL * 0.26
+  const gx = IC + INTERNAL * 0.05
+  const gy = IC + INTERNAL * 0.06
+  const innerR = INTERNAL * 0.035
+  const outerR = INTERNAL * 0.58
+  const g = c.createRadialGradient(hx, hy, innerR, gx, gy, outerR)
+  g.addColorStop(0, '#ffffff')
+  g.addColorStop(0.1, '#feffff')
+  g.addColorStop(0.28, '#f4f9ff')
+  g.addColorStop(0.5, '#e8f0fb')
+  g.addColorStop(0.72, '#dae6f8')
+  g.addColorStop(0.9, '#c9d9f4')
+  g.addColorStop(1, '#b8cbf0')
+  c.fillStyle = g
+  c.fillText('G', IC, IC)
+}
+
 function measureGBBox() {
   const tmp = document.createElement('canvas')
   tmp.width = INTERNAL; tmp.height = INTERNAL
@@ -246,8 +269,7 @@ onMounted(() => {
     lastT = ts; time += dt
 
     oc.clearRect(0, 0, INTERNAL, INTERNAL)
-    setGFont(oc); oc.fillStyle = '#000000'
-    oc.fillText('G', IC, IC)
+    fillGSilverInterior(oc)
     drawMesh(oc, time)
     oc.globalCompositeOperation = 'destination-in'
     setGFont(oc); oc.fillStyle = '#fff'
