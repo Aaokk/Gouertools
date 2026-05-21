@@ -139,7 +139,7 @@ const router = createRouter({
   routes,
 })
 
-const SITE_BASE = 'https://tools.gouer.vip'
+const SITE_BASE = 'https://gouer.vip'
 
 // 路由切换时动态更新 title / meta / canonical / JSON-LD
 router.afterEach((to) => {

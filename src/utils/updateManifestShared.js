@@ -13,7 +13,7 @@ export function isAllowedPublicUrl (url) {
     const u = new URL(String(url).trim())
     if (u.protocol !== 'https:') return false
     const host = u.hostname.toLowerCase()
-    return host === 'tools.gouer.vip' || host === 'up.gouer.vip'
+    return host === 'gouer.vip' || host === 'up.gouer.vip'
   } catch {
     return false
   }

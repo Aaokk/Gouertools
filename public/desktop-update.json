@@ -1,5 +1,5 @@
 {
   "version": "1.9.0",
-  "downloadUrl": "https://tools.gouer.vip/",
-  "_comment": "发新版时上传到 https://tools.gouer.vip/desktop-update.json，把 version 改成大于桌面端 package.json 的版本即可触发提示"
+  "downloadUrl": "https://gouer.vip/",
+  "_comment": "发新版时上传到 https://gouer.vip/desktop-update.json，把 version 改成大于桌面端 package.json 的版本即可触发提示"
 }

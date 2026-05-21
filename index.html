@@ -1,92 +1,130 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
-    <!-- 缓存策略由服务端/CDN Response Header 控制，不在 HTML meta 里禁缓存 -->
-    <!-- 内联临界样式：Vue 挂载前消除白屏，下载页立即渲染绿色背景 + 绿色 loading -->
-    <style>
-      body { margin: 0; background: #f5f5f5; }
-      #app { min-height: 100vh; }
-      #app .splash {
-        display: flex; flex-direction: column; align-items: center; justify-content: center;
-        min-height: 100vh; gap: 20px;
-        font-family: -apple-system, BlinkMacSystemFont, "Microsoft YaHei", "PingFang SC", sans-serif;
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <!-- 缓存策略由服务端/CDN Response Header 控制，不在 HTML meta 里禁缓存 -->
+  <!-- 内联临界样式：Vue 挂载前消除白屏，下载页立即渲染绿色背景 + 绿色 loading -->
+  <style>
+    body {
+      margin: 0;
+      background: #f5f5f5;
+    }
+
+    #app {
+      min-height: 100vh;
+    }
+
+    #app .splash {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      gap: 20px;
+      font-family: -apple-system, BlinkMacSystemFont, "Microsoft YaHei", "PingFang SC", sans-serif;
+    }
+
+    #app .splash-ring {
+      width: 36px;
+      height: 36px;
+      border: 3px solid rgba(0, 0, 0, 0.1);
+      border-top-color: #4A9B8E;
+      border-radius: 50%;
+      animation: splash-spin 0.7s linear infinite;
+    }
+
+    #app .splash-text {
+      font-size: 14px;
+      letter-spacing: 0.04em;
+      color: #9ca3af;
+    }
+
+    #app.dl-splash .splash-ring {
+      border-color: rgba(255, 255, 255, 0.22);
+      border-top-color: #fff;
+    }
+
+    #app.dl-splash .splash-text {
+      color: rgba(255, 255, 255, 0.82);
+    }
+
+    @keyframes splash-spin {
+      to {
+        transform: rotate(360deg);
       }
-      #app .splash-ring {
-        width: 36px; height: 36px;
-        border: 3px solid rgba(0,0,0,0.1); border-top-color: #4A9B8E;
-        border-radius: 50%;
-        animation: splash-spin 0.7s linear infinite;
+    }
+  </style>
+  <script>
+    (function () {
+      var dl = window.location.pathname === '/download';
+      if (dl) {
+        document.documentElement.style.background = '#2aae67';
+        document.body.style.background = '#2aae67';
       }
-      #app .splash-text { font-size: 14px; letter-spacing: 0.04em; color: #9ca3af; }
-      #app.dl-splash .splash-ring { border-color: rgba(255,255,255,0.22); border-top-color: #fff; }
-      #app.dl-splash .splash-text { color: rgba(255,255,255,0.82); }
-      @keyframes splash-spin { to { transform: rotate(360deg); } }
-    </style>
-    <script>
-      (function(){
-        var dl = window.location.pathname === '/download';
-        if (dl) {
-          document.documentElement.style.background = '#2aae67';
-          document.body.style.background = '#2aae67';
-        }
-        var app = document.getElementById('app');
-        var s = document.createElement('div');
-        s.className = 'splash';
-        s.innerHTML = '<div class="splash-ring"></div><span class="splash-text">Gouer\u5DE5\u5177\u5305\u5305</span>';
-        app.appendChild(s);
-        if (dl) app.className = 'dl-splash';
-      })();
-    </script>
+      var app = document.getElementById('app');
+      var s = document.createElement('div');
+      s.className = 'splash';
+      s.innerHTML = '<div class="splash-ring"></div><span class="splash-text">Gouer\u5DE5\u5177\u5305\u5305</span>';
+      app.appendChild(s);
+      if (dl) app.className = 'dl-splash';
+    })();
+  </script>
 
-    <!-- 基础 SEO -->
-    <title>Gouer工具包包 — 一站式图片处理工具</title>
-    <meta name="description" content="Gouer工具包包是一站式图片处理工具，支持添加水印、图片压缩（JPG/PNG/WebP/GIF/AVIF/SVG）、格式转换，本地处理保护隐私，简单好用。" />
-    <meta name="keywords" content="图片压缩,添加水印,格式转换,图片处理,PNG压缩,WebP转换,图片工具,在线工具,批量处理" />
-    <meta name="author" content="Gouer.Vip" />
-    <meta name="robots" content="index, follow" />
+  <!-- 基础 SEO -->
+  <title>Gouer工具包包 — 一站式图片处理工具</title>
+  <meta name="description" content="Gouer工具包包是一站式图片处理工具，支持添加水印、图片压缩（JPG/PNG/WebP/GIF/AVIF/SVG）、格式转换，本地处理保护隐私，简单好用。" />
+  <meta name="keywords" content="图片压缩,添加水印,格式转换,图片处理,PNG压缩,WebP转换,图片工具,在线工具,批量处理" />
+  <meta name="author" content="Gouer.Vip" />
+  <meta name="robots" content="index, follow" />
 
-    <!-- Open Graph / 微信分享 -->
-    <meta property="og:type" content="website" />
-    <meta property="og:site_name" content="Gouer工具包包" />
-    <meta property="og:title" content="Gouer工具包包 — 一站式图片处理工具" />
-    <meta property="og:description" content="添加水印、图片压缩、格式转换，本地处理保护隐私，支持批量操作，简单好用。" />
-    <meta property="og:image" content="https://tools.gouer.vip/og-image.png" />
-    <meta property="og:url" content="https://tools.gouer.vip/" />
-    <meta property="og:locale" content="zh_CN" />
+  <!-- Open Graph / 微信分享 -->
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Gouer工具包包" />
+  <meta property="og:title" content="Gouer工具包包 — 一站式图片处理工具" />
+  <meta property="og:description" content="添加水印、图片压缩、格式转换，本地处理保护隐私，支持批量操作，简单好用。" />
+  <meta property="og:image" content="https://gouer.vip/og-image.png" />
+  <meta property="og:url" content="https://gouer.vip/" />
+  <meta property="og:locale" content="zh_CN" />
 
-    <!-- Twitter Card -->
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Gouer工具包包 — 一站式图片处理工具" />
-    <meta name="twitter:description" content="添加水印、图片压缩、格式转换，本地处理保护隐私。" />
-    <meta name="twitter:image" content="https://tools.gouer.vip/og-image.png" />
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Gouer工具包包 — 一站式图片处理工具" />
+  <meta name="twitter:description" content="添加水印、图片压缩、格式转换，本地处理保护隐私。" />
+  <meta name="twitter:image" content="https://gouer.vip/og-image.png" />
 
-    <!-- PWA / 移动端 -->
-    <meta name="theme-color" content="#4A9B8E" />
-    <meta name="mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-    <meta name="apple-mobile-web-app-title" content="工具包包" />
+  <!-- PWA / 移动端 -->
+  <meta name="theme-color" content="#4A9B8E" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="工具包包" />
 
-    <!-- Favicon（多尺寸 PNG + ICO；SVG 引用 favicon.png 便于矢量入口统一换图）-->
-    <link rel="icon" href="/favicon.ico" sizes="any" />
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="icon" type="image/png" sizes="512x512" href="/favicon.png" />
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
-    <link rel="manifest" href="/site.webmanifest" />
-    <!-- Sitemap & Canonical (初始值，路由切换时会被 JS 更新) -->
-    <link rel="sitemap" type="application/xml" href="/sitemap.xml" />
-    <link rel="canonical" href="https://tools.gouer.vip/" />
+  <!-- Favicon（多尺寸 PNG + ICO；SVG 引用 favicon.png 便于矢量入口统一换图）-->
+  <link rel="icon" href="/favicon.ico" sizes="any" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="icon" type="image/png" sizes="512x512" href="/favicon.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+  <link rel="manifest" href="/site.webmanifest" />
+  <!-- Sitemap & Canonical (初始值，路由切换时会被 JS 更新) -->
+  <link rel="sitemap" type="application/xml" href="/sitemap.xml" />
+  <link rel="canonical" href="https://gouer.vip/" />
 
-    <!-- 字体 -->
-    <link rel="stylesheet" href="/fonts/orbitron.css" />
-    <!-- 中文正文字体使用系统自带（苹方/微软雅黑/思源），不再加载 Noto Sans SC woff2 -->
-  </head>
-  <body>
-    <div id="app"></div>
-    <script type="module" src="/src/main.js"></script>
-  </body>
+  <!-- 字体 -->
+  <link rel="stylesheet" href="/fonts/orbitron.css" />
+  <!-- 中文正文字体使用系统自带（苹方/微软雅黑/思源），不再加载 Noto Sans SC woff2 -->
+
+  <!-- 51.la 统计（基础统计 + 事件分析） -->
+  <script charset="UTF-8" id="LA_COLLECT" src="/js-sdk-pro.min.js"></script>
+  <script type="text/javascript">LA.init({id:"3J5mE0A98nHiiHCa",ck:"3J5mE0A98nHiiHCa",hashMode:true,autoTrack:true})</script>
+</head>
+
+<body>
+  <div id="app"></div>
+  <script type="module" src="/src/main.js"></script>
+</body>
+
 </html>

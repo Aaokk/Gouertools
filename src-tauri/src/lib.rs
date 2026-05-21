@@ -28,7 +28,7 @@ fn desktop_save_image(path: String, data_url: String) -> Result<(), String> {
 /// 仅允许配置的域名，缓解误用 SSRF（由前端传入固定常量 URL）
 fn allowed_update_fetch_url(url: &str) -> bool {
   let u = url.trim();
-  u.starts_with("https://tools.gouer.vip/")
+  u.starts_with("https://gouer.vip/")
     || u.starts_with("https://up.gouer.vip/")
     || u.starts_with("https://tapi.ge0.cc/")
 }
@@ -36,7 +36,7 @@ fn allowed_update_fetch_url(url: &str) -> bool {
 /// 安装包直链仅允许这两类域名（与前端 openUrl 白名单一致）
 fn allowed_asset_download_url(url: &str) -> bool {
   let u = url.trim();
-  u.starts_with("https://tools.gouer.vip/")
+  u.starts_with("https://gouer.vip/")
     || u.starts_with("https://up.gouer.vip/")
 }
 
@@ -138,9 +138,9 @@ async fn download_update_asset(
 
   if matches!(
     parsed.host_str(),
-    Some("up.gouer.vip") | Some("tools.gouer.vip")
+    Some("up.gouer.vip") | Some("gouer.vip")
   ) {
-    req = req.header(REFERER, "https://tools.gouer.vip/");
+    req = req.header(REFERER, "https://gouer.vip/");
   }
 
   let resp = req.send().await.map_err(|e| e.to_string())?;

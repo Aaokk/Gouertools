@@ -13,7 +13,6 @@
         <polyline points="7 10 12 15 17 10"/>
         <line x1="12" y1="15" x2="12" y2="3"/>
       </svg>
-      <span class="dl-corner-label">下载客户端</span>
     </router-link>
     <div class="theme-switcher">
       <!-- 触发按钮 -->
@@ -120,12 +119,7 @@ onUnmounted(() => {
 .dl-corner {
   text-decoration: none;
   flex-shrink: 0;
-}
-.dl-corner-label {
-  font-size: 12px;
-  font-weight: 500;
-  line-height: 1;
-  white-space: nowrap;
+  justify-content: center;
 }
 
 /* 触发按钮 */

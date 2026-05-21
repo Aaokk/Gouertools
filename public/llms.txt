@@ -1,5 +1,5 @@
 # Gouer工具包包 — 一站式图片处理工具
-> https://tools.gouer.vip
+> https://gouer.vip
 
 ## 概述
 Gouer工具包包是一款免费在线图片处理工具箱，所有操作均在浏览器本地完成，不上传服务器，保护用户隐私。同时提供 macOS 和 Windows 桌面客户端。
@@ -21,12 +21,12 @@ Gouer工具包包是一款免费在线图片处理工具箱，所有操作均在
 - 支持多主题切换
 
 ## 链接
-- 首页: https://tools.gouer.vip/
-- 添加水印: https://tools.gouer.vip/watermark
-- 图片压缩: https://tools.gouer.vip/image-compressor
-- 格式转换: https://tools.gouer.vip/image-converter
-- 图片裁剪: https://tools.gouer.vip/image-cropper
-- 局部打码: https://tools.gouer.vip/mosaic
-- EXIF 查看/清除: https://tools.gouer.vip/exif
-- 二维码生成: https://tools.gouer.vip/qrcode
-- 应用图标生成: https://tools.gouer.vip/app-icon
+- 首页: https://gouer.vip/
+- 添加水印: https://gouer.vip/watermark
+- 图片压缩: https://gouer.vip/image-compressor
+- 格式转换: https://gouer.vip/image-converter
+- 图片裁剪: https://gouer.vip/image-cropper
+- 局部打码: https://gouer.vip/mosaic
+- EXIF 查看/清除: https://gouer.vip/exif
+- 二维码生成: https://gouer.vip/qrcode
+- 应用图标生成: https://gouer.vip/app-icon
