@@ -2,7 +2,7 @@
   "name": "shuiyinimg",
   "private": true,
   "_version_sync_note": "只需改 package.json 的 version。tauri:dev / tauri:build 会经 tauri.conf 钩子自动 sync；也可用 npm version patch。在 Apple Silicon 上默认 tauri:build 只打 arm64 DMG。要 Intel：`npm run tauri:build:mac-intel`（会先 rustup target add x86_64-apple-darwin；需本机已装 rustup 且 Xcode CLT）。云打包：`Actions → Tauri multi-platform builds`（或推送 tag 「v…」）；Artifacts：`Gouer-mac-arm64` / `Gouer-mac-intel` / `Gouer-win-x64` / `Gouer-win-x86`。推送 `v*` tag 成功后 workflow 会向 **GitHub Releases** 挂载各平台 DMG/exe（手动 Run workflow 只产 Artifacts，不发布 Release）。",
-  "version": "3.3.1",
+  "version": "3.3.9",
   "type": "commonjs",
   "scripts": {
     "sync-version": "node scripts/sync-version-from-package.mjs",
