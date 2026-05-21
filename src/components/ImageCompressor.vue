@@ -184,10 +184,10 @@
       <!-- 右侧设置面板（与裁剪等页统一 control-panel） -->
       <div class="control-panel">
         <!-- 调整图片尺寸 -->
-        <div class="setting-card">
+        <div class="setting-card" :class="{ collapsed: !s1 }">
           <div class="setting-card-header" @click="s1 = !s1">
             <h4>调整图片尺寸</h4>
-            <svg class="arrow" :class="{ rotated: !s1 }" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+            <svg class="arrow" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
           </div>
           <div class="setting-card-body" v-show="s1">
             <div class="setting-row">
@@ -250,10 +250,10 @@
         </div>
 
         <!-- 输出格式 -->
-        <div class="setting-card">
+        <div class="setting-card" :class="{ collapsed: !s2 }">
           <div class="setting-card-header" @click="s2 = !s2">
             <h4>设置输出格式</h4>
-            <svg class="arrow" :class="{ rotated: !s2 }" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+            <svg class="arrow" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
           </div>
           <div class="setting-card-body" v-show="s2">
             <div class="setting-row">
@@ -280,10 +280,10 @@
         </div>
 
         <!-- JPEG/WEBP 参数 -->
-        <div class="setting-card">
+        <div class="setting-card" :class="{ collapsed: !s3 }">
           <div class="setting-card-header" @click="s3 = !s3">
             <h4>JPEG/WEBP参数</h4>
-            <svg class="arrow" :class="{ rotated: !s3 }" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+            <svg class="arrow" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
           </div>
           <div class="setting-card-body" v-show="s3">
             <p class="param-label">设置输出图片质量（0-1）</p>
@@ -296,10 +296,10 @@
         </div>
 
         <!-- PNG 参数 -->
-        <div class="setting-card">
+        <div class="setting-card" :class="{ collapsed: !s4 }">
           <div class="setting-card-header" @click="s4 = !s4">
             <h4>PNG参数</h4>
-            <svg class="arrow" :class="{ rotated: !s4 }" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+            <svg class="arrow" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
           </div>
           <div class="setting-card-body" v-show="s4">
             <p class="param-label">设置输出颜色数量（2-256）</p>

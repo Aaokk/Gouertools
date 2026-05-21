@@ -101,14 +101,28 @@ onUnmounted(() => {
 
 <style scoped>
 .theme-corner {
-  position: fixed;
-  top: 16px;
-  right: 20px;
-  z-index: 9000;
   display: flex;
   flex-direction: row;
   align-items: flex-start;
   gap: 8px;
+}
+
+/* ≥901px：悬浮角标（主栏内挂载，仍为视口 fixed） */
+@media (min-width: 901px) {
+  .theme-corner {
+    position: fixed;
+    top: max(16px, env(safe-area-inset-top));
+    right: max(20px, env(safe-area-inset-right));
+    z-index: 9000;
+  }
+}
+
+/* ≤900px：随 .main-chrome-actions 排版，与各页共用同一顶栏占位 */
+@media (max-width: 900px) {
+  .theme-corner {
+    position: static;
+    z-index: auto;
+  }
 }
 .theme-switcher {
   position: relative;

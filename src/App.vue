@@ -64,10 +64,12 @@
       </aside>
 
       <div class="main">
-        <router-view />
+        <div class="main-chrome-actions">
+          <ThemeSwitcher />
+        </div>
+        <router-view class="main-route" />
       </div>
     </div>
-    <ThemeSwitcher />
     <AppToast />
     <UpdateDownloadOverlay />
   </template>

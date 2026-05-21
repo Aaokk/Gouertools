@@ -3,17 +3,23 @@
 
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover" />
   <!-- 缓存策略由服务端/CDN Response Header 控制，不在 HTML meta 里禁缓存 -->
   <!-- 内联临界样式：Vue 挂载前消除白屏，下载页立即渲染绿色背景 + 绿色 loading -->
   <style>
+    /* 与 src/style.css :root --color-background（护眼绿默认 #F7F5F2）一致，避免首帧灰/白跳变 */
+    html {
+      background-color: #f7f5f2;
+    }
     body {
       margin: 0;
-      background: #f5f5f5;
+      background-color: inherit;
+      min-height: 100vh;
     }
 
     #app {
       min-height: 100vh;
+      background-color: inherit;
     }
 
     #app .splash {
@@ -23,6 +29,7 @@
       justify-content: center;
       min-height: 100vh;
       gap: 20px;
+      background-color: inherit;
       font-family: -apple-system, BlinkMacSystemFont, "Microsoft YaHei", "PingFang SC", sans-serif;
     }
 
@@ -107,6 +114,30 @@
 </head>
 
 <body>
+  <!-- 尽早同步主题底色与 data-theme（须在 Vue / themes.css 执行前），减轻刷新「先亮后暗」与白屏闪 -->
+  <script>
+    (function () {
+      var DL_GREEN = '#2aae67';
+      var BG = {
+        warm: '#f7f5f2',
+        dark: '#080c15',
+        blue: '#0f172a',
+        rose: '#fce9da',
+        ink: '#ffffff'
+      };
+      try {
+        var dl = window.location.pathname === '/download';
+        if (dl) {
+          document.documentElement.style.backgroundColor = DL_GREEN;
+          return;
+        }
+        var id = localStorage.getItem('gouer-theme') || 'warm';
+        document.documentElement.style.backgroundColor = BG[id] || BG.warm;
+        if (id !== 'warm') document.documentElement.setAttribute('data-theme', id);
+        else document.documentElement.removeAttribute('data-theme');
+      } catch (e) {}
+    })();
+  </script>
   <div id="app"></div>
   <!--
     首屏 Splash 必须在本脚本内同步注入，且位于 main.js（defer 模块）之前。
@@ -116,10 +147,6 @@
   <script>
     (function () {
       var dl = window.location.pathname === '/download';
-      if (dl) {
-        document.documentElement.style.background = '#2aae67';
-        document.body.style.background = '#2aae67';
-      }
       var app = document.getElementById('app');
       if (!app) return;
       var s = document.createElement('div');

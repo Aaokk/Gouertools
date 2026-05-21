@@ -187,6 +187,13 @@ export default { name: 'Home' }
   }
 }
 
+/* 窄屏顶栏已由 .main-chrome-actions 占位，减小 hero 顶距与工具页标题区节奏接近 */
+@media (max-width: 900px) {
+  .home-hero {
+    padding-top: var(--spacing-sm);
+  }
+}
+
 /* 首页卡片：图标与标题同一行，更小更紧凑（覆盖全局 .tool-card 局部样式） */
 .home-grid .tool-card {
   padding: 10px 12px;
