@@ -58,7 +58,8 @@
         <div class="sidebar-footer">
           Copyright © 2024–2026
           <a href="https://gouer.vip" target="_blank" rel="noopener noreferrer">Gouer.Vip</a><br>
-          All Rights Reserved.
+          All Rights Reserved.<br>
+          <a target="_blank" title="51la网站统计" href="https://v6.51.la/s/E9T5uofSqU6ifgW"><img src="https://sdk.51.la/icon/3-5.png"></a>
         </div>
       </aside>
 
