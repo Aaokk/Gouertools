@@ -603,15 +603,6 @@ const doCrop = () => {
   font-family: var(--font-heading);
 }
 
-.control-panel {
-  box-sizing: border-box;
-  width: 100%;
-  min-width: 0;
-  overflow-x: hidden;
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-sm);
-}
 .arrow {
   transition: transform var(--transition-fast);
   color: var(--color-text-muted);

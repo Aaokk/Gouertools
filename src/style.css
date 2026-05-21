@@ -86,6 +86,13 @@
   --sidebar-width: 230px;
   --transition-fast: 150ms ease;
   --transition-normal: 250ms ease-out;
+
+  /* 滚动条 — 与主题色联动（见下方 SCROLLBAR；各 data-theme 仅覆写 thumb） */
+  --scrollbar-size: 6px;
+  --scrollbar-sidebar-size: 4px;
+  --scrollbar-track: var(--color-background);
+  --scrollbar-thumb: rgba(44, 62, 58, 0.28);
+  --scrollbar-thumb-hover: rgba(74, 155, 142, 0.52);
 }
 
 /* ========================================
@@ -101,6 +108,37 @@ body {
   background: var(--color-background);
   min-height: 100vh;
   display: flex;
+}
+
+/* ========================================
+   滚动条（参考细窄圆角样式；Firefox + WebKit；颜色随主题变量）
+   ======================================== */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+}
+*::-webkit-scrollbar {
+  width: var(--scrollbar-size);
+  height: var(--scrollbar-size);
+}
+*::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+  border-radius: var(--radius-full);
+  margin: 6px 0;
+}
+*::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: var(--radius-full);
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
+}
+*::-webkit-scrollbar-corner {
+  background: var(--scrollbar-track);
+}
+
+.sidebar-nav::-webkit-scrollbar {
+  width: var(--scrollbar-sidebar-size);
 }
 
 /* ========================================
@@ -358,9 +396,7 @@ body {
    ======================================== */
 .tool-header {
   padding: var(--spacing-lg) var(--spacing-xl) 0;
-  max-width: 1200px;
   width: 100%;
-  margin: 0 auto;
 }
 .tool-header h2 {
   font-family: var(--font-heading);
@@ -383,9 +419,7 @@ body {
   grid-template-columns: minmax(0, 1fr) 300px;
   gap: var(--spacing-lg);
   padding: var(--spacing-lg) var(--spacing-xl) var(--spacing-2xl);
-  max-width: 1200px;
   width: 100%;
-  margin: 0 auto;
   flex: 1;
   align-items: start;
 }
@@ -398,6 +432,256 @@ body {
   flex-direction: column;
   gap: var(--tool-preview-stack-gap);
 }
+
+/* 工具顶栏：预览区上方按钮行（水印 / 图片压缩等共用） */
+.wm-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+/* 压缩：左右两组按钮顶满一行 */
+.wm-actions.wm-actions--split {
+  justify-content: space-between;
+  gap: var(--spacing-sm);
+}
+
+.tool-page .tool-body > .control-panel {
+  position: sticky;
+  top: 24px;
+  align-self: start;
+}
+
+/* 图片压缩：仅统一顶栏与主区上内边距（与其它工具页同宽靠左，勿居中收窄） */
+.tool-page--compress .tool-body {
+  padding-top: var(--spacing-md);
+}
+
+/* ========================================
+   图片压缩 · 表格主区（全局统一样式，与 tool-body 一套维护）
+   ======================================== */
+.compress-drop-zone {
+  background: var(--color-surface-drop, var(--color-surface));
+  backdrop-filter: blur(12px);
+  border-radius: var(--radius-lg);
+  border: 1px dashed var(--color-border);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  height: var(--tool-preview-area-height);
+  position: relative;
+  transition: border-color var(--transition-normal), box-shadow var(--transition-normal), background var(--transition-normal);
+}
+.compress-drop-zone::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at center, var(--color-accent-dim), transparent 70%);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--transition-normal);
+  z-index: 0;
+}
+.compress-drop-zone:not(.has-files):hover {
+  border-color: var(--color-accent);
+  box-shadow: var(--shadow-glow);
+}
+.compress-drop-zone:not(.has-files):hover::before {
+  opacity: 1;
+}
+.compress-drop-zone.drag-over {
+  border-color: var(--color-accent);
+  background: var(--color-accent-dim);
+  box-shadow: 0 0 20px var(--color-accent-glow);
+}
+.compress-drop-zone.has-files {
+  border-style: solid;
+  height: auto;
+  min-height: unset;
+}
+.compress-drop-zone.has-files::before {
+  display: none;
+}
+
+.compress-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  cursor: pointer;
+  padding: var(--spacing-2xl);
+  position: relative;
+  z-index: 1;
+}
+.compress-empty .placeholder-icon svg {
+  width: 56px;
+  height: 56px;
+  color: var(--color-text-muted);
+  margin-bottom: var(--spacing-md);
+  opacity: 0.5;
+}
+.compress-empty .placeholder-text {
+  font-size: 14px;
+  color: var(--color-text-muted);
+}
+.compress-empty .placeholder-hint {
+  font-size: 12px;
+  color: rgba(90, 111, 142, 0.6);
+  margin-top: 4px;
+}
+.compress-empty .format-tags {
+  display: flex;
+  gap: 6px;
+  margin-top: 14px;
+}
+.compress-empty .format-tag {
+  padding: 3px 10px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-family: var(--font-heading);
+  font-weight: 600;
+  background: var(--color-accent-dim);
+  color: var(--color-accent);
+  border: 1px solid var(--color-border);
+  letter-spacing: 0.5px;
+}
+
+.compress-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+.compress-table thead th {
+  background: rgba(0, 255, 170, 0.04);
+  border-bottom: 1px solid var(--color-border);
+  padding: 10px 10px;
+  font-family: var(--font-heading);
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  text-align: left;
+  white-space: nowrap;
+}
+.compress-table tbody tr {
+  border-bottom: 1px solid var(--color-border);
+  transition: background var(--transition-fast);
+}
+.compress-table tbody tr:last-child { border-bottom: none; }
+.compress-table tbody tr:hover { background: var(--color-muted); }
+.compress-table td {
+  padding: 8px 10px;
+  vertical-align: middle;
+  color: var(--color-foreground);
+}
+
+.compress-table .col-status { width: 32px; text-align: center; }
+.compress-table .col-thumb  { width: 48px; }
+.compress-table .col-name   { min-width: 0; max-width: 180px; }
+.compress-table .col-dim    { width: 90px; white-space: nowrap; }
+.compress-table .col-sz     { width: 80px; white-space: nowrap; }
+.compress-table .col-ratio  { width: 90px; }
+.compress-table .col-act    { width: 68px; white-space: nowrap; }
+
+.compress-table .name-text {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+  color: var(--color-foreground);
+}
+.compress-table .dim-text {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+.compress-table .muted { color: var(--color-text-muted); opacity: 0.5; font-size: 11px; }
+
+.compress-table .row-thumb {
+  width: 36px;
+  height: 36px;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  display: block;
+}
+
+.compress-table .status-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.compress-table .status-icon.waiting  { color: var(--color-text-muted); opacity: 0.6; }
+.compress-table .status-icon.done     { color: var(--color-accent); }
+.compress-table .status-icon.error    { color: var(--color-destructive); }
+.compress-table .status-icon.spinning { color: var(--color-secondary); animation: compressSpin 1s linear infinite; }
+@keyframes compressSpin { to { transform: rotate(360deg); } }
+
+.compress-table .sz-good { color: var(--color-accent); }
+.compress-table .sz-bad  { color: var(--color-destructive); }
+
+.compress-table .ratio-val {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-weight: 600;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+.compress-table .ratio-good { color: var(--color-accent); }
+.compress-table .ratio-bad  { color: var(--color-destructive); }
+
+.compress-table .icon-btn {
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-muted);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  color: var(--color-text-muted);
+  transition: all var(--transition-fast);
+  margin-right: 4px;
+}
+.compress-table .icon-btn:hover:not(:disabled):not(.icon-btn-idle) {
+  background: var(--color-accent-dim);
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+.compress-table .icon-btn.danger:hover:not(:disabled):not(.icon-btn-idle) {
+  background: rgba(255, 68, 102, 0.1);
+  border-color: var(--color-destructive);
+  color: var(--color-destructive);
+}
+.compress-table .icon-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+.compress-table .icon-btn-idle {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.compress-summary {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: 8px var(--spacing-md);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: 12px;
+  color: var(--color-text-muted);
+  flex-wrap: wrap;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+.compress-summary .sum-sep  { opacity: 0.3; }
+.compress-summary .sum-item { display: inline-flex; align-items: center; gap: 4px; }
+.compress-summary .sz-good { color: var(--color-accent); }
+.compress-summary .ratio-good { color: var(--color-accent); }
 
 /* Preview Area */
 .preview-area {
@@ -791,8 +1075,6 @@ body {
   gap: var(--spacing-sm);
   padding: var(--spacing-md);
   margin: 0 var(--spacing-lg);
-  max-width: 1200px;
-  width: calc(100% - var(--spacing-xl));
 }
 .file-thumb {
   width: 64px; height: 64px;

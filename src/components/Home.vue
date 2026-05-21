@@ -115,9 +115,7 @@ export default { name: 'Home' }
 /* Hero：与 tool-header / tool-body 同宽、同水平内边距 */
 .home-hero {
   text-align: center;
-  max-width: 1200px;
   width: 100%;
-  margin: 0 auto;
   padding: var(--spacing-md) var(--spacing-xl) var(--spacing-sm);
   box-sizing: border-box;
 }
@@ -125,9 +123,7 @@ export default { name: 'Home' }
 /* 分区：与工具页内容区对齐 */
 .home-section {
   padding: 0 var(--spacing-xl) var(--spacing-md);
-  max-width: 1200px;
   width: 100%;
-  margin: 0 auto;
   box-sizing: border-box;
 }
 

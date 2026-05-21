@@ -56,22 +56,6 @@
       }
     }
   </style>
-  <script>
-    (function () {
-      var dl = window.location.pathname === '/download';
-      if (dl) {
-        document.documentElement.style.background = '#2aae67';
-        document.body.style.background = '#2aae67';
-      }
-      var app = document.getElementById('app');
-      var s = document.createElement('div');
-      s.className = 'splash';
-      s.innerHTML = '<div class="splash-ring"></div><span class="splash-text">Gouer\u5DE5\u5177\u5305\u5305</span>';
-      app.appendChild(s);
-      if (dl) app.className = 'dl-splash';
-    })();
-  </script>
-
   <!-- 基础 SEO -->
   <title>Gouer工具包包 — 一站式图片处理工具</title>
   <meta name="description" content="Gouer工具包包是一站式图片处理工具，支持添加水印、图片压缩（JPG/PNG/WebP/GIF/AVIF/SVG）、格式转换，本地处理保护隐私，简单好用。" />
@@ -124,6 +108,27 @@
 
 <body>
   <div id="app"></div>
+  <!--
+    首屏 Splash 必须在本脚本内同步注入，且位于 main.js（defer 模块）之前。
+    若改成 DOMContentLoaded 再注入，module 会先执行并完成 Vue.mount，Splash 会被 append 到
+    已挂载的根之后，页面底部会多出一整块 min-height:100vh 的转圈区域。
+  -->
+  <script>
+    (function () {
+      var dl = window.location.pathname === '/download';
+      if (dl) {
+        document.documentElement.style.background = '#2aae67';
+        document.body.style.background = '#2aae67';
+      }
+      var app = document.getElementById('app');
+      if (!app) return;
+      var s = document.createElement('div');
+      s.className = 'splash';
+      s.innerHTML = '<div class="splash-ring"></div><span class="splash-text">Gouer\u5DE5\u5177\u5305\u5305</span>';
+      app.appendChild(s);
+      if (dl) app.className = 'dl-splash';
+    })();
+  </script>
   <script type="module" src="/src/main.js"></script>
 </body>
 

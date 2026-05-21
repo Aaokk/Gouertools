@@ -1,6 +1,6 @@
 <template>
   <div
-    class="tool-page"
+    class="tool-page tool-page--compress"
     @dragover.prevent="globalDragOver = true"
     @dragleave.self="globalDragOver = false"
     @drop.prevent="onGlobalDrop"
@@ -10,11 +10,10 @@
       <div class="divider"></div>
     </div>
 
-    <div class="comp-body">
-      <!-- 左侧主区域 -->
-      <div class="comp-main">
-        <!-- 操作栏 -->
-        <div class="comp-actions" @click.stop>
+    <div class="tool-body">
+      <!-- 左侧主区域：与其它工具页一致为 preview-stack -->
+      <div class="preview-stack">
+        <div class="wm-actions wm-actions--split" @click.stop>
           <div style="display:flex;gap:8px;">
             <button class="btn btn-secondary btn-sm" @click="fileInput.click()">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
@@ -55,12 +54,12 @@
 
         <!-- 文件表格 / 空状态 -->
         <div
-          class="comp-table-wrap"
+          class="compress-drop-zone"
           :class="{ 'drag-over': globalDragOver && !fileList.length, 'has-files': fileList.length }"
           @click="!fileList.length && fileInput.click()"
         >
           <!-- 空状态 -->
-          <div v-if="!fileList.length" class="comp-empty">
+          <div v-if="!fileList.length" class="compress-empty">
             <div class="placeholder-icon">
               <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
             </div>
@@ -69,7 +68,7 @@
           </div>
 
           <!-- 表格 -->
-          <table v-else class="comp-table">
+          <table v-else class="compress-table">
             <thead>
               <tr>
                 <th class="col-status">状态</th>
@@ -168,7 +167,7 @@
         </div>
 
         <!-- 汇总栏 -->
-        <div v-if="fileList.length" class="comp-summary">
+        <div v-if="fileList.length" class="compress-summary">
           <span class="sum-item">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4m5 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
             {{ doneCount }} / {{ fileList.length }}
@@ -182,8 +181,8 @@
         </div>
       </div>
 
-      <!-- 右侧设置面板 -->
-      <div class="comp-sidebar">
+      <!-- 右侧设置面板（与裁剪等页统一 control-panel） -->
+      <div class="control-panel">
         <!-- 调整图片尺寸 -->
         <div class="setting-card">
           <div class="setting-card-header" @click="s1 = !s1">
@@ -790,7 +789,8 @@ const guessMime = (name) => {
 </script>
 
 <style scoped>
-.tool-page {
+/* 与裁剪/水印等共用全局 .tool-body / .preview-stack / .control-panel；表格与顶栏在 style.css */
+.tool-page.tool-page--compress {
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -798,303 +798,12 @@ const guessMime = (name) => {
   min-width: 0;
 }
 
-/* ── 整体布局 ─────────────────────────────────────────────── */
-.comp-body {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 300px;
-  gap: var(--spacing-lg);
-  padding: var(--spacing-md) var(--spacing-xl) var(--spacing-2xl);
-  max-width: 1200px;
-  width: 100%;
-  margin: 0 auto;
-  flex: 1;
-  align-items: start;
-}
-
-.comp-main {
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: var(--tool-preview-stack-gap);
-}
-
-/* ── 操作栏 ──────────────────────────────────────────────── */
-.comp-actions {
-  display: flex;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: var(--spacing-sm);
-}
-
-/* ── 表格区域 ────────────────────────────────────────────── */
-.comp-table-wrap {
-  background: var(--color-surface-drop, var(--color-surface));
-  backdrop-filter: blur(12px);
-  border-radius: var(--radius-lg);
-  border: 1px dashed var(--color-border);
-  box-shadow: var(--shadow-sm);
-  overflow: hidden;
-  height: var(--tool-preview-area-height);
-  position: relative;
-  transition: border-color var(--transition-normal), box-shadow var(--transition-normal), background var(--transition-normal);
-}
-/* hover 光晕层（与 .preview-area::before 一致） */
-.comp-table-wrap::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(ellipse at center, var(--color-accent-dim), transparent 70%);
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity var(--transition-normal);
-  z-index: 0;
-}
-/* 空状态时 hover 效果 */
-.comp-table-wrap:not(.has-files):hover {
-  border-color: var(--color-accent);
-  box-shadow: var(--shadow-glow);
-}
-.comp-table-wrap:not(.has-files):hover::before {
-  opacity: 1;
-}
-/* 拖拽进入效果 */
-.comp-table-wrap.drag-over {
-  border-color: var(--color-accent);
-  background: var(--color-accent-dim);
-  box-shadow: 0 0 20px var(--color-accent-glow);
-}
-/* 有文件时切回实线，高度随内容自动撑开 */
-.comp-table-wrap.has-files {
-  border-style: solid;
-  height: auto;
-  min-height: unset;
-}
-.comp-table-wrap.has-files::before {
-  display: none;
-}
-
-/* 空状态 — 与全局 .preview-area 占位样式完全对齐（去掉 gap，靠 margin 控制） */
-.comp-empty {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  cursor: pointer;
-  padding: var(--spacing-2xl);
-  position: relative;
-  z-index: 1;
-}
-.comp-empty .placeholder-icon svg {
-  width: 56px;
-  height: 56px;
-  color: var(--color-text-muted);
-  margin-bottom: var(--spacing-md);
-  opacity: 0.5;
-}
-.comp-empty .placeholder-text {
-  font-size: 14px;
-  color: var(--color-text-muted);
-}
-.comp-empty .placeholder-hint {
-  font-size: 12px;
-  color: rgba(90,111,142,0.6);
-  margin-top: 4px;
-}
-.comp-empty .format-tags {
-  display: flex;
-  gap: 6px;
-  margin-top: 14px;
-}
-.comp-empty .format-tag {
-  padding: 3px 10px;
-  border-radius: 4px;
-  font-size: 10px;
-  font-family: var(--font-heading);
-  font-weight: 600;
-  background: var(--color-accent-dim);
-  color: var(--color-accent);
-  border: 1px solid var(--color-border);
-  letter-spacing: 0.5px;
-}
-
-/* 表格 */
-.comp-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 12px;
-}
-.comp-table thead th {
-  background: rgba(0, 255, 170, 0.04);
-  border-bottom: 1px solid var(--color-border);
-  padding: 10px 10px;
-  font-family: var(--font-heading);
-  font-size: 10px;
-  font-weight: 600;
-  color: var(--color-text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  text-align: left;
-  white-space: nowrap;
-}
-.comp-table tbody tr {
-  border-bottom: 1px solid var(--color-border);
-  transition: background var(--transition-fast);
-}
-.comp-table tbody tr:last-child { border-bottom: none; }
-.comp-table tbody tr:hover { background: var(--color-muted); }
-.comp-table td {
-  padding: 8px 10px;
-  vertical-align: middle;
-  color: var(--color-foreground);
-}
-
-/* Column widths */
-.col-status { width: 32px; text-align: center; }
-.col-thumb  { width: 48px; }
-.col-name   { min-width: 0; max-width: 180px; }
-.col-dim    { width: 90px; white-space: nowrap; }
-.col-sz     { width: 80px; white-space: nowrap; }
-.col-ratio  { width: 90px; }
-.col-act    { width: 68px; white-space: nowrap; }
-
-.name-text {
-  display: block;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-size: 12px;
-  color: var(--color-foreground);
-}
-.dim-text {
-  font-size: 11px;
-  color: var(--color-text-muted);
-  font-variant-numeric: tabular-nums;
-}
-.muted { color: var(--color-text-muted); opacity: 0.5; font-size: 11px; }
-
-/* 缩略图 */
-.row-thumb {
-  width: 36px;
-  height: 36px;
-  object-fit: cover;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--color-border);
-  display: block;
-}
-
-/* 状态图标 */
-.status-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-.status-icon.waiting  { color: var(--color-text-muted); opacity: 0.6; }
-.status-icon.done     { color: var(--color-accent); }
-.status-icon.error    { color: var(--color-destructive); }
-.status-icon.spinning { color: var(--color-secondary); animation: spin 1s linear infinite; }
-@keyframes spin { to { transform: rotate(360deg); } }
-
-/* 大小颜色 */
-.sz-good { color: var(--color-accent); }
-.sz-bad  { color: var(--color-destructive); }
-
-/* 压缩率 */
-.ratio-val {
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  font-weight: 600;
-  font-size: 12px;
-  font-variant-numeric: tabular-nums;
-}
-.ratio-good { color: var(--color-accent); }
-.ratio-bad  { color: var(--color-destructive); }
-
-/* 图标按钮 */
-.icon-btn {
-  width: 28px;
-  height: 28px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--color-muted);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  color: var(--color-text-muted);
-  transition: all var(--transition-fast);
-  margin-right: 4px;
-}
-.icon-btn:hover:not(:disabled):not(.icon-btn-idle) {
-  background: var(--color-accent-dim);
-  border-color: var(--color-accent);
-  color: var(--color-accent);
-}
-.icon-btn.danger:hover:not(:disabled):not(.icon-btn-idle) {
-  background: rgba(255,68,102,0.1);
-  border-color: var(--color-destructive);
-  color: var(--color-destructive);
-}
-.icon-btn:disabled { opacity: 0.3; cursor: not-allowed; }
-.icon-btn-idle {
-  opacity: 0.55;
-  cursor: not-allowed;
-}
-
-/* ── 汇总栏 ──────────────────────────────────────────────── */
-.comp-summary {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-  padding: 8px var(--spacing-md);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  font-size: 12px;
-  color: var(--color-text-muted);
-  flex-wrap: wrap;
-  width: 80%;
-  max-width: 100%;
-  margin-left: auto;
-  margin-right: auto;
-  box-sizing: border-box;
-}
-.sum-sep  { opacity: 0.3; }
-.sum-item { display: inline-flex; align-items: center; gap: 4px; }
-
-/* ── 右侧设置栏 ───────────────────────────────────────────── */
-.comp-sidebar {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-sm);
-  position: sticky;
-  top: 24px;
-}
-
-.arrow {
-  transition: transform var(--transition-fast);
-  color: var(--color-text-muted);
-  flex-shrink: 0;
-}
-.arrow.rotated { transform: rotate(-90deg); }
-
-/* 设置卡片内的描述性标签（无 control 兄弟，不受全局 label 宽度限制）*/
+/* 折叠卡内补充说明（无 control 兄弟的 label；全局 .setting-row label 不覆盖此类） */
 .param-label {
   font-size: 12px;
   color: var(--color-text-muted);
   font-weight: 500;
   margin: 0 0 4px;
   white-space: nowrap;
-}
-
-/* ── 响应式 ──────────────────────────────────────────────── */
-@media (max-width: 900px) {
-  .comp-body {
-    grid-template-columns: 1fr;
-  }
-  .comp-sidebar {
-    position: static;
-  }
 }
 </style>

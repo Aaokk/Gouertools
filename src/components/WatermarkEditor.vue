@@ -1174,13 +1174,7 @@ watch(logoSettings, () => {
   padding-top: var(--spacing-md);
 }
 
-/* 预览框上方操作栏 */
-.wm-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-}
+/* 预览框上方操作栏 → 全局 .wm-actions（style.css） */
 
 .tool-page {
   flex: 1;
@@ -1197,15 +1191,8 @@ watch(logoSettings, () => {
   object-fit: contain;
 }
 
-.control-panel {
-  box-sizing: border-box;
-  width: 100%;
-  min-width: 0;
-  overflow-x: hidden;
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-sm);
-}
+/* 控制侧栏 → 全局 .control-panel（style.css） */
+
 .arrow {
   transition: transform var(--transition-fast);
   color: var(--color-text-muted);

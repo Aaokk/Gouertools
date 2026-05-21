@@ -32,8 +32,9 @@ app.config.errorHandler = (err, vm, info) => {
 // 添加路由
 app.use(router)
 
-// 挂载应用
+// 挂载应用（会替换 #app 内占位内容；若首屏 Splash 因时序被插到已挂载根之后，顺带摘掉）
 app.mount('#app')
+document.querySelector('#app .splash')?.remove()
 
 setTimeout(() => {
   runTauriUpdateCheckOnce()
