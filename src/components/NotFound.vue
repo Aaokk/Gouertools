@@ -2,11 +2,11 @@
   <div class="not-found-page">
     <div class="not-found-inner">
       <p class="not-found-code">404</p>
-      <h1>页面不存在</h1>
+      <h1>{{ t('notFound.title') }}</h1>
       <p class="not-found-path" v-if="displayPath">{{ displayPath }}</p>
-      <p class="not-found-tip">链接可能有误，或该页面已被移动。请返回首页或使用左侧菜单。</p>
+      <p class="not-found-tip">{{ t('notFound.tip') }}</p>
       <div class="not-found-actions">
-        <router-link to="/" class="btn btn-primary">返回首页</router-link>
+        <router-link to="/" class="btn btn-primary">{{ t('notFound.backBtn') }}</router-link>
       </div>
     </div>
   </div>
@@ -15,7 +15,9 @@
 <script setup>
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 
+const { t } = useI18n()
 const route = useRoute()
 
 /** hash 模式下 path 仍为「逻辑路径」；展示的地址栏路径更贴近用户所见 */

@@ -1,12 +1,14 @@
 <template>
   <div class="theme-corner" ref="wrapRef">
+    <!-- 语言切换 -->
+    <LanguageSwitcher />
     <!-- 仅在浏览器站点显示；桌面端（Tauri）已有更新与安装链路，不占角标位置 -->
     <router-link
       v-if="showBrowserDownload"
       to="/download"
       class="theme-btn dl-corner"
-      title="桌面客户端下载"
-      aria-label="桌面客户端下载"
+      :title="t('common.download')"
+      :aria-label="t('common.download')"
     >
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
         <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
@@ -16,8 +18,8 @@
     </router-link>
     <div class="theme-switcher">
       <!-- 触发按钮 -->
-      <button class="theme-btn" @click="open = !open" :title="current.label" aria-label="切换主题">
-      <span class="theme-dot-preview" :style="{ background: current.preview }"></span>
+      <button class="theme-btn" @click="open = !open" :title="currentTheme.label" :aria-label="t('theme.title')">
+      <span class="theme-dot-preview" :style="{ background: currentTheme.preview }"></span>
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <circle cx="12" cy="12" r="3"/>
         <path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
@@ -27,7 +29,7 @@
     <!-- 主题面板 -->
     <Transition name="panel">
       <div v-if="open" class="theme-panel">
-        <p class="panel-title">切换主题</p>
+        <p class="panel-title">{{ t('theme.title') }}</p>
         <div class="theme-list">
           <button
             v-for="t in themes"
@@ -50,30 +52,38 @@
 
 <script setup>
 import { computed, ref, onMounted, onUnmounted } from 'vue'
+import { useI18n } from 'vue-i18n'
+import LanguageSwitcher from './LanguageSwitcher.vue'
 import { isTauri } from '@tauri-apps/api/core'
+
+const { t, locale } = useI18n()
 
 const STORAGE_KEY = 'gouer-theme'
 
 const showBrowserDownload = computed(() => !isTauri())
 
-const themes = [
-  { id: 'warm', label: '护眼绿', preview: '#4A9B8E',
+const themeDefs = [
+  { id: 'warm', key: 'warm', preview: '#4A9B8E',
     swatch: 'linear-gradient(135deg, #F7F5F2 50%, #4A9B8E 50%)' },
-  { id: 'dark', label: '暗黑科技', preview: '#2db896',
+  { id: 'dark', key: 'dark', preview: '#2db896',
     swatch: 'linear-gradient(135deg, #080c15 50%, #2db896 50%)' },
-  { id: 'blue', label: '午夜蓝', preview: '#60a5fa',
+  { id: 'blue', key: 'blue', preview: '#60a5fa',
     swatch: 'linear-gradient(135deg, #0f172a 50%, #60a5fa 50%)' },
-  { id: 'rose', label: '桃杏奶油', preview: '#E098AE',
+  { id: 'rose', key: 'rose', preview: '#E098AE',
     swatch: 'linear-gradient(135deg, #FCE9DA 0%, #FFCEC7 33%, #FFD0A6 66%, #E098AE 100%)' },
-  { id: 'ink',  label: '极简墨', preview: '#111827',
+  { id: 'ink', key: 'ink', preview: '#111827',
     swatch: 'linear-gradient(135deg, #ffffff 50%, #111827 50%)' },
 ]
+
+const themes = computed(() =>
+  themeDefs.map(d => ({ ...d, label: t(`theme.${d.key}`) }))
+)
 
 const currentId = ref('warm')
 const open = ref(false)
 const wrapRef = ref(null)
 
-const current = computed(() => themes.find(t => t.id === currentId.value) || themes[0])
+const currentTheme = computed(() => themes.value.find(t => t.id === currentId.value) || themes.value[0])
 
 function applyTheme(id) {
   currentId.value = id

@@ -1,7 +1,7 @@
 <template>
   <div class="tool-page">
     <div class="tool-header">
-      <h2>Gouer.vip 二维码生成</h2>
+      <h2>{{ t('qrcode.header') }}</h2>
       <div class="divider"></div>
     </div>
 
@@ -11,17 +11,17 @@
         <div class="qr-actions" @click.stop>
           <button class="btn btn-primary btn-sm" @click="generate">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h.01M14 17h.01M17 14h.01M17 17h.01M20 14h.01M20 17h.01M17 20h.01M20 20h.01"/></svg>
-            生成二维码
+            {{ t('qrcode.generate') }}
           </button>
           <button type="button" class="btn btn-secondary btn-sm" @click="posterFileInput.click()">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-            上传海报背景
+            {{ t('qrcode.uploadPoster') }}
           </button>
           <button v-if="posterSrc" type="button" class="btn btn-ghost btn-sm" @click="clearPoster">
-            清除背景
+            {{ t('qrcode.clearPoster') }}
           </button>
           <button v-if="qrDataUrl" class="btn btn-ghost btn-sm" @click="downloadSvg">
-            下载 SVG
+            {{ t('qrcode.downloadSvg') }}
           </button>
           <input
             ref="posterFileInput"
@@ -75,7 +75,7 @@
                   @pointerdown.prevent.stop="startPlacementResize(h, $event)"
                 />
                 <img v-if="qrDataUrl" :src="qrDataUrl" class="qr-p-box-qr" alt="" draggable="false" />
-                <span v-else class="qr-p-box-hint">生成二维码后将嵌入此处</span>
+                <span v-else class="qr-p-box-hint">{{ t('qrcode.posterEmbedHint') }}</span>
               </div>
               <div
                 v-if="settings.showLabel && qrDataUrl"
@@ -87,9 +87,9 @@
             </div>
           </div>
           <div v-if="placementBox && posterNaturalW" class="qr-poster-meta">
-            <span>二维码边长（按原图像素）：≈ {{ placementSideNaturalPx }} px</span>
+            <span>{{ t('qrcode.posterQrSize', { px: placementSideNaturalPx }) }}</span>
             <span class="qr-p-meta-sep">|</span>
-            <span>海报 {{ posterNaturalW }} × {{ posterNaturalH }}</span>
+            <span>{{ t('qrcode.posterSize', { w: posterNaturalW, h: posterNaturalH }) }}</span>
           </div>
         </div>
 
@@ -103,8 +103,8 @@
             <div class="placeholder-icon">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3M17 17h3v3M14 20h3"/></svg>
             </div>
-            <span class="placeholder-text">输入内容后点击生成</span>
-            <span class="placeholder-hint">支持网址、文字、WiFi 等类型</span>
+            <span class="placeholder-text">{{ t('qrcode.placeholderText') }}</span>
+            <span class="placeholder-hint">{{ t('qrcode.placeholderHint') }}</span>
           </div>
           <div v-else class="qr-result">
             <div
@@ -112,7 +112,7 @@
               :class="{ 'qr-wrap-transparent-bg': settings.bgTransparent }"
               :style="qrWrapStyle"
             >
-              <img :src="qrDataUrl" alt="二维码" class="qr-img" />
+              <img :src="qrDataUrl" :alt="t('qrcode.qrAlt')" class="qr-img" />
               <p v-if="settings.showLabel" class="qr-label-text">{{ settings.label || settings.content }}</p>
             </div>
           </div>
@@ -125,19 +125,19 @@
         <!-- 内容输入 -->
         <div class="setting-card">
           <div class="setting-card-header" @click="s1 = !s1">
-            <h4>二维码内容</h4>
+            <h4>{{ t('qrcode.qrContent') }}</h4>
             <svg class="arrow" :class="{ rotated: !s1 }" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
           </div>
           <div class="setting-card-body" v-show="s1">
             <div class="setting-row">
-              <label>类型</label>
+              <label>{{ t('qrcode.contentType') }}</label>
               <div class="control">
                 <select class="select" v-model="contentType">
-                  <option value="url">网址 URL</option>
-                  <option value="text">纯文本</option>
-                  <option value="phone">电话号码</option>
-                  <option value="email">电子邮件</option>
-                  <option value="wifi">WiFi 信息</option>
+                  <option value="url">{{ t('qrcode.typeUrl') }}</option>
+                  <option value="text">{{ t('qrcode.typeText') }}</option>
+                  <option value="phone">{{ t('qrcode.typePhone') }}</option>
+                  <option value="email">{{ t('qrcode.typeEmail') }}</option>
+                  <option value="wifi">{{ t('qrcode.typeWifi') }}</option>
                 </select>
               </div>
             </div>
@@ -145,7 +145,7 @@
             <!-- 普通内容 -->
             <template v-if="contentType !== 'wifi'">
               <div class="setting-row" style="align-items:flex-start;padding-top:4px;">
-                <label style="padding-top:8px;">内容</label>
+                <label style="padding-top:8px;">{{ t('qrcode.contentLabel') }}</label>
                 <div class="control">
                   <textarea
                     class="input qr-textarea"
@@ -160,20 +160,20 @@
             <!-- WiFi -->
             <template v-else>
               <div class="setting-row">
-                <label>WiFi名</label>
-                <div class="control"><input class="input" v-model="wifi.ssid" placeholder="WiFi 名称"></div>
+                <label>{{ t('qrcode.wifiSsid') }}</label>
+                <div class="control"><input class="input" v-model="wifi.ssid" :placeholder="t('qrcode.wifiSsidPlaceholder')"></div>
               </div>
               <div class="setting-row">
-                <label>密码</label>
-                <div class="control"><input class="input" v-model="wifi.password" placeholder="WiFi 密码"></div>
+                <label>{{ t('qrcode.wifiPassword') }}</label>
+                <div class="control"><input class="input" v-model="wifi.password" :placeholder="t('qrcode.wifiPasswordPlaceholder')"></div>
               </div>
               <div class="setting-row">
-                <label>加密</label>
+                <label>{{ t('qrcode.wifiEncryption') }}</label>
                 <div class="control">
                   <select class="select" v-model="wifi.encryption">
-                    <option value="WPA">WPA/WPA2</option>
-                    <option value="WEP">WEP</option>
-                    <option value="nopass">无密码</option>
+                    <option value="WPA">{{ t('qrcode.wifiWpa') }}</option>
+                    <option value="WEP">{{ t('qrcode.wifiWep') }}</option>
+                    <option value="nopass">{{ t('qrcode.wifiNone') }}</option>
                   </select>
                 </div>
               </div>
@@ -181,7 +181,7 @@
 
             <!-- 标签 -->
             <div class="setting-row">
-              <label>显示标签</label>
+              <label>{{ t('qrcode.showLabel') }}</label>
               <div class="control">
                 <label class="toggle">
                   <input type="checkbox" v-model="settings.showLabel">
@@ -190,19 +190,19 @@
               </div>
             </div>
             <div v-if="settings.showLabel" class="setting-row">
-              <label>标签文字</label>
-              <div class="control"><input class="input" v-model="settings.label" placeholder="默认显示内容"></div>
+              <label>{{ t('qrcode.labelText') }}</label>
+              <div class="control"><input class="input" v-model="settings.label" :placeholder="t('qrcode.labelPlaceholder')"></div>
             </div>
 
             <div class="setting-row qr-logo-setting-row">
-              <label style="padding-top:6px;">中心 Logo</label>
+              <label style="padding-top:6px;">{{ t('qrcode.centerLogo') }}</label>
               <div class="control qr-logo-stack">
                 <div class="qr-logo-actions">
                   <button type="button" class="btn btn-secondary btn-sm" @click="qrLogoInput.click()">
-                    上传 Logo
+                    {{ t('qrcode.uploadLogo') }}
                   </button>
                   <button v-if="qrLogoDataUrl" type="button" class="btn btn-ghost btn-sm" @click="clearQrLogo">
-                    清除
+                    {{ t('qrcode.clearLogo') }}
                   </button>
                 </div>
                 <input
@@ -214,7 +214,7 @@
                 />
                 <div v-if="qrLogoDataUrl" class="qr-logo-preview-row">
                   <img :src="qrLogoDataUrl" alt="" class="qr-logo-thumb" draggable="false" />
-                  <span class="qr-logo-tip">正方形居中嵌入；非正方形将居中裁剪；建议容错选「高 H」</span>
+                  <span class="qr-logo-tip">{{ t('qrcode.logoTip') }}</span>
                 </div>
               </div>
             </div>
@@ -224,12 +224,12 @@
         <!-- 样式设置（码点下拉超出卡片时需 overflow: visible） -->
         <div class="setting-card qr-dot-dropdown-host">
           <div class="setting-card-header" @click="s2 = !s2">
-            <h4>样式设置</h4>
+            <h4>{{ t('qrcode.styleSettings') }}</h4>
             <svg class="arrow" :class="{ rotated: !s2 }" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
           </div>
           <div class="setting-card-body" v-show="s2">
             <div class="setting-row">
-              <label>尺寸</label>
+              <label>{{ t('qrcode.qrSize') }}</label>
               <div class="control">
                 <div class="range-group">
                   <input type="range" min="128" max="1024" step="64" v-model.number="settings.size">
@@ -238,36 +238,36 @@
               </div>
             </div>
             <div class="setting-row">
-              <label>容错级别</label>
+              <label>{{ t('qrcode.errorLevel') }}</label>
               <div class="control">
                 <select class="select" v-model="settings.errorLevel">
-                  <option value="L">低 L（7%）</option>
-                  <option value="M">中 M（15%）</option>
-                  <option value="Q">较高 Q（25%）</option>
-                  <option value="H">高 H（30%）</option>
+                  <option value="L">{{ t('qrcode.errorLow') }}</option>
+                  <option value="M">{{ t('qrcode.errorMedium') }}</option>
+                  <option value="Q">{{ t('qrcode.errorQuartile') }}</option>
+                  <option value="H">{{ t('qrcode.errorHigh') }}</option>
                 </select>
               </div>
             </div>
             <div class="setting-row">
               <label class="setting-label-with-hint">
-                <span>码边距</span>
+                <span>{{ t('qrcode.marginLabel') }}</span>
                 <button
                   type="button"
                   class="qr-hint-trigger"
-                  aria-label="码边距说明"
-                  title="二维码图案距离四周的留白（按模块/色块计）。默认 1；ISO/IEC 18004 建议静默区不小于 4 个模块，扫码要求高时可改为 2～4。"
+                  :aria-label="t('qrcode.marginHintAriaLabel')"
+                  :title="t('qrcode.marginHint')"
                 >
                   ?
                 </button>
               </label>
               <div class="control">
                 <select class="select" v-model.number="settings.marginModules">
-                  <option v-for="n in qrMarginOptions" :key="n" :value="n">{{ n }} 个色块</option>
+                  <option v-for="n in qrMarginOptions" :key="n" :value="n">{{ t('qrcode.marginModules', { n }) }}</option>
                 </select>
               </div>
             </div>
             <div class="setting-row">
-              <label>码点形状</label>
+              <label>{{ t('qrcode.dotStyle') }}</label>
               <div class="control">
                 <div ref="dotDropdownEl" class="dot-style-dropdown">
                   <button
@@ -325,14 +325,14 @@
                           </svg>
                         </span>
                       </span>
-                      <span class="dot-style-cell-label">{{ s.label }}</span>
+                      <span class="dot-style-cell-label">{{ t('qrcode.dotStyle_' + s.id) }}</span>
                     </button>
                   </div>
                 </div>
               </div>
             </div>
             <div class="setting-row">
-              <label>码眼形状</label>
+              <label>{{ t('qrcode.eyeStyle') }}</label>
               <div class="control">
                 <div ref="eyeDropdownEl" class="dot-style-dropdown">
                   <button
@@ -394,14 +394,14 @@
                           />
                         </span>
                       </span>
-                      <span class="dot-style-cell-label">{{ s.label }}</span>
+                      <span class="dot-style-cell-label">{{ t('qrcode.eyeStyle_' + s.id) }}</span>
                     </button>
                   </div>
                 </div>
               </div>
             </div>
             <div class="setting-row">
-              <label>前景色</label>
+              <label>{{ t('qrcode.fgColor') }}</label>
               <div class="control" style="display:flex;align-items:center;gap:8px;">
                 <div class="color-dot" :style="{ background: settings.fgColor }">
                   <input type="color" v-model="settings.fgColor">
@@ -410,7 +410,7 @@
               </div>
             </div>
             <div class="setting-row qr-bg-setting-row">
-              <label>背景色</label>
+              <label>{{ t('qrcode.bgColor') }}</label>
               <div class="control qr-bg-control">
                 <div class="qr-bg-picker" :class="{ 'is-disabled': settings.bgTransparent }">
                   <div
@@ -429,7 +429,7 @@
                 </div>
                 <label class="qr-bg-transparent-option">
                   <input type="checkbox" v-model="settings.bgTransparent">
-                  <span>透明</span>
+                  <span>{{ t('qrcode.transparent') }}</span>
                 </label>
               </div>
             </div>
@@ -438,7 +438,7 @@
 
         <div class="qr-panel-footer-btns">
           <button type="button" class="btn btn-primary qr-panel-footer-btn" @click="generate">
-            生成二维码
+            {{ t('qrcode.generate') }}
           </button>
           <AnchoredBubbleTip
             stretch
@@ -464,6 +464,7 @@
 
 <script setup>
 import { ref, computed, reactive, watch, onUnmounted, nextTick } from 'vue'
+import { useI18n } from 'vue-i18n'
 import {
   styledQrToDataUrl,
   styledQrToSvgString,
@@ -477,6 +478,8 @@ import { showToast } from '../utils/toast.js'
 import { downloadDataUrl, downloadBlob } from '../utils/download.js'
 import AnchoredBubbleTip from './AnchoredBubbleTip.vue'
 import { useAnchoredBubbleTip } from '../composables/useAnchoredBubbleTip.js'
+
+const { t } = useI18n()
 
 const s1 = ref(true)
 const s2 = ref(true)
@@ -495,7 +498,7 @@ const qrLogoDataUrl = ref('')
 const qrLogoImage = ref(null)
 
 const downloadTip = useAnchoredBubbleTip({
-  initialText: '请先点击「生成二维码」，生成成功后再下载',
+  initialText: t('qrcode.downloadTipText'),
 })
 
 /** 海报背景 + 正方形二维码选区（坐标相对 posterFit 内接矩形） */
@@ -540,7 +543,7 @@ const wifi = reactive({ ssid: '', password: '', encryption: 'WPA' })
 const contentPlaceholder = computed(() => {
   const map = {
     url: 'https://example.com',
-    text: '输入任意文字内容',
+    text: t('qrcode.contentPlaceholderText'),
     phone: 'tel:+8613800138000',
     email: 'mailto:hello@example.com',
   }
@@ -641,20 +644,20 @@ const placementSideNaturalPx = computed(() => {
 })
 
 /** 光栅下载按钮：固定文案「下载」（格式由后台文件名与 MIME 决定） */
-const downloadRasterLabel = computed(() => '下载')
+const downloadRasterLabel = computed(() => t('qrcode.download'))
 
 const downloadRasterTitle = computed(() =>
-  posterSrc.value ? '下载海报合成图' : '下载二维码图片',
+  posterSrc.value ? t('qrcode.downloadPosterComposite') : t('qrcode.downloadQrImage'),
 )
 
 const dotStyleLabel = computed(() => {
   const f = QR_DOT_STYLES.find((s) => s.id === settings.dotStyle)
-  return f ? f.label : settings.dotStyle
+  return f ? t(`qrcode.dotStyle_${f.id}`) : settings.dotStyle
 })
 
 const eyeStyleLabel = computed(() => {
   const f = QR_EYE_STYLES.find((s) => s.id === settings.eyeStyle)
-  return f ? f.label : settings.eyeStyle
+  return f ? t(`qrcode.eyeStyle_${f.id}`) : settings.eyeStyle
 })
 
 function pickEyeStyle(id) {
@@ -811,7 +814,7 @@ function applyPosterExportSpecFromFile(file) {
   }
 
   if (type === 'image/gif' || name.endsWith('.gif')) {
-    setPngFallback('GIF 无法在画布中原样导出，已改为 PNG')
+    setPngFallback(t('qrcode.gifToPngFallback'))
     return
   }
 
@@ -835,8 +838,9 @@ function applyPosterExportSpecFromFile(file) {
   }
 
   if (type.startsWith('image/')) {
+    const formatName = type.replace(/^image\//, '').toUpperCase()
     setPngFallback(
-      `无法在浏览器中导出为 ${type.replace(/^image\//, '').toUpperCase()}，已改为 PNG`,
+      t('qrcode.formatFallbackToPng', { format: formatName }),
     )
     return
   }
@@ -852,7 +856,7 @@ function loadPosterFile(file) {
     type.startsWith('image/') ||
     /\.(jpe?g|png|gif|webp|bmp|avif|heic|heif)$/i.test(name)
   if (!looksImage) {
-    showToast({ message: '请选择图片文件', type: 'info' })
+    showToast({ message: t('qrcode.selectImageFile'), type: 'info' })
     return
   }
   applyPosterExportSpecFromFile(file)
@@ -1071,7 +1075,7 @@ function onQrLogoFileChange(e) {
   const f = e.target.files?.[0]
   e.target.value = ''
   if (!f?.type?.startsWith('image/')) {
-    showToast({ message: '请选择图片文件', type: 'info' })
+    showToast({ message: t('qrcode.selectImageFile'), type: 'info' })
     return
   }
   const reader = new FileReader()
@@ -1087,7 +1091,7 @@ function onQrLogoFileChange(e) {
     img.onerror = () => {
       qrLogoImage.value = null
       qrLogoDataUrl.value = ''
-      showToast({ message: 'Logo 加载失败', type: 'error' })
+      showToast({ message: t('qrcode.logoLoadFailed'), type: 'error' })
     }
     img.src = dataUrl
   }
@@ -1103,7 +1107,7 @@ function clearQrLogo() {
 const generate = () => {
   const content = getContent()
   if (!content) {
-    showToast({ message: '请先输入内容', type: 'info' })
+    showToast({ message: t('qrcode.enterContentFirst'), type: 'info' })
     return
   }
   try {
@@ -1123,7 +1127,7 @@ const generate = () => {
     qrDataUrl.value = styledQrToDataUrl(content, opts)
     qrSvgString.value = styledQrToSvgString(content, opts)
   } catch (err) {
-    showToast({ message: `生成失败：${err.message}`, type: 'error' })
+    showToast({ message: t('qrcode.generateFailed', { msg: err.message }), type: 'error' })
   }
 }
 
@@ -1180,10 +1184,10 @@ const downloadPng = async () => {
     if (blob) {
       const ext = posterExportExt.value || 'png'
       downloadBlob(blob, `${posterFilenameBase.value}_qrcode.${ext}`)
-      showToast({ message: '导出成功', type: 'success' })
+      showToast({ message: t('qrcode.exportSuccess'), type: 'success' })
       return
     }
-    showToast({ message: '合成导出失败', type: 'error' })
+    showToast({ message: t('qrcode.compositeExportFailed'), type: 'error' })
     return
   }
   downloadDataUrl(qrDataUrl.value, settings.bgTransparent ? 'qrcode.png' : 'qrcode.jpg')

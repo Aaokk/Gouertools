@@ -1,7 +1,7 @@
 <template>
   <div class="tool-page">
     <div class="tool-header">
-      <h2>Gouer.vip 局部打码</h2>
+      <h2>{{ t('mosaic.header') }}</h2>
       <div class="divider"></div>
     </div>
 
@@ -11,7 +11,7 @@
         <div class="mosaic-actions" @click.stop>
           <button class="btn btn-secondary btn-sm" @click="fileInput.click()">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
-            选择图片
+            {{ t('mosaic.selectImage') }}
           </button>
           <AnchoredBubbleTip
             v-if="imgLoaded"
@@ -20,15 +20,15 @@
           >
             <button type="button" class="btn btn-danger btn-sm" @click="handleUndoClick">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 14L4 9l5-5M4 9h11a5 5 0 010 10h-1"/></svg>
-              撤销
+              {{ t('mosaic.undo') }}
             </button>
           </AnchoredBubbleTip>
           <button v-if="imgLoaded" class="btn btn-ghost btn-sm" @click="clearAll">
-            全部清除
+            {{ t('mosaic.clearAll') }}
           </button>
           <button v-if="imgLoaded" class="btn btn-primary btn-sm" @click="downloadResult">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
-            下载
+            {{ t('mosaic.download') }}
           </button>
         </div>
 
@@ -44,8 +44,8 @@
             <div class="placeholder-icon">
               <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
             </div>
-            <span class="placeholder-text">点击或拖拽图片到此处</span>
-            <span class="placeholder-hint">拖拽选区进行打码，支持马赛克和模糊两种效果</span>
+            <span class="placeholder-text">{{ t('mosaic.dropPlaceholder') }}</span>
+            <span class="placeholder-hint">{{ t('mosaic.dropHint') }}</span>
           </template>
 
           <!-- 画布 -->
@@ -68,22 +68,22 @@
       <div class="control-panel">
         <div class="setting-card">
           <div class="setting-card-header" @click="s1 = !s1">
-            <h4>打码设置</h4>
+            <h4>{{ t('mosaic.mosaicSettings') }}</h4>
             <svg class="arrow" :class="{ rotated: !s1 }" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
           </div>
           <div class="setting-card-body" v-show="s1">
             <!-- 操作模式 -->
             <div class="setting-row">
-              <label>操作模式</label>
+              <label>{{ t('mosaic.drawMode') }}</label>
               <div class="control">
                 <div class="mode-btns">
-                  <button :class="['mode-btn', { active: drawMode === 'rect' }]" @click="drawMode = 'rect'" title="矩形选框">
+                  <button :class="['mode-btn', { active: drawMode === 'rect' }]" @click="drawMode = 'rect'" :title="t('mosaic.rectSelect')">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="1"/></svg>
-                    矩形选框
+                    {{ t('mosaic.rectSelect') }}
                   </button>
-                  <button :class="['mode-btn', { active: drawMode === 'brush' }]" @click="drawMode = 'brush'" title="画笔涂抹">
+                  <button :class="['mode-btn', { active: drawMode === 'brush' }]" @click="drawMode = 'brush'" :title="t('mosaic.brushPaint')">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="M2 2l7.586 7.586"/><circle cx="11" cy="11" r="2"/></svg>
-                    画笔涂抹
+                    {{ t('mosaic.brushPaint') }}
                   </button>
                 </div>
               </div>
@@ -91,7 +91,7 @@
 
             <!-- 画笔大小（画笔模式时显示） -->
             <div v-if="drawMode === 'brush'" class="setting-row">
-              <label>画笔大小</label>
+              <label>{{ t('mosaic.brushSize') }}</label>
               <div class="control">
                 <div class="range-group">
                   <input type="range" min="10" max="120" step="5" v-model.number="brushSize">
@@ -101,17 +101,17 @@
             </div>
 
             <div class="setting-row">
-              <label>效果类型</label>
+              <label>{{ t('mosaic.effectType') }}</label>
               <div class="control">
                 <select class="select" v-model="mosaicType">
-                  <option value="mosaic">马赛克</option>
-                  <option value="blur">高斯模糊</option>
-                  <option value="black">黑色遮罩</option>
+                  <option value="mosaic">{{ t('mosaic.mosaicOption') }}</option>
+                  <option value="blur">{{ t('mosaic.blurOption') }}</option>
+                  <option value="black">{{ t('mosaic.blackOption') }}</option>
                 </select>
               </div>
             </div>
             <div v-if="mosaicType === 'mosaic'" class="setting-row">
-              <label>像素块大小</label>
+              <label>{{ t('mosaic.blockSize') }}</label>
               <div class="control">
                 <div class="range-group">
                   <input type="range" min="4" max="40" step="2" v-model.number="blockSize">
@@ -120,7 +120,7 @@
               </div>
             </div>
             <div v-if="mosaicType === 'blur'" class="setting-row">
-              <label>模糊强度</label>
+              <label>{{ t('mosaic.blurStrength') }}</label>
               <div class="control">
                 <div class="range-group">
                   <input type="range" min="2" max="30" step="1" v-model.number="blurRadius">
@@ -133,12 +133,12 @@
 
         <div class="mosaic-tip">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
-          <span v-if="drawMode === 'rect'">矩形选框：拖拽选区一键打码，可撤销</span>
-          <span v-else>画笔模式：按住鼠标随意涂抹，松开后自动打码，可撤销</span>
+          <span v-if="drawMode === 'rect'">{{ t('mosaic.rectTip') }}</span>
+          <span v-else>{{ t('mosaic.brushTip') }}</span>
         </div>
 
         <button v-if="imgLoaded" class="btn btn-primary" style="width:100%;" @click="downloadResult">
-          下载打码图片
+          {{ t('mosaic.downloadBtn') }}
         </button>
       </div>
     </div>
@@ -153,6 +153,9 @@ import { showToast } from '../utils/toast.js'
 import { downloadDataUrl } from '../utils/download.js'
 import AnchoredBubbleTip from './AnchoredBubbleTip.vue'
 import { useAnchoredBubbleTip } from '../composables/useAnchoredBubbleTip.js'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const fileInput  = ref(null)
 const canvasRef  = ref(null)
@@ -171,7 +174,7 @@ let origImage = null
 let baseImageData = null
 const history = ref([])
 
-const undoTip = useAnchoredBubbleTip({ initialText: '暂无打码步骤可撤销' })
+const undoTip = useAnchoredBubbleTip({ initialText: t('mosaic.noUndo') })
 
 /* ── 加载文件 ─────────────────────────────────────────────── */
 const onFileChange = (e) => {
@@ -203,7 +206,7 @@ const loadFile = (f) => {
   }
   img.onerror = () => {
     URL.revokeObjectURL(url)
-    showToast({ message: '图片加载失败，请检查文件格式', type: 'error' })
+    showToast({ message: t('mosaic.loadFailed'), type: 'error' })
   }
   img.src = url
 }
@@ -415,7 +418,7 @@ const clearAll = () => {
 const downloadResult = () => {
   const url = canvasRef.value.toDataURL('image/png')
   downloadDataUrl(url, `${fileName.value}_mosaic.png`)
-  showToast({ message: '下载成功', type: 'success' })
+  showToast({ message: t('mosaic.downloadSuccess'), type: 'success' })
 }
 </script>
 

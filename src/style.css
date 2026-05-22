@@ -199,6 +199,7 @@ body {
   font-weight: 400;
   font-family: var(--font-heading);
   letter-spacing: 0.5px;
+  white-space: nowrap;
   line-height: 1;
 }
 .sidebar-nav { flex: 1; padding: var(--spacing-sm) 0; }
@@ -211,6 +212,7 @@ body {
   text-decoration: none;
   font-size: 13px;
   font-weight: 500;
+  white-space: nowrap;
   position: relative;
   transition: color 80ms ease-out, background 80ms ease-out, border-color 80ms ease-out;
   border-left: 3px solid transparent;

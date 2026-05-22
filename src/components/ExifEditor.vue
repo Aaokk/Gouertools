@@ -1,7 +1,7 @@
 <template>
   <div class="tool-page">
     <div class="tool-header">
-      <h2>Gouer.vip EXIF 查看/清除</h2>
+      <h2>{{ t('exif.header') }}</h2>
       <div class="divider"></div>
     </div>
 
@@ -11,11 +11,11 @@
         <div class="exif-actions" @click.stop>
           <button class="btn btn-secondary btn-sm" @click="fileInput.click()">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
-            选择图片
+            {{ t('exif.selectImage') }}
           </button>
           <button v-if="previewUrl" class="btn btn-danger btn-sm" @click="clearAndDownload">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>
-            清除 EXIF 并下载
+            {{ t('exif.clearAndDownload') }}
           </button>
         </div>
 
@@ -30,10 +30,10 @@
             <div class="placeholder-icon">
               <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
             </div>
-            <span class="placeholder-text">点击或拖拽图片到此处</span>
-            <span class="placeholder-hint">支持 JPG、PNG、WebP，读取 EXIF 信息</span>
+            <span class="placeholder-text">{{ t('exif.dropPlaceholder') }}</span>
+            <span class="placeholder-hint">{{ t('exif.dropHint') }}</span>
           </template>
-          <img v-else :src="previewUrl" class="exif-preview-img" alt="预览图" />
+          <img v-else :src="previewUrl" class="exif-preview-img" :alt="t('exif.previewAlt')" />
         </div>
       </div>
 
@@ -41,19 +41,19 @@
       <div class="control-panel">
         <div v-if="!exifData && !previewUrl" class="exif-empty">
           <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
-          <p>选择图片后显示 EXIF 信息</p>
+          <p>{{ t('exif.noFileHint') }}</p>
         </div>
 
         <div v-else-if="previewUrl && !exifData" class="exif-empty">
-          <p style="color:var(--color-text-muted);">该图片不含 EXIF 信息，或已清除。</p>
-          <p style="font-size:11px;margin-top:4px;color:var(--color-text-muted);">（PNG、截图通常没有 EXIF）</p>
+          <p style="color:var(--color-text-muted);">{{ t('exif.noExifData') }}</p>
+          <p style="font-size:11px;margin-top:4px;color:var(--color-text-muted);">{{ t('exif.noExifNote') }}</p>
         </div>
 
         <template v-else-if="exifData">
           <!-- 摘要警告 -->
           <div v-if="hasGps" class="exif-warning">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0zM12 9v4M12 17h.01"/></svg>
-            检测到 GPS 位置信息！建议发送前清除。
+            {{ t('exif.gpsWarning') }}
           </div>
 
           <!-- EXIF 字段列表 -->
@@ -66,7 +66,7 @@
 
           <button class="btn btn-danger" style="width:100%;" @click="clearAndDownload">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>
-            清除全部 EXIF 并下载
+            {{ t('exif.clearAllExif') }}
           </button>
         </template>
       </div>
@@ -80,6 +80,9 @@
 import { ref, computed } from 'vue'
 import { showToast } from '../utils/toast.js'
 import { downloadBlob } from '../utils/download.js'
+import { useI18n } from 'vue-i18n'
+
+const { t, locale } = useI18n()
 
 const fileInput  = ref(null)
 const isDragging = ref(false)
@@ -112,7 +115,7 @@ const loadFile = async (f) => {
   } catch (err) {
     console.warn('EXIF 读取:', err)
     exifData.value = null
-    showToast({ message: '无法读取 EXIF 信息，文件可能不含元数据', type: 'warning' })
+    showToast({ message: t('exif.readError'), type: 'warning' })
   }
 }
 
@@ -238,7 +241,7 @@ const EXIF_ZH = {
 const formatKey = (k) => EXIF_ZH[k] || EXIF_ZH[k.charAt(0).toLowerCase() + k.slice(1)] || k
 
 const formatVal = (v) => {
-  if (v instanceof Date) return v.toLocaleString('zh-CN')
+  if (v instanceof Date) return v.toLocaleString(locale.value)
   if (typeof v === 'number') {
     // 经纬度保留 6 位，其他整数直接显示
     if (v > -180 && v < 180 && !Number.isInteger(v)) return v.toFixed(6) + '°'
@@ -261,7 +264,7 @@ const clearAndDownload = () => {
     const ext  = mime === 'image/png' ? 'png' : 'jpg'
     canvas.toBlob((blob) => {
       downloadBlob(blob, `${fileName.value}_noexif.${ext}`)
-      showToast({ message: 'EXIF 已清除，图片已下载', type: 'success' })
+      showToast({ message: t('exif.clearedToast'), type: 'success' })
     }, mime, 0.95)
   }
   img.src = previewUrl.value

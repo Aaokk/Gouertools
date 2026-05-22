@@ -1,7 +1,7 @@
 <template>
   <div class="tool-page">
     <div class="tool-header">
-      <h2>Gouer.vip 应用图标</h2>
+      <h2>{{ t('appIcon.header') }}</h2>
       <div class="divider"></div>
     </div>
 
@@ -10,7 +10,7 @@
         <div class="wm-actions" @click.stop>
           <button type="button" class="btn btn-secondary btn-sm" @click="fileInput.click()">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
-            添加图片
+            {{ t('appIcon.addImages') }}
           </button>
           <button
             v-if="items.length"
@@ -18,7 +18,7 @@
             class="btn btn-danger btn-sm"
             @click="clearAll"
           >
-            清空列表
+            {{ t('appIcon.clearList') }}
           </button>
           <button
             type="button"
@@ -27,7 +27,7 @@
             @click="generateZip"
           >
             <svg v-if="generating" class="spin" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83"/></svg>
-            {{ generating ? '生成中…' : '生成并下载 ZIP' }}
+            {{ generating ? t('appIcon.generating') : t('appIcon.generateZip') }}
           </button>
         </div>
 
@@ -44,8 +44,8 @@
             <div class="placeholder-icon">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="5" height="5" rx="1"/></svg>
             </div>
-            <span class="placeholder-text">点击或拖拽图片文件到此处</span>
-            <span class="placeholder-hint">支持批量；ZIP 内按文件名分子目录；可继续拖入追加</span>
+            <span class="placeholder-text">{{ t('appIcon.dropPlaceholder') }}</span>
+            <span class="placeholder-hint">{{ t('appIcon.dropHint') }}</span>
           </template>
 
           <div v-else class="appicon-preview-fill">
@@ -54,10 +54,10 @@
                 v-if="previewUrl"
                 :src="previewUrl"
                 class="appicon-preview-img"
-                alt="图标预览"
+                :alt="t('appIcon.previewAlt')"
                 draggable="false"
               >
-              <span v-else class="muted appicon-preview-loading">生成预览…</span>
+              <span v-else class="muted appicon-preview-loading">{{ t('appIcon.previewLoading') }}</span>
             </div>
             <div class="appicon-preview-caption" :title="currentItem?.name">
               {{ currentItem?.name }}
@@ -67,7 +67,7 @@
 
         <div v-if="items.length" class="file-section">
           <div class="file-label">
-            已选择 {{ items.length }} 个文件，点击下方缩略图切换预览：
+            {{ t('appIcon.selectedCount', { count: items.length }) }}
           </div>
           <div class="file-strip">
             <div
@@ -87,7 +87,7 @@
               <button
                 type="button"
                 class="file-thumb-remove"
-                title="移除此图"
+                :title="t('appIcon.removeTitle')"
                 @click.stop="removeAt(index)"
               >
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
@@ -109,7 +109,7 @@
       <div class="control-panel">
         <div class="setting-card">
           <div class="setting-card-header" @click="s1 = !s1">
-            <h4>输出套件</h4>
+            <h4>{{ t('appIcon.outputKit') }}</h4>
             <svg class="arrow" :class="{ rotated: !s1 }" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
           </div>
           <div class="setting-card-body" v-show="s1">
@@ -134,7 +134,7 @@
               </div>
             </div>
             <div class="setting-row">
-              <label>网站图标</label>
+              <label>{{ t('appIcon.webIcon') }}</label>
               <div class="control">
                 <label class="toggle">
                   <input type="checkbox" v-model="packWeb">
@@ -148,38 +148,38 @@
 
         <div class="setting-card">
           <div class="setting-card-header" @click="s2 = !s2">
-            <h4>外形</h4>
+            <h4>{{ t('appIcon.appearance') }}</h4>
             <svg class="arrow" :class="{ rotated: !s2 }" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
           </div>
           <div class="setting-card-body" v-show="s2">
             <div class="setting-row">
-              <label>置入方式</label>
+              <label>{{ t('appIcon.fitMode') }}</label>
               <div class="control">
                 <select class="select" v-model="fitMode">
-                  <option value="cover">铺满裁切（不规则图推荐）</option>
-                  <option value="contain">完整显示（透明边）</option>
+                  <option value="cover">{{ t('appIcon.fitCover') }}</option>
+                  <option value="contain">{{ t('appIcon.fitContain') }}</option>
                 </select>
               </div>
             </div>
             <div class="setting-row">
-              <label>样式</label>
+              <label>{{ t('appIcon.style') }}</label>
               <div class="control">
                 <select class="select" v-model="shape">
-                  <option value="rounded">圆角矩形</option>
-                  <option value="circle">正圆</option>
+                  <option value="rounded">{{ t('appIcon.styleRounded') }}</option>
+                  <option value="circle">{{ t('appIcon.styleCircle') }}</option>
                 </select>
               </div>
             </div>
             <div v-if="shape === 'rounded'" class="setting-row">
-              <label>圆角强度</label>
+              <label>{{ t('appIcon.cornerRadius') }}</label>
               <div class="control range-row">
                 <input type="range" v-model.number="cornerPct" min="0" max="100" step="1" />
                 <span class="range-value">{{ cornerPct }}%</span>
               </div>
             </div>
             <p class="fine-print">
-              「铺满裁切」会按正方形居中缩放并裁剪多余部分（图标常见做法）；「完整显示」不裁剪，可能有透明边。
-              圆角/圆形作用在整个导出方形上。
+              {{ t('appIcon.fitNote') }}
+              {{ t('appIcon.fitNote2') }}
             </p>
           </div>
         </div>
@@ -190,6 +190,7 @@
 
 <script setup>
 import { ref, computed, watch, onUnmounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import JSZip from 'jszip'
 import { showToast } from '../utils/toast.js'
 import { downloadBlob } from '../utils/download.js'
@@ -208,6 +209,8 @@ import {
   blobToUint8Array,
 } from '../utils/renderAppIcon.js'
 import { buildIcoFromPngs } from '../utils/pngToIco.js'
+
+const { t } = useI18n()
 
 /** 写入 ZIP 内 web/head-snippet.txt（与站内 UI 无关） */
 const HEAD_SNIPPET_FOR_ZIP =
@@ -289,7 +292,7 @@ async function appendFiles (fileListLike) {
       ['image/jpeg', 'image/png', 'image/webp', 'image/gif'].includes(f.type),
   )
   if (!arr.length) {
-    showToast({ message: '请选择 JPG / PNG / WebP / GIF 图片', type: 'info' })
+    showToast({ message: t('appIcon.invalidImage'), type: 'info' })
     return
   }
   for (const file of arr) {
@@ -462,10 +465,10 @@ async function generateZip () {
       .slice(0, 19)
       .replace(/[-:T]/g, '')
     downloadBlob(blob, `app_icons_${ts}.zip`)
-    showToast({ message: `已生成 ${items.value.length} 套图标`, type: 'success' })
+    showToast({ message: t('appIcon.generatedToast', { count: items.value.length }), type: 'success' })
   } catch (e) {
     console.error(e)
-    showToast({ message: `生成失败：${e?.message || '未知错误'}`, type: 'error' })
+    showToast({ message: t('appIcon.generateFail') + '：' + (e?.message || 'Unknown error'), type: 'error' })
   } finally {
     generating.value = false
   }

@@ -1,7 +1,7 @@
 <template>
   <div class="tool-page">
     <div class="tool-header">
-      <h2>Gouer.vip 图片裁剪</h2>
+      <h2>{{ t('cropper.header') }}</h2>
       <div class="divider"></div>
     </div>
 
@@ -12,15 +12,15 @@
         <div class="crop-actions" @click.stop>
           <button class="btn btn-secondary btn-sm" @click="fileInput.click()">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
-            选择图片
+            {{ t('cropper.selectImage') }}
           </button>
           <button v-if="imgSrc" class="btn btn-primary btn-sm" @click="doCrop">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2v14a2 2 0 002 2h14M18 22V8a2 2 0 00-2-2H2"/></svg>
-            裁剪并下载
+            {{ t('cropper.cropDownload') }}
           </button>
           <button v-if="imgSrc" class="btn btn-ghost btn-sm" @click="resetCrop">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4v5h5M20 20v-5h-5M3.51 9a9 9 0 0114.85-3.36L20 7M4 17l1.64 1.36A9 9 0 0020.49 15"/></svg>
-            重置
+            {{ t('cropper.reset') }}
           </button>
         </div>
 
@@ -40,8 +40,8 @@
             <div class="placeholder-icon">
               <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
             </div>
-            <span class="placeholder-text">点击或拖拽图片到此处</span>
-            <span class="placeholder-hint">支持 JPG、PNG、WebP 格式</span>
+            <span class="placeholder-text">{{ t('cropper.dropPlaceholder') }}</span>
+            <span class="placeholder-hint">{{ t('cropper.dropHint') }}</span>
           </template>
 
           <!-- 图片 + 裁剪框 -->
@@ -94,7 +94,7 @@
         <!-- 比例预设 -->
         <div class="setting-card">
           <div class="setting-card-header" @click="s1 = !s1">
-            <h4>裁剪比例</h4>
+            <h4>{{ t('cropper.cropSettings') }}</h4>
             <svg class="arrow" :class="{ rotated: !s1 }" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
           </div>
           <div class="setting-card-body" v-show="s1">
@@ -126,12 +126,12 @@
         <!-- 输出设置 -->
         <div class="setting-card">
           <div class="setting-card-header" @click="s2 = !s2">
-            <h4>输出设置</h4>
+            <h4>{{ t('cropper.outputSettings') }}</h4>
             <svg class="arrow" :class="{ rotated: !s2 }" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
           </div>
           <div class="setting-card-body" v-show="s2">
             <div class="setting-row">
-              <label>输出格式</label>
+              <label>{{ t('cropper.outputFormat') }}</label>
               <div class="control">
                 <select class="select" v-model="outputFormat">
                   <option value="image/jpeg">JPEG</option>
@@ -141,7 +141,7 @@
               </div>
             </div>
             <div class="setting-row" v-if="outputFormat !== 'image/png'">
-              <label>输出质量</label>
+              <label>{{ t('cropper.outputQuality') }}</label>
               <div class="control">
                 <div class="range-group">
                   <input type="range" min="10" max="100" v-model.number="outputQuality">
@@ -154,7 +154,7 @@
 
         <AnchoredBubbleTip stretch :visible="footerCropTip.visible" :text="footerCropTip.text">
           <button type="button" class="btn btn-primary" style="width:100%;" @click="handleFooterCropClick">
-            裁剪并下载
+            {{ t('cropper.cropDownload') }}
           </button>
         </AnchoredBubbleTip>
       </div>
@@ -166,10 +166,13 @@
 
 <script setup>
 import { ref, reactive, computed, nextTick, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { showToast } from '../utils/toast.js'
 import { downloadBlob } from '../utils/download.js'
 import AnchoredBubbleTip from './AnchoredBubbleTip.vue'
 import { useAnchoredBubbleTip } from '../composables/useAnchoredBubbleTip.js'
+
+const { t } = useI18n()
 
 /* ── 文件 ────────────────────────────────────────────────── */
 const fileInput    = ref(null)
@@ -182,7 +185,7 @@ const origHeight   = ref(0)
 const fileName     = ref('image')
 const isDragging   = ref(false)
 
-const footerCropTip = useAnchoredBubbleTip({ initialText: '请先选择图片后再裁剪下载' })
+const footerCropTip = useAnchoredBubbleTip({ initialText: t('cropper.invalidImage') })
 
 watch(imgSrc, (v) => {
   if (v) footerCropTip.hide()
@@ -421,18 +424,18 @@ const doCrop = () => {
   const img = new Image()
   img.src = imgSrc.value
   img.onerror = () => {
-    showToast({ message: '裁剪失败：图片加载异常', type: 'error' })
+    showToast({ message: t('cropper.loadFailed'), type: 'error' })
   }
   img.onload = () => {
     ctx.drawImage(img, sx, sy, sw, sh, 0, 0, sw, sh)
     const ext = outputFormat.value.split('/')[1] || 'jpg'
     canvas.toBlob((blob) => {
       if (!blob) {
-        showToast({ message: '裁剪失败：无法生成图片', type: 'error' })
+        showToast({ message: t('cropper.loadFailed'), type: 'error' })
         return
       }
       downloadBlob(blob, `${fileName.value}_cropped.${ext}`)
-      showToast({ message: `裁剪完成：${sw} × ${sh} px`, type: 'success' })
+      showToast({ message: t('cropper.downloadSuccess'), type: 'success' })
     }, outputFormat.value, outputQuality.value / 100)
   }
 }

@@ -6,13 +6,13 @@
           <LogoCanvas :display-size="80" />
         </div>
         <h1>
-          Gouer<strong class="brand-accent">工具包包</strong>
+          Gouer<strong class="brand-accent">{{ $t('download.brandSub') }}</strong>
         </h1>
         <p>{{ deviceHint }}</p>
       </div>
 
       <!-- 分割线 + 更新摘要（对齐微信素材） -->
-      <section v-if="changelogRows.length" class="dl-changelog" aria-label="近期更新">
+      <section v-if="changelogRows.length" class="dl-changelog" :aria-label="$t('download.recentUpdates')">
         <div class="dl-changelog-hr" />
         <ul class="dl-log-list">
           <li
@@ -26,7 +26,7 @@
         </ul>
       </section>
 
-      <section class="dl-platform-strip" aria-label="Windows 与 macOS 安装包">
+      <section class="dl-platform-strip" :aria-label="$t('download.winMacSection')">
         <div
           v-for="card in cards"
           :key="card.id"
@@ -64,11 +64,11 @@
         <svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="2" aria-hidden="true">
           <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
         </svg>
-        {{ loading === 'go' ? '正在获取…' : '立即下载' }}
+        {{ loading === 'go' ? $t('download.getting') : $t('download.downloadNow') }}
       </div>
 
       <p class="dl-back">
-        <router-link to="/">返回首页</router-link>
+        <router-link to="/">{{ $t('download.backHome') }}</router-link>
       </p>
     </main>
 
@@ -96,6 +96,7 @@ import {
   getDeviceProfile,
   resolveArtifactForPlatform,
 } from '../utils/updateManifestShared.js'
+import i18n from '../i18n'
 
 const CARDS = [
   {
@@ -126,7 +127,7 @@ export default {
       changelogRows: [],
       _bodyOverflow: null,
       _htmlOverflow: null,
-      deviceHint: '选择一个系统开始下载电脑版客户端。',
+      deviceHint: i18n.global.t('download.selectHint'),
     }
   },
   mounted () {
@@ -144,7 +145,7 @@ export default {
     async initDeviceHint () {
       try {
         await getDeviceProfile()
-        this.deviceHint = '请选择 Windows / macOS 下载；或通过「立即下载」按当前设备匹配。'
+        this.deviceHint = i18n.global.t('download.selectHint2')
       } catch (_) { /* noop */ }
     },
     todayMmDd () {
@@ -162,13 +163,13 @@ export default {
         const rows = []
         if (w) {
           rows.push({
-            text: `Gouer工具包包 ${w} · Windows`,
+            text: `${i18n.global.t('download.changelogPrefix')} ${w} · Windows`,
             date: day,
           })
         }
         if (m) {
           rows.push({
-            text: `Gouer工具包包 ${m} · macOS`,
+            text: `${i18n.global.t('download.changelogPrefix')} ${m} · macOS`,
             date: day,
           })
         }
@@ -235,19 +236,17 @@ export default {
         const r = resolveArtifactForPlatform(platforms, platformOs, rustArch)
         if (!r?.downloadUrl) {
           this.toast(
-            `${
-              platformOs === 'macos' ? 'macOS' : 'Windows'
-            } 暂无可用安装包或链接未在白名单域名内。`,
+            platformOs === 'macos' ? i18n.global.t('download.noPackageMac') : i18n.global.t('download.noPackageWin'),
           )
           return
         }
         await this.openHref(r.downloadUrl)
-        this.toast('正在前往下载 …')
+        this.toast(i18n.global.t('download.going'))
       } catch (e) {
         const msg =
           e?.message?.includes?.('INVALID')
-            ? '上架接口暂未返回可用的平台描述。'
-            : '无法获取下载信息，请稍后重试或在 Gouer 客户端内打开本页。'
+            ? i18n.global.t('download.invalidManifest')
+            : i18n.global.t('download.fetchFailed')
         this.toast(msg)
       } finally {
         this.loading = ''
@@ -276,12 +275,12 @@ export default {
       const { platformOs, rustArch } = await getDeviceProfile()
       if (platformOs === 'linux') {
         this.loading = ''
-        this.toast('当前为 Linux：请点上方的 Windows / macOS 图标选择下载。')
+        this.toast(i18n.global.t('download.linuxTip'))
         return
       }
       if (platformOs === 'ios') {
         this.loading = ''
-        this.toast('当前为移动端：请在电脑上打开本页下载桌面端。')
+        this.toast(i18n.global.t('download.mobileTip'))
         return
       }
       await this.resolveAndOpen(

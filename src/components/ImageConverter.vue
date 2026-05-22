@@ -1,7 +1,7 @@
 <template>
   <div class="tool-page">
     <div class="tool-header">
-      <h2>Gouer.vip 图片格式转换</h2>
+      <h2>{{ $t('converter.header') }}</h2>
       <div class="divider"></div>
     </div>
 
@@ -13,17 +13,17 @@
         <div class="conv-actions" @click.stop>
           <button class="btn btn-secondary btn-sm" @click="triggerFileInput">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
-            选择文件
+            {{ $t('converter.selectFile') }}
           </button>
           <AnchoredBubbleTip :visible="convertTipVisible" :text="convertTipText">
             <button type="button" class="btn btn-primary btn-sm" @click="handleConvertClick">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
-              {{ converting ? '转换中…' : '开始转换' }}
+              {{ converting ? $t('converter.converting') : $t('converter.startConvert') }}
             </button>
           </AnchoredBubbleTip>
           <button v-if="selectedFile" class="btn btn-ghost btn-sm" @click="resetAll">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4v5h5M20 20v-5h-5M3.51 9a9 9 0 0114.85-3.36L20 7M4 17l1.64 1.36A9 9 0 0020.49 15"/></svg>
-            重置
+            {{ $t('converter.reset') }}
           </button>
         </div>
 
@@ -40,8 +40,8 @@
             <div class="placeholder-icon">
               <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
             </div>
-            <span class="placeholder-text">点击或拖拽图片文件到此处</span>
-            <span class="placeholder-hint">支持 JPG、PNG、WebP、BMP 格式</span>
+            <span class="placeholder-text">{{ $t('converter.dropPlaceholder') }}</span>
+            <span class="placeholder-hint">{{ $t('converter.dropHint') }}</span>
           </template>
           <img v-else :src="previewUrl" :alt="selectedFile.name" class="preview-image">
         </div>
@@ -52,12 +52,12 @@
 
         <div class="setting-card">
           <div class="setting-card-header" @click="cardOpen = !cardOpen">
-            <h4>转换设置</h4>
+            <h4>{{ $t('converter.convertSettings') }}</h4>
             <svg class="arrow" :class="{ rotated: !cardOpen }" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
           </div>
           <div class="setting-card-body" v-show="cardOpen">
             <div class="setting-row">
-              <label>目标格式</label>
+              <label>{{ $t('converter.targetFormat') }}</label>
               <div class="control">
                 <div class="format-btns">
                   <button
@@ -70,7 +70,7 @@
               </div>
             </div>
             <div class="setting-row" v-if="targetFormat === 'image/jpeg'">
-              <label>输出质量</label>
+              <label>{{ $t('converter.outputQuality') }}</label>
               <div class="control">
                 <div class="range-group">
                   <input
@@ -86,7 +86,7 @@
               </div>
             </div>
             <div class="setting-row">
-              <label>分辨率</label>
+              <label>{{ $t('converter.resolution') }}</label>
               <div class="control" style="display:flex;align-items:center;gap:4px;">
                 <input class="input" type="number" v-model.number="newWidth" min="1" @input="updateHeight" @change="updatePreview">
                 <span style="color:var(--color-text-muted);">×</span>
@@ -94,7 +94,7 @@
               </div>
             </div>
             <div class="setting-row">
-              <label>保持比例</label>
+              <label>{{ $t('converter.keepRatio') }}</label>
               <div class="control">
                 <label class="toggle">
                   <input type="checkbox" v-model="maintainAspectRatio" @change="onAspectToggle">
@@ -103,7 +103,7 @@
               </div>
             </div>
             <div class="setting-row">
-              <label>大小限制</label>
+              <label>{{ $t('converter.sizeLimit') }}</label>
               <div class="control">
                 <label class="toggle">
                   <input type="checkbox" v-model="enableSizeLimit">
@@ -112,7 +112,7 @@
               </div>
             </div>
             <div class="setting-row" v-show="enableSizeLimit">
-              <label>上限</label>
+              <label>{{ $t('converter.maxSize') }}</label>
               <div class="control" style="display:flex;align-items:center;gap:6px;">
                 <input class="input" type="number" v-model.number="maxSizeInMB" min="0.1" step="0.1" style="width:80px;" @input="updatePreview" @change="updatePreview">
                 <span style="font-size:13px;color:var(--color-text-muted);">MB</span>
@@ -123,10 +123,10 @@
               <span class="conv-setting-file-size">{{ formatFileSize(selectedFile.size) }}</span>
             </div>
             <div v-if="selectedFile && hasEstimate" class="setting-row">
-              <label>预计大小</label>
+              <label>{{ $t('converter.estSize') }}</label>
               <div class="control">
                 <span class="estimate-bytes">{{ formatFileSize(estimatedSize) }}</span>
-                <span v-if="estimateOverLimit" class="estimate-warn">（已超过上限，开启限制时转换将失败）</span>
+                <span v-if="estimateOverLimit" class="estimate-warn">{{ $t('converter.overLimitWarn') }}</span>
               </div>
             </div>
           </div>
@@ -142,6 +142,7 @@ import AnchoredBubbleTip from './AnchoredBubbleTip.vue'
 import { showToast } from '../utils/toast.js'
 import { downloadBlob } from '../utils/download.js'
 import { anchoredBubbleExclusiveGen } from '../utils/anchoredBubbleCoordinator.js'
+import i18n from '../i18n'
 
 export default {
   name: 'ImageConverter',
@@ -166,7 +167,7 @@ export default {
       _previewSeq: 0,
       cardOpen: true,
       convertTipVisible: false,
-      convertTipText: '请先选择图片后再转换',
+      convertTipText: i18n.global.t('converter.selectFirst'),
       convertTipLastGen: -1,
       _convertTipTimer: null,
       _stopBubbleGenWatch: null,
@@ -226,7 +227,7 @@ export default {
         return
       }
       if (this.converting) {
-        this.flashConvertTip('转换进行中，请稍候')
+        this.flashConvertTip(i18n.global.t('converter.convertingMsg'))
         return
       }
       clearTimeout(this._convertTipTimer)
@@ -236,12 +237,12 @@ export default {
     handleFileChange(event) {
       const file = event.target.files[0]
       if (file && file.type.startsWith('image/')) this.handleImageFile(file)
-      else showToast({ message: '请选择图片文件', type: 'info' })
+      else showToast({ message: i18n.global.t('converter.selectImage'), type: 'info' })
     },
     handleDrop(event) {
       const file = event.dataTransfer.files[0]
       if (file && file.type.startsWith('image/')) this.handleImageFile(file)
-      else showToast({ message: '请选择图片文件', type: 'info' })
+      else showToast({ message: i18n.global.t('converter.selectImage'), type: 'info' })
     },
     async handleImageFile(file) {
       clearTimeout(this._convertTipTimer)
@@ -323,11 +324,11 @@ export default {
         const blob = await new Promise((resolve) => {
           canvas.toBlob((b) => resolve(b), mime, encodeQuality)
         })
-        if (!blob) throw new Error('导出失败（浏览器未生成文件）')
+        if (!blob) throw new Error(i18n.global.t('converter.exportFailed'))
 
         const maxBytes = this.maxSizeInMB * 1024 * 1024
         if (this.enableSizeLimit && blob.size > maxBytes) {
-          throw new Error(`转换后文件大小(${this.formatFileSize(blob.size)})超过限制(${this.maxSizeInMB}MB)`)
+          throw new Error(i18n.global.t('converter.sizeExceeded', { size: this.formatFileSize(blob.size), limit: this.maxSizeInMB }))
         }
 
         let extension = mime.split('/')[1] || 'jpg'
@@ -340,7 +341,7 @@ export default {
         downloadBlob(blob, filename)
       } catch (error) {
         console.error('转换失败:', error)
-        showToast({ message: `图片转换失败：${error.message}`, type: 'error' })
+        showToast({ message: i18n.global.t('converter.convertFailed') + '：' + error.message, type: 'error' })
       } finally {
         this.converting = false
       }
@@ -349,7 +350,7 @@ export default {
       return new Promise((resolve, reject) => {
         const img = new Image()
         img.onload = () => resolve(img)
-        img.onerror = () => reject(new Error('图片加载失败'))
+        img.onerror = () => reject(new Error(i18n.global.t('converter.imageLoadFailed')))
         img.src = url
       })
     },

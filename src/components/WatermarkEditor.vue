@@ -1,7 +1,7 @@
 <template>
   <div class="tool-page">
     <div class="tool-header">
-      <h2>Gouer.vip 图片加水印</h2>
+      <h2>{{ t('watermark.header') }}</h2>
       <div class="divider"></div>
     </div>
 
@@ -13,19 +13,19 @@
         <div class="wm-actions" @click.stop>
           <button class="btn btn-secondary btn-sm" @click="handleFileSelect">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
-            选择文件
+            {{ t('watermark.selectFile') }}
           </button>
           <button v-if="imageList.length" class="btn btn-primary btn-sm" @click="saveImage">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2zM17 21v-8H7v8M7 3v5h8"/></svg>
-            保存当前
+            {{ t('watermark.saveCurrent') }}
           </button>
           <button v-if="imageList.length > 1" class="btn btn-purple btn-sm" :disabled="zipBusy" @click="saveAllImages">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
-            {{ zipBusy ? '打包中…' : '批量保存' }}
+            {{ zipBusy ? t('watermark.packaging') : t('watermark.batchSave') }}
           </button>
           <button v-if="imageList.length" class="btn btn-danger btn-sm" @click="clearImageList">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>
-            清理列表
+            {{ t('watermark.clearList') }}
           </button>
         </div>
 
@@ -42,8 +42,8 @@
             <div class="placeholder-icon">
               <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
             </div>
-            <span class="placeholder-text">点击或拖拽图片文件到此处</span>
-            <span class="placeholder-hint">支持 JPG、PNG、WebP 格式</span>
+            <span class="placeholder-text">{{ t('watermark.dropPlaceholder') }}</span>
+            <span class="placeholder-hint">{{ t('watermark.dropHint') }}</span>
           </template>
           <canvas
             v-show="imageList.length > 0"
@@ -54,7 +54,7 @@
         </div>
 
         <div v-if="imageList.length" class="file-section">
-          <div class="file-label">已选择 {{ imageList.length }} 个文件：</div>
+          <div class="file-label">{{ t('watermark.selectedCount', { count: imageList.length }) }}</div>
           <div class="file-strip">
             <div
               v-for="(image, index) in imageList"
@@ -66,9 +66,9 @@
             </div>
           </div>
           <div class="file-nav" v-if="imageList.length > 1">
-            <button class="btn btn-ghost btn-sm" @click="previousImage" :disabled="currentImageIndex === 0">上一张</button>
+            <button class="btn btn-ghost btn-sm" @click="previousImage" :disabled="currentImageIndex === 0">{{ t('watermark.prevImage') }}</button>
             <span class="page-indicator">{{ currentImageIndex + 1 }} / {{ imageList.length }}</span>
-            <button class="btn btn-ghost btn-sm" @click="nextImage" :disabled="currentImageIndex === imageList.length - 1">下一张</button>
+            <button class="btn btn-ghost btn-sm" @click="nextImage" :disabled="currentImageIndex === imageList.length - 1">{{ t('watermark.nextImage') }}</button>
           </div>
         </div>
       </div>
@@ -79,33 +79,33 @@
         <!-- 基础设置 -->
         <div class="setting-card">
           <div class="setting-card-header" @click="toggleCard('basic')">
-            <h4>基础设置</h4>
+            <h4>{{ t('watermark.basicSettings') }}</h4>
             <svg class="arrow" :class="{ rotated: !cardOpen.basic }" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
           </div>
           <div class="setting-card-body" v-show="cardOpen.basic">
             <div class="setting-row">
-              <label>配置模式</label>
+              <label>{{ t('watermark.configMode') }}</label>
               <div class="control">
                 <label class="toggle">
                   <input type="checkbox" v-model="watermarkSettings.useProportionalMode" @change="updateWatermark" />
                   <span class="toggle-track"></span>
-                  <span class="toggle-label">{{ watermarkSettings.useProportionalMode ? '比例模式' : '固定模式' }}</span>
+                  <span class="toggle-label">{{ watermarkSettings.useProportionalMode ? t('watermark.proportionalMode') : t('watermark.fixedMode') }}</span>
                 </label>
               </div>
             </div>
             <div class="setting-row">
-              <label>水印文字</label>
+              <label>{{ t('watermark.watermarkText') }}</label>
               <div class="control"><input class="input" type="text" v-model="watermarkSettings.text" maxlength="130"></div>
             </div>
             <div class="setting-row">
-              <label>文字颜色</label>
+              <label>{{ t('watermark.textColor') }}</label>
               <div class="control" style="display:flex;align-items:center;gap:8px;">
                 <div
                   class="color-dot wm-color-swatch"
                   :style="{ background: watermarkSettings.color }"
                   role="button"
                   tabindex="0"
-                  title="打开颜色选择"
+                  :title="t('watermark.openColorPicker')"
                   @click="openColorPicker"
                   @keydown.enter.prevent="openColorPicker"
                   @keydown.space.prevent="openColorPicker"
@@ -116,7 +116,7 @@
               </div>
             </div>
             <div class="setting-row">
-              <label>不透明度</label>
+              <label>{{ t('watermark.opacity') }}</label>
               <div class="control">
                 <div class="range-group">
                   <input type="range" min="0" max="100" :value="Math.round(watermarkSettings.rgb.a * 100)" @input="e => { watermarkSettings.rgb.a = Number(e.target.value) / 100; updateWatermark() }">
@@ -125,7 +125,7 @@
               </div>
             </div>
             <div class="setting-row" v-if="!watermarkSettings.useProportionalMode">
-              <label>字体大小</label>
+              <label>{{ t('watermark.fontSize') }}</label>
               <div class="control">
                 <div class="range-group">
                   <input type="range" min="12" max="100" v-model.number="watermarkSettings.fontSize">
@@ -134,7 +134,7 @@
               </div>
             </div>
             <div class="setting-row" v-else>
-              <label>字体比例</label>
+              <label>{{ t('watermark.fontSizeRatio') }}</label>
               <div class="control">
                 <div class="range-group">
                   <input type="range" min="0.5" max="10" step="0.5" :value="watermarkSettings.fontSizeRatio * 100" @input="e => { watermarkSettings.fontSizeRatio = Number(e.target.value) / 100; updateWatermark() }">
@@ -148,12 +148,12 @@
         <!-- 高级设置 -->
         <div class="setting-card">
           <div class="setting-card-header" @click="toggleCard('advanced')">
-            <h4>高级设置</h4>
+            <h4>{{ t('watermark.advancedSettings') }}</h4>
             <svg class="arrow" :class="{ rotated: !cardOpen.advanced }" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
           </div>
           <div class="setting-card-body" v-show="cardOpen.advanced">
             <div class="setting-row">
-              <label>重复水印</label>
+              <label>{{ t('watermark.repeatWatermark') }}</label>
               <div class="control">
                 <label class="toggle">
                   <input type="checkbox" v-model="watermarkSettings.repeat">
@@ -162,7 +162,7 @@
               </div>
             </div>
             <div class="setting-row" v-if="watermarkSettings.repeat && !watermarkSettings.useProportionalMode">
-              <label>水印间距</label>
+              <label>{{ t('watermark.watermarkSpacing') }}</label>
               <div class="control">
                 <div class="range-group">
                   <input type="range" min="0" max="300" v-model.number="watermarkSettings.spacing">
@@ -171,7 +171,7 @@
               </div>
             </div>
             <div class="setting-row" v-if="watermarkSettings.repeat && watermarkSettings.useProportionalMode">
-              <label>间距比例</label>
+              <label>{{ t('watermark.spacingRatio') }}</label>
               <div class="control">
                 <div class="range-group">
                   <input type="range" min="0" max="20" step="1" :value="watermarkSettings.spacingRatio * 100" @input="e => { watermarkSettings.spacingRatio = Number(e.target.value) / 100; updateWatermark() }">
@@ -180,7 +180,7 @@
               </div>
             </div>
             <div class="setting-row">
-              <label>水印框宽</label>
+              <label>{{ t('watermark.watermarkWidth') }}</label>
               <div class="control">
                 <div class="range-group">
                   <input type="range" min="100" max="500" v-model.number="watermarkSettings.watermarkWidth">
@@ -189,7 +189,7 @@
               </div>
             </div>
             <div class="setting-row">
-              <label>水印框高</label>
+              <label>{{ t('watermark.watermarkHeight') }}</label>
               <div class="control">
                 <div class="range-group">
                   <input type="range" min="100" max="500" v-model.number="watermarkSettings.watermarkHeight">
@@ -198,13 +198,13 @@
               </div>
             </div>
             <div class="setting-row">
-              <label>旋转角度</label>
+              <label>{{ t('watermark.rotationAngle') }}</label>
               <div class="control" style="display:flex;align-items:center;gap:6px;">
                 <div class="range-group" style="flex:1;min-width:0;">
                   <input type="range" min="-90" max="90" v-model.number="watermarkSettings.angle" style="min-width:0;">
                   <span class="range-value">{{ watermarkSettings.angle }}°</span>
                 </div>
-                <button v-if="imageList.length" class="btn btn-secondary btn-sm" @click="rotate" style="flex-shrink:0;white-space:nowrap;">旋转90°</button>
+                <button v-if="imageList.length" class="btn btn-secondary btn-sm" @click="rotate" style="flex-shrink:0;white-space:nowrap;">{{ t('watermark.rotate90') }}</button>
               </div>
             </div>
           </div>
@@ -213,27 +213,27 @@
         <!-- Logo 设置 -->
         <div class="setting-card">
           <div class="setting-card-header" @click="toggleCard('logo')">
-            <h4>Logo 设置</h4>
+            <h4>{{ t('watermark.logoSettings') }}</h4>
             <svg class="arrow" :class="{ rotated: !cardOpen.logo }" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
           </div>
           <div class="setting-card-body" v-show="cardOpen.logo">
             <div class="setting-row">
-              <label>选择Logo</label>
-              <div class="control"><button class="btn btn-secondary btn-sm" @click="handleLogoSelect">选择文件</button></div>
+              <label>{{ t('watermark.selectLogo') }}</label>
+              <div class="control"><button class="btn btn-secondary btn-sm" @click="handleLogoSelect">{{ t('watermark.selectFile') }}</button></div>
             </div>
             <div class="setting-row" v-if="logoSettings.image">
-              <label>位置</label>
+              <label>{{ t('watermark.position') }}</label>
               <div class="control">
                 <select class="select" v-model="logoSettings.position">
-                  <option value="top-left">左上角</option>
-                  <option value="top-right">右上角</option>
-                  <option value="bottom-left">左下角</option>
-                  <option value="bottom-right">右下角</option>
+                  <option value="top-left">{{ t('watermark.topLeft') }}</option>
+                  <option value="top-right">{{ t('watermark.topRight') }}</option>
+                  <option value="bottom-left">{{ t('watermark.bottomLeft') }}</option>
+                  <option value="bottom-right">{{ t('watermark.bottomRight') }}</option>
                 </select>
               </div>
             </div>
             <div class="setting-row" v-if="logoSettings.image">
-              <label>Logo大小</label>
+              <label>{{ t('watermark.logoSize') }}</label>
               <div class="control">
                 <div class="range-group">
                   <input type="range" min="20" max="200" v-model.number="logoSettings.size" @input="updateWatermark">
@@ -242,7 +242,7 @@
               </div>
             </div>
             <div class="setting-row" v-if="logoSettings.image">
-              <label>Logo边距</label>
+              <label>{{ t('watermark.logoPadding') }}</label>
               <div class="control">
                 <div class="range-group">
                   <input type="range" min="0" max="100" v-model.number="logoSettings.padding" @input="updateWatermark">
@@ -251,7 +251,7 @@
               </div>
             </div>
             <div class="setting-row" v-if="logoSettings.image">
-              <label>Logo透明</label>
+              <label>{{ t('watermark.logoOpacity') }}</label>
               <div class="control">
                 <div class="range-group">
                   <input type="range" min="0" max="100" :value="Math.round(logoSettings.opacity * 100)" @input="e => { logoSettings.opacity = Number(e.target.value) / 100; updateWatermark() }">
@@ -261,12 +261,12 @@
             </div>
             <div class="setting-row" v-if="logoSettings.image">
               <label></label>
-              <div class="control"><button class="btn btn-danger btn-sm" @click="clearLogo">清除Logo</button></div>
+              <div class="control"><button class="btn btn-danger btn-sm" @click="clearLogo">{{ t('watermark.clearLogo') }}</button></div>
             </div>
           </div>
         </div>
 
-        <button class="btn btn-ghost" style="align-self:center;" @click="resetSettings">重置全部设置</button>
+        <button class="btn btn-ghost" style="align-self:center;" @click="resetSettings">{{ t('watermark.resetAllSettings') }}</button>
 
         <!-- 自定义颜色弹层：在右侧控制栏区域内水平垂直居中 -->
         <div
@@ -281,7 +281,7 @@
             aria-labelledby="wm-color-dialog-title"
             @click.stop
           >
-            <div id="wm-color-dialog-title" class="wm-color-dialog-title">文字颜色</div>
+            <div id="wm-color-dialog-title" class="wm-color-dialog-title">{{ t('watermark.textColor') }}</div>
             <div
               ref="svPlaneRef"
               class="wm-sv-plane"
@@ -291,7 +291,7 @@
               <div class="wm-sv-indicator" :style="svIndicatorStyle"></div>
             </div>
             <div class="wm-hue-row">
-              <span class="wm-hue-label">色相</span>
+              <span class="wm-hue-label">{{ t('watermark.hue') }}</span>
               <input
                 type="range"
                 class="wm-hue-slider"
@@ -314,8 +314,8 @@
               <div class="wm-color-preview" :style="{ background: pickerPreviewBg }"></div>
             </div>
             <div class="wm-color-dialog-actions">
-              <button type="button" class="btn btn-ghost btn-sm" @click="cancelColorPicker">取消</button>
-              <button type="button" class="btn btn-primary btn-sm" @click="confirmColorPicker">确定</button>
+              <button type="button" class="btn btn-ghost btn-sm" @click="cancelColorPicker">{{ t('watermark.cancel') }}</button>
+              <button type="button" class="btn btn-primary btn-sm" @click="confirmColorPicker">{{ t('watermark.confirm') }}</button>
             </div>
           </div>
         </div>
@@ -326,10 +326,13 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted, watch, nextTick, onUnmounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { showToast } from '../utils/toast.js'
 import { downloadDataUrl, downloadBlob } from '../utils/download.js'
 import { getDesktopShell } from '../utils/nativeDesktop.js'
 import JSZip from 'jszip'
+
+const { t } = useI18n()
 
 // Card toggle state
 const cardOpen = reactive({
@@ -379,7 +382,7 @@ const getStoredSettings = () => {
       mergedSettings._savedLogoConfig = settings.logoConfig || null
       return mergedSettings
     } catch (e) {
-      console.error('解析存储的设置失败:', e)
+      console.error('Failed to parse stored settings:', e)
       return defaultSettings
     }
   }
@@ -806,10 +809,10 @@ const saveImage = async () => {
       const savePath = await desktop.saveFile(suggestedName)
       if (!savePath) return
       await desktop.saveImage({ dataUrl, path: savePath })
-      showToast({ message: '保存成功', type: 'success' })
+      showToast({ message: t('watermark.saveSuccess'), type: 'success' })
     } catch (error) {
-      console.error('保存失败:', error)
-      showToast({ message: `保存失败：${error.message}`, type: 'error' })
+      console.error('Save failed:', error)
+      showToast({ message: t('watermark.saveFailed', { error: error.message }), type: 'error' })
     }
   } else {
     const currentImage = imageList.value[currentImageIndex.value]
@@ -905,7 +908,7 @@ const handleFileSelect = () => {
         }
       }
       reader.onerror = () => {
-        showToast({ message: `${file.name} 读取失败`, type: 'error' })
+        showToast({ message: t('watermark.readFailed', { name: file.name }), type: 'error' })
       }
       reader.readAsDataURL(file)
     })
@@ -953,7 +956,7 @@ const saveAllImages = async () => {
           currentImageIndex.value = i
           await new Promise(resolve => { nextTick(() => { updateWatermark(); setTimeout(resolve, 200) }) })
           const currentImage = imageList.value[i]
-          if (!currentImage) throw new Error(`无法获取第 ${i + 1} 张图片信息`)
+          if (!currentImage) throw new Error(t('watermark.cannotGetImageInfo', { index: i + 1 }))
           const originalName = currentImage.name
           const nameWithoutExt = originalName.substring(0, originalName.lastIndexOf('.')) || originalName
           const extension = originalName.substring(originalName.lastIndexOf('.')) || '.jpg'
@@ -961,24 +964,24 @@ const saveAllImages = async () => {
           const timestamp = now.getFullYear() + ('0' + (now.getMonth() + 1)).slice(-2) + ('0' + now.getDate()).slice(-2) + ('0' + now.getHours()).slice(-2) + ('0' + now.getMinutes()).slice(-2) + ('0' + now.getSeconds()).slice(-2) + ('0' + now.getMilliseconds()).slice(-3)
           const fileName = `${nameWithoutExt}_watermark_${timestamp}${extension}`
           const filePath = `${saveDir}/${fileName}`
-          if (!canvasRef.value) throw new Error('Canvas未初始化')
+          if (!canvasRef.value) throw new Error(t('watermark.canvasNotInitialized'))
           const originalType = currentImage.name.toLowerCase().endsWith('.png') ? 'image/png' : 'image/jpeg'
           const dataUrl = createOptimizedDataURL(canvasRef.value, originalType, 0.9)
-          if (!dataUrl || dataUrl === 'data:,') throw new Error('无法生成图片数据')
+          if (!dataUrl || dataUrl === 'data:,') throw new Error(t('watermark.cannotGenerateImageData'))
           await desktop.saveImage({ dataUrl, path: filePath })
           successCount++
         } catch (error) {
-          console.error(`保存第 ${i + 1} 张图片失败:`, error)
+          console.error(t('watermark.saveFailed', { error: i + 1 }), error)
           failCount++
         }
       }
       showToast({
-        message: `批量保存完成 · 成功 ${successCount} 张 · 失败 ${failCount} 张`,
+        message: t('watermark.batchSaveComplete', { success: successCount, fail: failCount }),
         type: failCount === 0 ? 'success' : successCount === 0 ? 'error' : 'info',
       })
     } catch (error) {
-      console.error('批量保存失败:', error)
-      showToast({ message: `批量保存失败：${error.message}`, type: 'error' })
+      console.error('Batch save failed:', error)
+      showToast({ message: t('watermark.batchSaveFailed', { error: error.message }), type: 'error' })
     }
   } else {
     if (zipBusy.value) return
@@ -994,14 +997,14 @@ const saveAllImages = async () => {
           currentImageIndex.value = i
           await new Promise(resolve => { nextTick(() => { updateWatermark(); setTimeout(resolve, 200) }) })
           const currentImage = imageList.value[i]
-          if (!currentImage) throw new Error(`无法获取第 ${i + 1} 张图片信息`)
+          if (!currentImage) throw new Error(t('watermark.cannotGetImageInfo', { index: i + 1 }))
           const originalName = currentImage.name
           const nameWithoutExt = originalName.substring(0, originalName.lastIndexOf('.')) || originalName
           const extension = originalName.substring(originalName.lastIndexOf('.')) || '.jpg'
-          if (!canvasRef.value) throw new Error('Canvas未初始化')
+          if (!canvasRef.value) throw new Error(t('watermark.canvasNotInitialized'))
           const originalType = currentImage.name.toLowerCase().endsWith('.png') ? 'image/png' : 'image/jpeg'
           const dataUrl = createOptimizedDataURL(canvasRef.value, originalType, 0.9)
-          if (!dataUrl || dataUrl === 'data:,') throw new Error('无法生成图片数据')
+          if (!dataUrl || dataUrl === 'data:,') throw new Error(t('watermark.cannotGenerateImageData'))
 
           let entryName = `${nameWithoutExt}_watermark${extension}`
           let n = 1
@@ -1012,7 +1015,7 @@ const saveAllImages = async () => {
           usedNames.add(entryName.toLowerCase())
           zip.file(entryName, dataUrlToBlob(dataUrl))
         } catch (error) {
-          console.error(`处理第 ${i + 1} 张图片失败:`, error)
+          console.error(t('watermark.processImageFailed', { index: i + 1 }), error)
           failCount++
         }
       }
@@ -1023,7 +1026,7 @@ const saveAllImages = async () => {
         await new Promise(resolve => { nextTick(() => { updateWatermark(); setTimeout(resolve, 200) }) })
       }
 
-      if (usedNames.size === 0) throw new Error('没有成功处理的图片')
+      if (usedNames.size === 0) throw new Error(t('watermark.noProcessedImage'))
 
       const zipBlob = await zip.generateAsync({
         type: 'blob',
@@ -1041,13 +1044,13 @@ const saveAllImages = async () => {
       downloadBlob(zipBlob, `watermark_${ts}.zip`)
       showToast({
         message: failCount === 0
-          ? `已下载 ZIP（内含 ${usedNames.size} 个文件）`
-          : `已下载 ZIP（成功 ${usedNames.size} 个，失败 ${failCount} 个）`,
+          ? t('watermark.downloadZipSuccess', { count: usedNames.size })
+          : t('watermark.downloadZipPartial', { success: usedNames.size, fail: failCount }),
         type: failCount === 0 ? 'success' : 'info',
       })
     } catch (e) {
       console.error(e)
-      showToast({ message: `打包失败：${e?.message || '未知错误'}`, type: 'error' })
+      showToast({ message: t('watermark.packFailed', { error: e?.message || t('watermark.unknownError') }), type: 'error' })
     } finally {
       zipBusy.value = false
     }
