@@ -11,7 +11,8 @@
     "appIcon": "应用图标",
     "brandSubtitle": "工具包包 v{version}",
     "navLabel": "主导航",
-    "copyright": "Copyright © 2024–2026 Gouer.Vip All Rights Reserved."
+    "copyright": "Copyright © 2024–2026 Gouer.Vip All Rights Reserved.",
+    "textCounter": "文字计数"
   },
   "home": {
     "heroTitle": "工具包包",
@@ -33,7 +34,9 @@
     "exifName": "EXIF 查看/清除",
     "exifDesc": "查看 GPS/设备/时间等元数据，一键清除保护隐私",
     "qrcodeName": "二维码生成",
-    "qrcodeDesc": "网址/文字/WiFi 一键生成，自定义颜色，导出 PNG/SVG"
+    "qrcodeDesc": "网址/文字/WiFi 一键生成，自定义颜色，导出 PNG/SVG",
+    "textCounterName": "文字计数",
+    "textCounterDesc": "统计字符、单词、中英文、段落、行数、标点、数字"
   },
   "theme": {
     "title": "切换主题",
@@ -464,6 +467,27 @@
     "baseName": "Gouer工具包包",
     "notFoundBaseName": "Gouer工具包包",
     "notFoundDefaultDesc": "免费在线图片处理工具箱（本地运行，隐私安全）",
-    "langCode": "zh-CN"
+    "langCode": "zh-CN",
+    "textCounter": {
+      "title": "文字计数工具 — 在线统计字符/单词/段落 — Gouer工具包包",
+      "description": "免费在线文字计数工具，实时统计总字符数、中英文字符、单词总数、段落数、行数、标点符号、数字个数。粘贴即可统计，本地处理保护隐私。",
+      "keywords": "文字计数,在线字数统计,字符统计,单词统计,中文字数,英文字数,段落统计,行数统计,标点统计,字数计算器,在线计数器"
+    }
+  },
+  "textCounter": {
+    "header": "Gouer.vip 文字计数",
+    "inputPlaceholder": "输入或粘贴文字，下方实时显示统计结果…",
+    "clear": "清空",
+    "paste": "从剪贴板粘贴",
+    "chars": "总字符数",
+    "charsNoSpaces": "不含空格",
+    "words": "单词总数",
+    "lines": "行数",
+    "paragraphs": "段落数",
+    "chineseChars": "中文字符",
+    "englishWords": "英文单词",
+    "punctuation": "标点符号",
+    "digits": "数字",
+    "statsTitle": "统计结果"
   }
 }

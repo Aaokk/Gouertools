@@ -9,6 +9,7 @@ const ImageCropper = () => import('../components/ImageCropper.vue')
 const QrCodeGen = () => import('../components/QrCodeGen.vue')
 const ExifEditor = () => import('../components/ExifEditor.vue')
 const MosaicEditor = () => import('../components/MosaicEditor.vue')
+const TextCounter = () => import('../components/TextCounter.vue')
 const AppIconMaker = () => import('../components/AppIconMaker.vue')
 import DownloadLanding from '../components/DownloadLanding.vue'
 const NotFound = () => import('../components/NotFound.vue')
@@ -70,6 +71,12 @@ const routes = [
     name: 'mosaic',
     component: MosaicEditor,
     meta: { seoKey: 'mosaic' }
+  },
+  {
+    path: '/text-counter',
+    name: 'text-counter',
+    component: TextCounter,
+    meta: { seoKey: 'textCounter' }
   },
   {
     path: '/app-icon',

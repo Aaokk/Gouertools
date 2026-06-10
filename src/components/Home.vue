@@ -95,6 +95,15 @@
           </div>
           <div class="card-desc">{{ $t('home.qrcodeDesc') }}</div>
         </router-link>
+        <router-link to="/text-counter" class="tool-card">
+          <div class="card-head">
+            <div class="card-icon">
+              <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h7"/></svg>
+            </div>
+            <h3>{{ $t('home.textCounterName') }}</h3>
+          </div>
+          <div class="card-desc">{{ $t('home.textCounterDesc') }}</div>
+        </router-link>
       </div>
     </div>
   </div>

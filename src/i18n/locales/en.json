@@ -11,7 +11,8 @@
     "appIcon": "App Icon",
     "brandSubtitle": "Gouer Toolbox v{version}",
     "navLabel": "Main navigation",
-    "copyright": "Copyright © 2024–2026 Gouer.Vip All Rights Reserved."
+    "copyright": "Copyright © 2024–2026 Gouer.Vip All Rights Reserved.",
+    "textCounter": "Text Counter"
   },
   "home": {
     "heroTitle": "Gouer Toolbox",
@@ -33,7 +34,9 @@
     "exifName": "EXIF Viewer/Cleaner",
     "exifDesc": "View GPS, device & time metadata; one-click wipe to protect your privacy",
     "qrcodeName": "QR Code Gen",
-    "qrcodeDesc": "URL, text, WiFi QR codes — custom colors, logo embed, PNG/SVG export"
+    "qrcodeDesc": "URL, text, WiFi QR codes — custom colors, logo embed, PNG/SVG export",
+    "textCounterName": "Text Counter",
+    "textCounterDesc": "Count characters, words, Chinese/English, paragraphs, lines, punctuation, digits"
   },
   "theme": {
     "title": "Switch Theme",
@@ -464,6 +467,27 @@
     "baseName": "Gouer Toolbox",
     "notFoundBaseName": "Gouer Toolbox",
     "notFoundDefaultDesc": "Free online image processing toolkit (fully local, privacy-safe)",
-    "langCode": "en"
+    "langCode": "en",
+    "textCounter": {
+      "title": "Text Counter — Online Character & Word Count Tool — Gouer Toolbox",
+      "description": "Free online text counter: count characters, Chinese & English characters, words, paragraphs, lines, punctuation, and digits in real time. Paste to count, fully local.",
+      "keywords": "text counter,word count,character count,Chinese character count,English word count,paragraph count,line count,punctuation count,online word counter,character counter"
+    }
+  },
+  "textCounter": {
+    "header": "Gouer.vip Text Counter",
+    "inputPlaceholder": "Type or paste text here, stats update in real time…",
+    "clear": "Clear",
+    "paste": "Paste from Clipboard",
+    "chars": "Characters",
+    "charsNoSpaces": "No Spaces",
+    "words": "Words",
+    "lines": "Lines",
+    "paragraphs": "Paragraphs",
+    "chineseChars": "Chinese Chars",
+    "englishWords": "English Words",
+    "punctuation": "Punctuation",
+    "digits": "Digits",
+    "statsTitle": "Statistics"
   }
 }
